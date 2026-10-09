@@ -1,4 +1,4 @@
-# Tienda de arreglos florales
+# floral-shop
 
 Proyecto de portafolio: tienda online para una florista de Bogotá.
 
