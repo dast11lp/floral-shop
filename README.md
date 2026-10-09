@@ -10,3 +10,6 @@ En desarrollo. Fase 0: preparación.
 ## Documentación
 - Plan general: `docs/plan.md`
 - Decisiones de arquitectura: `docs/decisions/`
+
+## Licencia
+Todos los derechos reservados. Ver `LICENSE`.

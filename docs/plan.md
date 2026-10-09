@@ -24,7 +24,7 @@ Este documento es un plan **general**. No es un paso a paso completo.
 
 | # | Decisión | Elección | Alternativas descartadas |
 |---|---|---|---|
-| 1 | Repositorio | Monorepo **privado**, sin datos reales (A+) | Repos separados; carpeta `apps/`; carpeta `deploy/` |
+| 1 | Repositorio | Monorepo **público**, sin datos reales (A+) | Repo privado (en el plan gratuito de GitHub la protección de `main` no se aplicó); repos separados; carpeta `apps/`; carpeta `deploy/` |
 | 2 | Arquitectura | Monolito modular, con arquitectura hexagonal estricta en cada módulo | Microservicios; capas clásicas |
 | 3 | Organización del backend | Por módulo (`domain`, `application`, `infra`) | Por capas técnicas |
 | 4 | Configuración | Perfiles de Spring y variables de entorno | Un archivo por entorno con datos reales; servidor de configuración |
@@ -36,7 +36,7 @@ Este documento es un plan **general**. No es un paso a paso completo.
 | 10 | Frontend | Angular, con SSR o prerender por ruta | Next.js; Vercel |
 | 11 | Backend | Spring Boot (Java) | C# y .NET |
 | 12 | Código y ella | Tú lo mantienes y ella tiene una licencia de uso | Transferirle el repo; una copia; otro desarrollador |
-| 13 | Portafolio | Publicar el mismo repo cuando esté limpio | Repo espejo; repo privado con capturas |
+| 13 | Portafolio | El mismo repo, público desde el inicio | Repo espejo; repo privado con capturas |
 
 **Principios que sostienen todo:**
 1. **Todo local primero, despliegue al final.** No dependemos de una cuenta de AWS hasta la fase 8. Para amortiguar los sustos del final, el Dockerfile y el compose funcionan "como producción" desde la fase 1, y Terraform se valida contra Floci en la fase 7.
@@ -392,7 +392,7 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 - SES en modo de pruebas y salida a producción.
 - Paridad parcial de Floci (en particular EC2 e IAM): confirmar siempre en AWS real.
 - Frontend y backend desalineados un momento al desplegarse por separado (mitigación en la sección 8).
-- Una credencial o dato real que se cuele en el repositorio o en su historial.
+- Una credencial o dato real que se cuele en el repositorio o en su historial (más grave ahora que el repo es público).
 - Costos de AWS al agotarse los créditos, pagados por ella.
 - Falta de un acuerdo claro sobre el código, las cuentas y el dinero (sección 14).
 
@@ -423,10 +423,10 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 Como el repo no tiene nada real, cualquier traspaso es limpio: se cambia el dueño y los secretos, sin reescribir nada.
 
 **Medidas prácticas:**
-- Repositorio en tu cuenta de GitHub, **privado hasta que decidas publicarlo**, con historial de commits como prueba de autoría.
-- **Licencia explícita** antes de publicarlo (sin licencia, nadie puede reutilizarlo legalmente).
+- Repositorio en tu cuenta de GitHub, **público desde el inicio** (en el plan gratuito, la protección de `main` y el escaneo de secretos solo se aplican en repos públicos), con historial de commits como prueba de autoría.
+- **Licencia explícita desde el primer día público.** Propuesta inicial: *todos los derechos reservados* (el código se puede ver, pero no reutilizar). Se revisa cuando se cierre el acuerdo con ella, o si prefieres que sea reutilizable (por ejemplo, con MIT o Apache-2.0). Ten presente que, al publicar en GitHub, otros usuarios pueden ver y bifurcar (fork) el repositorio dentro de la plataforma, según sus términos. Confirmar con un abogado.
 - **Acuerdo corto con ella**, aunque sea un mensaje aclarado: el código es tuyo y ella tiene licencia para usarlo en su negocio; de quién es el dominio, el Instagram y las cuentas; qué pasa si cada uno sigue por su lado; porcentaje y quién factura.
-- Lo que no es tuyo: su marca, sus fotos y su catálogo. Aclararlo, sobre todo si el repo es público.
+- Lo que no es tuyo: su marca, sus fotos y su catálogo. Aclararlo, y como el repo es público, nada de eso debe estar dentro.
 
 Hacerlo **antes de la fase 8**, porque el despliegue ocurre en su cuenta.
 
@@ -438,6 +438,7 @@ Hacerlo **antes de la fase 8**, porque el despliegue ocurre en su cuenta.
 
 **Nada real en el repo:**
 - Sin secretos, sin IDs de cuenta ni de pasarela, sin datos ni fotos de ella. Los datos de ejemplo son inventados y las fotos de prueba son propias o libres.
+- Como el repositorio es público, cualquier cosa que se cuele se hace pública de inmediato: se revisa antes de cada commit y se vigila con el escaneo de secretos.
 - Los valores reales viven en variables de entorno, en secretos de GitHub y en SSM Parameter Store. Un `.env.example` documenta qué variables existen.
 - `infra/` es genérico (módulos y variables); los `.tfvars` reales no se commitean.
 
@@ -448,7 +449,7 @@ Hacerlo **antes de la fase 8**, porque el despliegue ocurre en su cuenta.
 
 **Cadena de suministro y seguridad:**
 - Versiones de dependencias e imágenes fijadas (nunca `latest`).
-- Dependabot, escaneo de secretos (el de GitHub o gitleaks, también sobre el historial antes de publicar) y escaneo de imágenes y dependencias en el CI.
+- Dependabot, escaneo de secretos (el de GitHub, gratuito en repos públicos, y gitleaks en el CI, también sobre el historial) y escaneo de imágenes y dependencias en el CI.
 - Contenedores con usuario no root.
 
 **Datos personales (Ley 1581):** pedir solo los datos necesarios, no escribirlos en los logs y tener la política de tratamiento publicada.
@@ -498,7 +499,7 @@ Cada paso tiene un criterio de "terminado". No pasar al siguiente hasta cumplirl
 
 ### Fase 0: preparación
 
-**0.1 Repositorio.** Crear el repo privado y vacío en GitHub y clonarlo.
+**0.1 Repositorio.** Crear el repo vacío en GitHub y clonarlo. Nació privado y pasa a público en el paso 0.6.
 *Terminado cuando:* la carpeta `tienda-florales` existe en tu computador.
 
 **0.2 Estructura de carpetas.** `backend/`, `frontend/`, `infra/`, `docs/decisions/`, `.github/workflows/`, cada una con un `.gitkeep`, y un `docker-compose.yml` vacío en la raíz. La carpeta `proxy/` se crea en el paso 1.6.
@@ -513,7 +514,7 @@ Cada paso tiene un criterio de "terminado". No pasar al siguiente hasta cumplirl
 
 **0.4 Decisiones por escrito** en `docs/decisions/`, de media página cada una, con contexto, decisión y consecuencias:
 1. Monolito modular con arquitectura hexagonal estricta.
-2. Monorepo privado sin datos reales.
+2. Monorepo público sin datos reales.
 3. Medios de pago y `PaymentGateway` como puerto y adaptador.
 4. Floci como andamio de desarrollo, no como dependencia.
 5. Terraform como infraestructura como código.
@@ -525,7 +526,7 @@ Cada paso tiene un criterio de "terminado". No pasar al siguiente hasta cumplirl
 **0.5 Primer commit y push** a `main`, mientras todavía no está protegida.
 *Terminado cuando:* el repo en GitHub muestra las carpetas y los archivos base.
 
-**0.6 Reglas de trabajo.** Ahora sí, proteger `main` (todo por PR), usar commits con prefijo y activar Dependabot y el escaneo de secretos. Desde aquí, todo cambio va en una rama y entra por pull request.
+**0.6 Reglas de trabajo.** Ahora sí, proteger `main` (todo por PR), usar commits con prefijo y activar Dependabot y el escaneo de secretos. En el plan gratuito de GitHub la protección de `main` y el escaneo de secretos solo se aplican en repos públicos (se comprobó: en privado, un push directo a `main` no fue rechazado), así que el repo se hace público en este paso, con su licencia, y después se repite la prueba de protección. Desde aquí, todo cambio va en una rama y entra por pull request.
 *Terminado cuando:* no se puede empujar directo a `main`. El check obligatorio `ci-ok` se agrega en el paso 1.5, cuando exista.
 
 ### Fase 1: esqueleto local
