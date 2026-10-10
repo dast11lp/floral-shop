@@ -321,7 +321,7 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 
 **Fase 0: Preparación (1 día).** Repositorio, estructura, archivos base, decisiones por escrito y reglas de trabajo.
 
-**Fase 1: Esqueleto local (semanas 1 y 2).** Proyecto Spring Boot con la estructura de módulos y ArchUnit desde el primer commit, compose (PostgreSQL, Floci, Nginx), Flyway con las primeras tablas, endpoint de salud, primeras pruebas, CI sin despliegue y Dockerfile. Sin AWS.
+**Fase 1: Esqueleto local (semanas 1 y 2).** Proyecto Spring Boot con la estructura de módulos y ArchUnit desde las primeras pruebas, compose (PostgreSQL, Floci, Nginx), Flyway con las primeras tablas, endpoint de salud, primeras pruebas, CI sin despliegue y Dockerfile. Sin AWS.
 
 *Pruebas:* una unitaria trivial con JUnit 5, una de integración con Testcontainers que verifica las migraciones, una de arquitectura con ArchUnit y el CI corriendo las tres.
 
@@ -531,16 +531,16 @@ Cada paso tiene un criterio de "terminado". No pasar al siguiente hasta cumplirl
 
 ### Fase 1: esqueleto local
 
-**1.1 Proyecto Spring Boot** en `backend/`, creado en start.spring.io con Web, Validation, Data JPA, PostgreSQL, Flyway, Actuator y Testcontainers. Última versión estable y LTS de Java soportada. Paquetes por módulo con `domain`, `application` e `infra`, y ArchUnit desde el primer commit para hacer cumplir las reglas de la sección 3.
-*Terminado cuando:* arranca y `/actuator/health` responde.
+**1.1 Proyecto Spring Boot** en `backend/`, creado en start.spring.io con Maven, la versión estable que ofrezca por defecto (nunca SNAPSHOT, milestone ni RC), la última LTS de Java soportada y **solo** Web, Validation y Actuator. Las demás dependencias se agregan en el paso que las necesita (JPA, PostgreSQL y Flyway en el 1.3; Testcontainers y ArchUnit en el 1.4), porque con JPA y un datasource la app no arranca sin base de datos, y esa no existe hasta el 1.2. Estructura de paquetes por módulo con `domain`, `application` e `infra` (se materializa con archivos `package-info.java`; las reglas de ArchUnit llegan en el 1.4). Se trabaja en una rama y entra por pull request.
+*Terminado cuando:* arranca (sin base de datos) y `/actuator/health` responde.
 
-**1.2 Docker Compose local** con PostgreSQL y Floci (verificar nombre y versión de la imagen en su README y fijarla). La app corre desde el IDE con el perfil `local`.
-*Terminado cuando:* `docker compose up` levanta todo y el health muestra la base de datos conectada.
+**1.2 Docker Compose local** con PostgreSQL y Floci (verificar nombre y versión de la imagen en su README y fijarla), leyendo las variables del `.env`. La app todavía no se conecta a la base de datos.
+*Terminado cuando:* `docker compose up` levanta PostgreSQL y Floci, y puedes conectarte a ambos (a PostgreSQL con `psql` o un cliente, y a Floci con la AWS CLI apuntando a `localhost:4566`).
 
-**1.3 Primera migración con Flyway.** Solo `product` y `delivery_slot`, con la restricción `CHECK (booked <= capacity)`.
-*Terminado cuando:* al arrancar, Flyway crea las tablas.
+**1.3 JPA, Flyway y primera migración.** Agregar Data JPA, PostgreSQL y Flyway al proyecto, configurar el perfil `local` contra el compose del paso 1.2 y escribir la primera migración, solo con `product` y `delivery_slot` y la restricción `CHECK (booked <= capacity)`.
+*Terminado cuando:* al arrancar, Flyway crea las tablas y el health muestra la base de datos conectada.
 
-**1.4 Primeras pruebas.** Una unitaria con JUnit 5 de algo trivial, una de integración con Testcontainers que levanta PostgreSQL y verifica que las migraciones corren, y una de arquitectura con ArchUnit.
+**1.4 Primeras pruebas.** Agregar las dependencias de Testcontainers y ArchUnit. Una unitaria con JUnit 5 de algo trivial, una de integración con Testcontainers que levanta PostgreSQL y verifica que las migraciones corren, y una de arquitectura con ArchUnit.
 *Terminado cuando:* `./mvnw verify` pasa en tu máquina.
 
 **1.5 CI.** El workflow `ci` en cada PR: detección de cambios, compilar, `verify` y el job final `ci-ok`. Después, marcar `ci-ok` como check obligatorio en la protección de `main`.
