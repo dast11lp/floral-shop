@@ -30,3 +30,6 @@ Thumbs.db
 *.tfstate
 *.tfstate.*
 *.tfvars
+
+# Datos locales de bases de datos
+postgres-data/
