@@ -7,7 +7,7 @@ La aplicación necesita configuración distinta por entorno (local, pruebas, pro
 
 ## Decisión
 - **Configuración:** perfiles de Spring (`local`, `test`, `prod`) más variables de entorno. La configuración `local` se commitea porque solo tiene valores de ejemplo.
-- **Local:** Docker Compose lee un `.env` (ignorado por Git, con valores inventados). Un `.env.example` se commitea como plantilla.
+- **Local:** Docker Compose lee un `.env` (ignorado por Git, con valores inventados). Un `.env.example` se commitea como plantilla. La aplicación Spring lee ese mismo archivo en el perfil `local` (con `spring.config.import`), así que hay una sola fuente de verdad. En producción se usan las variables estándar de Spring (`SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME` y `SPRING_DATASOURCE_PASSWORD`), alimentadas desde SSM Parameter Store.
 - **Producción:** los secretos de la aplicación viven en **SSM Parameter Store**, como parámetros `SecureString` de nivel estándar, en la cuenta de ella.
 - **GitHub Actions:** se autentica en AWS con OIDC, sin llaves permanentes.
 - **Credenciales de AWS en la app:** cadena por defecto del SDK (valores falsos en local, rol IAM en la EC2).
