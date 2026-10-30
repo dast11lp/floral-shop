@@ -1,3 +1,7 @@
 spring:
   application:
-    name: backend
+    name: floral-shop
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
