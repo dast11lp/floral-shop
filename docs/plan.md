@@ -163,7 +163,7 @@ Reglas:
 
 El corazón técnico del proyecto y el mejor tema de entrevista.
 
-- **Reserva atómica en la base de datos:** `UPDATE delivery_slot SET booked = booked + 1 WHERE id = ? AND booked < capacity`. Si no afecta ninguna fila, el cupo está lleno.
+- **Reserva atómica en la base de datos:** `UPDATE delivery_slot SET booked = booked + :unidades WHERE id = :id AND is_open AND booked + :unidades <= capacity`. El cupo cuenta arreglos (unidades), no pedidos. Si no afecta ninguna fila, no hay cupo.
 - **El puerto lo expresa en términos de negocio** (por ejemplo, `reservarCupo(franja)` que devuelve éxito o fallo) y el adaptador JPA ejecuta el SQL. La regla vive en el dominio, y la base de datos la hace cumplir.
 - **Restricción en la base de datos:** `CHECK (booked <= capacity)` como segunda defensa.
 - **Reserva temporal** mientras el cliente paga, con duración según el medio de pago (10 a 15 minutos para los pagos en línea; más larga para efectivo en un punto o transferencia manual, según su política). Un job libera las reservas vencidas.
@@ -173,10 +173,11 @@ El corazón técnico del proyecto y el mejor tema de entrevista.
 
 ## 5. Modelo de datos
 
-- `product` (nombre, descripción, precio, activo) y `product_image` (URL en S3, orden)
+- `category`, `product` (con `slug` para la URL), `product_category` (muchos a muchos), `product_variant` (tamaño o presupuesto, con su precio) y, más adelante, `product_image` (URL en S3, orden)
 - `customer` (nombre, teléfono, correo)
 - `delivery_zone` (nombre, costo de envío)
-- `delivery_slot` (fecha, franja, `capacity`, `booked`)
+- `delivery_slot` (fecha, hora de inicio y fin, `capacity`, `booked` en unidades, `is_open`)
+- `shop_settings` (una sola fila: máximos por línea y por pedido y capacidad por defecto; la edita la florista)
 - `orders` (cliente, zona, franja, dirección, estado, total)
 - `order_item` (producto, cantidad, **precio al momento de la compra**)
 - `payment` (orden, `provider`, `method`, referencia única, estado y, en los manuales, quién confirmó y cuándo)
@@ -184,7 +185,7 @@ El corazón técnico del proyecto y el mejor tema de entrevista.
 - `review` (orden, producto, calificación, texto, estado de moderación, respuesta del dueño)
 - `user`, `role`, `user_role`
 
-**Las tablas se crean en la fase que las necesita**, no todas de golpe. La fase 1 solo crea `product` y `delivery_slot`.
+**Las tablas se crean en la fase que las necesita**, no todas de golpe. La V1 (paso 1.3) crea las tablas de catálogo y franjas: `category`, `product`, `product_category`, `product_variant`, `delivery_zone`, `delivery_slot` y `shop_settings`. El diseño completo y su SQL están en `docs/database-design.md`. El inventario (existencias por variante, y después insumos y recetas) queda para después del MVP y se agrega con migraciones nuevas.
 
 **Reglas de datos:**
 - Dinero con `BigDecimal` o enteros, nunca con `double`.
@@ -323,7 +324,7 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 
 **Fase 1: Esqueleto local (semanas 1 y 2).** Proyecto Spring Boot y ArchUnit desde las primeras pruebas (la estructura de módulos se materializa en la fase 2, con las primeras clases), compose (PostgreSQL, Floci, Nginx), Flyway con las primeras tablas, endpoint de salud, primeras pruebas, CI sin despliegue y Dockerfile. Sin AWS.
 
-*Pruebas:* una unitaria trivial con JUnit 5, una de integración con Testcontainers que verifica las migraciones, una de arquitectura con ArchUnit y el CI corriendo las tres.
+*Pruebas:* cuatro pruebas de integración con Testcontainers (arranque de la aplicación y migración V1) y el CI corriéndolas. Las unitarias con Mockito y la de arquitectura con ArchUnit llegan en la fase 2.
 
 **Fase 2: Cupos y catálogo.** Productos, zonas, franjas y reserva atómica de cupos. Los datos de ejemplo entran por migraciones de semilla **que solo carga el perfil `local`** (una carpeta de migraciones aparte que producción no lee), porque la administración llega en la fase 4 y los datos inventados nunca deben llegar a la base real de ella. La API nace versionada (`/api/v1`) y descrita con OpenAPI desde el primer endpoint. Aquí se aprende JUnit, Mockito y Testcontainers.
 
@@ -365,7 +366,7 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 
 - **Imprescindible:** cupos con prueba de concurrencia, pedidos, pago en sandbox, CI, despliegue en AWS y nada real en el repo.
 - **Importante:** roles, panel admin, Angular SSR con SEO, Terraform, la transferencia manual con confirmación del admin y los respaldos (si ella va a usarlo de verdad).
-- **Opcional:** reseñas, correos asíncronos, Wompi como segundo adaptador, pago contra entrega y Mercado Pago en producción.
+- **Opcional:** reseñas, correos asíncronos, Wompi como segundo adaptador, pago contra entrega, inventario (existencias por variante y luego insumos y recetas) y Mercado Pago en producción.
 
 ---
 
@@ -537,12 +538,12 @@ Cada paso tiene un criterio de "terminado". No pasar al siguiente hasta cumplirl
 **1.2 Docker Compose local** con PostgreSQL y Floci, leyendo las variables del `.env`. La imagen de Floci es `floci/floci` (verificado en su README) y se fija a una versión concreta (`x.y.z`, tomada de la página de releases del repositorio) en vez de `latest`. PostgreSQL se fija a una versión mayor concreta, la misma que se elija después en RDS (verificar las versiones que ofrece RDS). Floci no necesita el socket de Docker para los servicios que usamos (S3, SQS, SES, SSM), porque se emulan dentro del propio proceso. Versiones elegidas: Floci 2.2.0 y PostgreSQL 17 (la etiqueta de ejemplo del README de Floci estaba desactualizada, así que la versión se toma siempre de la página de releases). El puerto de PostgreSQL en el PC es configurable con `POSTGRES_PORT` y no está escrito en el compose; en este proyecto es 5433, porque el 5432 ya lo usaba otro PostgreSQL de la máquina. Ambos puertos se publican solo en `127.0.0.1`. La app todavía no se conecta a la base de datos.
 *Terminado cuando:* `docker compose up` levanta PostgreSQL y Floci, y puedes comprobar ambos (PostgreSQL con `psql` o un cliente, y Floci con el endpoint de salud `http://localhost:4566/_localstack/health` o con la AWS CLI apuntando a `localhost:4566`).
 
-**1.3 JPA, Flyway y primera migración.** Agregar Data JPA, PostgreSQL y Flyway al proyecto (en Spring Boot 4 los starters son modulares, así que conviene usar los starters de cada tecnología, por ejemplo el de Flyway, y no solo la librería; verificarlo en la documentación de la versión elegida), configurar el perfil `local` contra el compose del paso 1.2 y escribir la primera migración, solo con `product` y `delivery_slot` y la restricción `CHECK (booked <= capacity)`.
+**1.3 JPA, Flyway y primera migración.** Agregar Data JPA, PostgreSQL y Flyway al proyecto (en Spring Boot 4 los starters son modulares, así que conviene usar los starters de cada tecnología, por ejemplo el de Flyway, y no solo la librería; verificarlo en la documentación de la versión elegida), (dependencias verificadas en este proyecto: `spring-boot-starter-data-jpa`, `spring-boot-starter-flyway`, `flyway-database-postgresql` y el driver `postgresql` en `runtime`, más sus starters de prueba), configurar así: `application.yaml` común y sin datos de conexión (con `ddl-auto: validate`, porque Flyway es el dueño del esquema, y `open-in-view: false`); `application-local.yaml`, que importa el `.env` con `spring.config.import`, define el datasource con las variables `POSTGRES_*` y muestra el detalle del health; y, en producción, las variables estándar de Spring (`SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME` y `SPRING_DATASOURCE_PASSWORD`). El perfil `local` se activa de forma explícita al arrancar. Después, escribir la primera migración, con las tablas de catálogo y franjas (ver `docs/database-design.md`) y la restricción `CHECK (booked <= capacity)`.
 *Terminado cuando:* al arrancar, Flyway crea las tablas y el health muestra la base de datos conectada.
 Nota: al agregar JPA, el test `contextLoads` que genera Spring fallará sin base de datos hasta que el 1.4 agregue Testcontainers. Por eso el 1.3 y el 1.4 van en el mismo pull request.
 
-**1.4 Primeras pruebas.** Agregar las dependencias de Testcontainers y ArchUnit (con Spring Boot 4 y Testcontainers 2.x, el módulo de Floci es `io.floci:testcontainers-floci` en su versión 2.x; revisar la versión vigente en su README). Una unitaria con JUnit 5 de algo trivial, una de integración con Testcontainers que levanta PostgreSQL y verifica que las migraciones corren, y una de arquitectura con ArchUnit que por ahora comprueba reglas generales (por ejemplo, que no haya ciclos entre paquetes) y se amplía en la fase 2, cuando existan las clases de cada módulo.
-*Terminado cuando:* `./mvnw verify` pasa en tu máquina.
+**1.4 Primeras pruebas.** Agregar las dependencias de Testcontainers (`spring-boot-testcontainers`, `testcontainers-junit-jupiter` y `testcontainers-postgresql`, todas de prueba y sin versión, porque Spring Boot las administra). Una clase de configuración de prueba (`TestcontainersConfiguration`, con `@ServiceConnection`) que levanta un PostgreSQL temporal, y dos clases de pruebas de integración: una que comprueba que la aplicación arranca y otra que comprueba la migración V1 (que existen las 7 tablas, que la base rechaza `booked > capacity` y que hay una sola fila de ajustes). Todo el código y los nombres de las pruebas van en inglés. Las pruebas unitarias con Mockito y la prueba de arquitectura con ArchUnit pasan a la fase 2, cuando existan las clases de cada módulo (hoy no habría nada que comprobar). (Para Floci con Testcontainers 2.x, el módulo es `io.floci:testcontainers-floci` en su versión 2.x; se usa cuando se pruebe S3 o SQS.)
+*Terminado cuando:* `./mvnw test` pasa en tu máquina con 4 pruebas.
 
 **1.5 CI.** El workflow `ci` en cada PR: detección de cambios, compilar, `verify` y el job final `ci-ok`. Después, marcar `ci-ok` como check obligatorio en la protección de `main`.
 *Terminado cuando:* un PR muestra `ci-ok` en verde y no se puede mergear sin él.
