@@ -1,9 +1,10 @@
 name: ci
 
-on:
-  pull_request:
-    branches: [main]
-  workflow_dispatch: #permite ejecutarlo manualmente desde github
+# 1
+on: #revisa en que casos se puede ejecutar
+  pull_request: # se peude ejecutar en un pull request si
+    branches: [main] # solo en la rama main
+  workflow_dispatch: # permite ejecutar las pruebas manualmente desde github, sin necesidad de abrir un pull request
 
 permissions:
   contents: read
@@ -12,20 +13,24 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+#2
 jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
+      backend: ${{ steps.filter.outputs.backend }} #Cuando termine este job, quiero publicar un output llamado backend, cuyo valor vendrá del output
+      #3
     steps:
+      #3.1
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      #3.2
       - id: filter
         env:
-          EVENT: ${{ github.event_name }}
-          BASE_REF: ${{ github.base_ref }}
-        run: |
+          EVENT: ${{ github.event_name }} # guarda que tipo de evento es
+          BASE_REF: ${{ github.base_ref }} # guarda la rama de destino del Pull Request, en este caso main
+        run: |  # si no es un pull request, es una prueba manual, no hay caambios que revisar, 
           if [ "$EVENT" != "pull_request" ]; then
             echo "backend=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -44,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: backend # busca en en la raiz del dircctorio la carpeta backend  que es dodne se encuentra el ./mvnw
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
