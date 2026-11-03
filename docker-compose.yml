@@ -15,6 +15,19 @@ services:
       timeout: 3s
       retries: 10
 
+  backend:
+    build: ./backend #busca el dockerfile en la carpeta backend  / le dice a Compose que construya la imagen con el Dockerfile de esa carpeta, en vez de descargar una ya hecha.
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Temporal: en el 1.6d lo quitaremos y solo Nginx quedará expuesto.
+    ports:
+      - "127.0.0.1:8080:8080"
+
   floci:
     image: floci/floci:2.2.0
     ports:
