@@ -1,16 +1,16 @@
-package com.floralshop.backend.scheduling.application;
+package com.floralshop.backend.scheduling.application.service;
 
-import com.floralshop.backend.scheduling.domain.DeliverySlot;
-import com.floralshop.backend.scheduling.domain.DeliverySlotRepository;
-import com.floralshop.backend.scheduling.domain.SlotNotFoundException;
+import com.floralshop.backend.scheduling.application.port.out.DeliverySlotRepositoryPort;
+import com.floralshop.backend.scheduling.domain.exception.SlotNotFoundException;
+import com.floralshop.backend.scheduling.domain.model.DeliverySlot;
 
 // Caso de uso: reservar cupo en una franja. Java puro, sin anotaciones de Spring.
 // La transacción que hace que el bloqueo de fila funcione se añade en infra (sub-paso 2.4).
 public class ReserveSlotService {
 
-    private final DeliverySlotRepository slots;
+    private final DeliverySlotRepositoryPort slots;
 
-    public ReserveSlotService(DeliverySlotRepository slots) {
+    public ReserveSlotService(DeliverySlotRepositoryPort slots) {
         this.slots = slots;
     }
 

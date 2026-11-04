@@ -1,4 +1,4 @@
-package com.floralshop.backend.scheduling.application;
+package com.floralshop.backend.scheduling.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,17 +18,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.floralshop.backend.scheduling.domain.DeliverySlot;
-import com.floralshop.backend.scheduling.domain.DeliverySlotRepository;
-import com.floralshop.backend.scheduling.domain.SlotNotAvailableException;
-import com.floralshop.backend.scheduling.domain.SlotNotFoundException;
+import com.floralshop.backend.scheduling.application.port.out.DeliverySlotRepositoryPort;
+import com.floralshop.backend.scheduling.domain.exception.SlotNotAvailableException;
+import com.floralshop.backend.scheduling.domain.exception.SlotNotFoundException;
+import com.floralshop.backend.scheduling.domain.model.DeliverySlot;
 
 // Prueba unitaria con Mockito: sin Spring ni base de datos.
 @ExtendWith(MockitoExtension.class) // activa Mockito en esta clase
 class ReserveSlotServiceTest {
 
     @Mock
-    DeliverySlotRepository slots; // doble del puerto: devuelve lo que le indiquemos
+    DeliverySlotRepositoryPort slots; // doble del puerto: devuelve lo que le indiquemos
 
     ReserveSlotService service;
 
