@@ -1,6 +1,5 @@
 # 0001. Monolito modular con arquitectura hexagonal estricta
-
-**Estado:** aceptada, enmendada por el 0009 · **Fecha:** 2026-10-08
+**Estado:** aceptada, enmendada por el 0009 y el 0010 · **Fecha:** 2026-10-08
 
 ## Contexto
 Es un proyecto de una sola persona, con un solo despliegue y un dominio acotado (catálogo, cupos de entrega, pedidos, pagos, reseñas, correos e identidad). Hay terceros que pueden cambiar (pasarela de pago, almacenamiento, correo, proveedor de nube) y partes del negocio, como el control de cupos, que deben poder probarse sin infraestructura.
