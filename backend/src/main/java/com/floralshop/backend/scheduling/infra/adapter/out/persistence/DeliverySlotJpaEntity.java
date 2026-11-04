@@ -1,4 +1,4 @@
-package com.floralshop.backend.scheduling.infra;
+package com.floralshop.backend.scheduling.infra.adapter.out.persistence;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 // El negocio nunca la ve: usa DeliverySlot (dominio), y el mapper convierte entre las dos.
 @Entity
 @Table(name = "delivery_slot")
-public class DeliverySlotEntity {
+public class DeliverySlotJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // la base numera sola (GENERATED ALWAYS AS IDENTITY)
@@ -39,10 +39,10 @@ public class DeliverySlotEntity {
     private boolean open;
 
     // JPA exige un constructor sin argumentos para poder crear la entidad al leer de la base.
-    protected DeliverySlotEntity() {
+    protected DeliverySlotJpaEntity() {
     }
 
-    public DeliverySlotEntity(Long id, LocalDate slotDate, LocalTime startTime, LocalTime endTime,
+    public DeliverySlotJpaEntity(Long id, LocalDate slotDate, LocalTime startTime, LocalTime endTime,
                               int capacity, int booked, boolean open) {
         this.id = id;
         this.slotDate = slotDate;

@@ -1,6 +1,6 @@
 # 0009. Reglas de negocio en la capa de aplicación (enmienda del 0001)
 
-**Estado:** aceptada · **Fecha:** 2026-11-03
+**Estado:** aceptada, enmendada en parte por el 0010 (ubicación de los puertos) · **Fecha:** 2026-11-03
 
 ## Contexto
 El ADR 0001 ponía las reglas de negocio dentro de los objetos de `domain`. Al empezar la fase 2 (módulo `scheduling`) se evaluó la alternativa de ponerlas en servicios de `application`, conservando la separación entre el modelo de dominio y las entidades de JPA (con mapeadores). La reserva de cupos se decidirá en la base de datos de forma atómica, así que un `reserve()` rico en el dominio duplicaría esa regla.

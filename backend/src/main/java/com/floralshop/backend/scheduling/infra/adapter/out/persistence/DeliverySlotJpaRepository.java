@@ -1,4 +1,4 @@
-package com.floralshop.backend.scheduling.infra;
+package com.floralshop.backend.scheduling.infra.adapter.out.persistence;
 
 import java.util.Optional;
 
@@ -11,11 +11,11 @@ import jakarta.persistence.LockModeType;
 
 // Repositorio de Spring Data: detalle de infraestructura, sin visibilidad pública.
 // El resto del sistema usa el puerto DeliverySlotRepository, que lo implementa un adaptador (paso 5).
-interface DeliverySlotJpaRepository extends JpaRepository<DeliverySlotEntity, Long> {
+interface DeliverySlotJpaRepository extends JpaRepository<DeliverySlotJpaEntity, Long> {
 
     // PESSIMISTIC_WRITE se traduce en SELECT ... FOR UPDATE: la fila queda bloqueada
     // hasta que termine la transacción, y otra petición que pida la misma fila espera.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select s from DeliverySlotEntity s where s.id = :id")
-    Optional<DeliverySlotEntity> findByIdForUpdate(@Param("id") long id);
+    @Query("select s from DeliverySlotJpaEntity s where s.id = :id")
+    Optional<DeliverySlotJpaEntity> findByIdForUpdate(@Param("id") long id);
 }

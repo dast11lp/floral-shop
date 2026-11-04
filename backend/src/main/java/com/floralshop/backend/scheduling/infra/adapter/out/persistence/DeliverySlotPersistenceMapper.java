@@ -1,11 +1,11 @@
-package com.floralshop.backend.scheduling.infra;
+package com.floralshop.backend.scheduling.infra.adapter.out.persistence;
 
-import com.floralshop.backend.scheduling.domain.DeliverySlot;
+import com.floralshop.backend.scheduling.domain.model.DeliverySlot;
 
 
-class DeliverySlotMapper {
+class DeliverySlotPersistenceMapper {
 
-    DeliverySlot toDomain(DeliverySlotEntity entity) {
+    DeliverySlot toDomain(DeliverySlotJpaEntity entity) {
         return new DeliverySlot(
                 entity.getId(),
                 entity.getSlotDate(),
@@ -16,8 +16,8 @@ class DeliverySlotMapper {
                 entity.isOpen());
     }
 
-    DeliverySlotEntity toEntity(DeliverySlot slot) {
-        return new DeliverySlotEntity(
+    DeliverySlotJpaEntity toEntity(DeliverySlot slot) {
+        return new DeliverySlotJpaEntity(
                 slot.id(),
                 slot.date(),
                 slot.startTime(),

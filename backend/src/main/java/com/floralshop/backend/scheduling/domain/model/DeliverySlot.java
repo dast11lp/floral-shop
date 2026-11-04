@@ -1,4 +1,4 @@
-package com.floralshop.backend.scheduling.domain;
+package com.floralshop.backend.scheduling.domain.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

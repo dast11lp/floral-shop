@@ -1,4 +1,4 @@
-package com.floralshop.backend.scheduling.domain;
+package com.floralshop.backend.scheduling.domain.exception;
 
 public class SlotNotAvailableException extends RuntimeException {
 

@@ -1,7 +1,7 @@
-package com.floralshop.backend.scheduling.application;
+package com.floralshop.backend.scheduling.application.service;
 
-import com.floralshop.backend.scheduling.domain.DeliverySlot;
-import com.floralshop.backend.scheduling.domain.SlotNotAvailableException;
+import com.floralshop.backend.scheduling.domain.exception.SlotNotAvailableException;
+import com.floralshop.backend.scheduling.domain.model.DeliverySlot;
 
 // Helper: aquí está escrita UNA sola vez la regla de "se puede reservar en esta franja".
 // Todo servicio que reserve cupo debe llamar a checkCanReserve en vez de repetir los if.

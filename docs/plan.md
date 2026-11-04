@@ -81,10 +81,19 @@ tienda-florales/
 
 ```
 backend/src/main/java/.../<módulo>/
-├── domain/        reglas de negocio, entidades puras y puertos (interfaces)
-├── application/   casos de uso y la API pública del módulo
-└── infra/         adaptadores: controladores REST, JPA, S3, SES, Mercado Pago
+├── domain/        modelos y excepciones de negocio, sin interfaces
+│   ├── model/
+│   └── exception/
+├── application/   reglas de negocio, casos de uso y puertos de salida
+│   ├── port/out/
+│   └── service/
+└── infra/         adaptadores y configuración: REST, JPA, S3, SES, Mercado Pago
+    ├── adapter/in/web/           controladores, requests y responses
+    ├── adapter/out/persistence/  entidad JPA, repositorio, mapper y adaptador
+    └── config/                   registro de beans
 ```
+
+Estructura definida en los ADR 0009 y 0010.
 
 **Sin API Gateway ni microservicios.** Nginx cumple el papel de punto de entrada.
 

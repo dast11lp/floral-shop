@@ -1,4 +1,4 @@
-package com.floralshop.backend.scheduling.infra;
+package com.floralshop.backend.scheduling.infra.adapter.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.floralshop.backend.TestcontainersConfiguration;
-import com.floralshop.backend.scheduling.domain.DeliverySlot;
-import com.floralshop.backend.scheduling.domain.DeliverySlotRepository;
+import com.floralshop.backend.scheduling.application.port.out.DeliverySlotRepositoryPort;
+import com.floralshop.backend.scheduling.domain.model.DeliverySlot;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -24,10 +24,10 @@ import jakarta.persistence.PersistenceContext;
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class JpaDeliverySlotRepositoryTest {
+class DeliverySlotPersistenceAdapterTest {
 
     @Autowired
-    DeliverySlotRepository slots; // el PUERTO, no el adaptador: probamos lo que usará el negocio
+    DeliverySlotRepositoryPort slots; // el PUERTO, no el adaptador: probamos lo que usará el negocio
 
     @PersistenceContext
     EntityManager em;
