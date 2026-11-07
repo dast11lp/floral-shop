@@ -34,3 +34,7 @@ Cada módulo se organiza así:
 - **A favor:** la dirección entrada/salida se ve en las carpetas; `application` declara lo que necesita del exterior; la estructura es reconocible para quien conozca el patrón.
 - **En contra:** más carpetas, algunas con pocas clases.
 - **Se aplica a:** los módulos nuevos y a `scheduling`. El paquete `health`, que tiene una sola clase, se deja como está hasta que crezca.
+
+## Precisiones (módulo `catalog`, 2.5a)
+- Los servicios de solo lectura y sin reglas de negocio pueden agruparse en un único servicio por módulo (`CatalogQueryService`). "Un servicio por caso de uso" (ADR 0009) aplica a los servicios que tienen reglas.
+- La paginación usa tipos propios (`PageQuery` y `PagedResult`), ubicados en `domain/model` de `catalog`, porque `application` no puede depender de los tipos de Spring Data. Si otro módulo los necesita, se moverán a `shared` y se ajustarán las reglas de ArchUnit.
