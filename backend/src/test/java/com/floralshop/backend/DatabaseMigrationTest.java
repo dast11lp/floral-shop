@@ -48,6 +48,17 @@ class DatabaseMigrationTest {
 
         assertThat(rows).isEqualTo(1);
     }
+
+        // comprueba que la migración V2 creó el índice para buscar productos por categoría
+    @Test
+    void migrationCreatesProductCategoryIndex() {
+        Integer count = jdbc.queryForObject(
+                "select count(*) from pg_indexes "
+                        + "where tablename = 'product_category' and indexname = 'idx_product_category_category'",
+                Integer.class);
+
+        assertThat(count).isEqualTo(1);
+    }
 }
 
 
