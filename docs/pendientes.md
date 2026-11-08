@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-04 (fase 2, sub-paso 2.5b).
+Última actualización: 2026-11-04 (cierre del sub-paso 2.5b).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -15,6 +15,8 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 5 | Eventos internos con publisher | Decidir con su propio ADR | Fase 3 |
 | 6 | Transacción de pedido y reserva | El ADR 0011 declara la transacción en `infra`. Si crear un pedido y reservar cupo deben deshacerse juntos, la transacción tiene que abarcar ambos pasos. Si un pedido toca varias franjas, bloquearlas siempre en el mismo orden para evitar interbloqueos | Fase 3 |
 | 7 | Paginación compartida | `PageQuery` y `PagedResult` viven en `catalog/domain/model`. Si otro módulo los necesita, se mueven a `shared` y se ajustan las reglas de ArchUnit | Cuando otro módulo pagine |
+| 15 | Fechas del producto en el dominio | `created_at` y `updated_at` están mapeadas en `ProductJpaEntity` (solo lectura), pero el modelo `Product` no las lleva. Añadirlas al dominio y al mapper cuando el inventario las necesite | Cuando se haga el inventario |
+| 16 | Paginación por cursor | Hoy se pagina con `LIMIT/OFFSET`, que se vuelve lento en páginas muy lejanas. Con el catálogo de una floristería no se nota. Si algún día hubiera miles de productos, pasar a paginación por cursor | Solo si el catálogo crece mucho |
 
 ## Tareas pendientes
 
@@ -28,6 +30,7 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 13 | `.env.example` | Dice `POSTGRES_DB=tienda`, y el `.env` real usa `store` |
 | 14 | Spring Security | En la fase 4, `/api/v1/health` debe quedar público |
 
+
 ## Por verificar (nadie lo ha confirmado)
 
 - Comisiones y medios (Nequi, Efecty, PSE) de Mercado Pago y Wompi en Colombia.
@@ -38,4 +41,7 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 
 ## Resuelto
 
-Nada todavía.
+| Qué | Dónde |
+|---|---|
+| Índice `product_category (category_id, product_id)` para buscar productos por categoría | Migración V2, sub-paso 2.5b |
+| Problema N+1 al listar productos con variantes y categorías | `default_batch_fetch_size: 100` en `application.yaml`. Comprobado con una prueba que cuenta las consultas |
