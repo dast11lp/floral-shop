@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-08 (cierre del sub-paso 2.5c).
+Última actualización: 2026-11-08 (cierre del sub-paso 2.6a).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -18,6 +18,7 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 15 | Fechas del producto en el dominio | `created_at` y `updated_at` están mapeadas en `ProductJpaEntity` (solo lectura), pero el modelo `Product` no las lleva. Añadirlas al dominio y al mapper cuando el inventario las necesite | Cuando se haga el inventario |
 | 16 | Paginación por cursor | Hoy se pagina con `LIMIT/OFFSET`, que se vuelve lento en páginas muy lejanas. Con el catálogo de una floristería no se nota. Si algún día hubiera miles de productos, pasar a paginación por cursor | Solo si el catálogo crece mucho |
 | 17 | Claves foráneas y SQL entre módulos (regla 5) | ArchUnit no puede comprobar claves foráneas ni consultas SQL entre tablas de módulos distintos. Cuando pedidos referencie variantes de producto, decidir: clave foránea con integridad referencial pero sin consultas en código ajeno, o guardar solo el id sin clave foránea. Añadir entonces una prueba que lea `information_schema` | Fase 3 |
+| 18 | Vista de administración de reservas | Hoy el cupo es solo un contador (`booked`). Las "reservas" que verá la administradora serán los pedidos agrupados por franja (fase 3 los crea, fase 4 los muestra), y cancelar un pedido debe liberar el cupo. Valorar una comprobación que cuadre `booked` con la suma de unidades de los pedidos activos | Fases 3 y 4 |
 
 ## Tareas pendientes
 
