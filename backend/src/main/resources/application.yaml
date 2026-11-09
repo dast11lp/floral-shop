@@ -8,3 +8,8 @@ spring:
     properties:
       hibernate:
         default_batch_fetch_size: 100
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
