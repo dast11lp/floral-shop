@@ -7,6 +7,8 @@ spring:
     url: jdbc:postgresql://localhost:${POSTGRES_PORT}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
 
 management:
   endpoint:
