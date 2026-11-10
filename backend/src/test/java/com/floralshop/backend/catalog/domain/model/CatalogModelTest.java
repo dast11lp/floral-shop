@@ -60,4 +60,18 @@ class CatalogModelTest {
 
         assertThat(product.variants()).hasSize(1);
     }
+
+    @Test
+    void productIsAvailableWithAnActiveVariant() {
+        Product product = new Product(1L, "Ramo", "ramo", "Descripción", true, List.of(variant("50000")), List.of());
+
+        assertThat(product.available()).isTrue();
+    }
+
+    @Test
+    void productWithoutVariantsIsNotAvailable() {
+        Product product = new Product(1L, "Ramo", "ramo", "Descripción", true, List.of(), List.of());
+
+        assertThat(product.available()).isFalse();
+    }
 }

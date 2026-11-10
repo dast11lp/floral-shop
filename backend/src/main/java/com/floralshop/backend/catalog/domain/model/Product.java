@@ -21,4 +21,10 @@ public record Product(Long id, String name, String slug, String description, boo
         variants = List.copyOf(variants);     // copia inmutable (y falla si la lista es null)
         categories = List.copyOf(categories);
     }
+
+    // Disponible si tiene al menos una variante activa. Si ninguna lo está,
+    // la tienda lo muestra como "no disponible por el momento".
+    public boolean available() {
+        return variants.stream().anyMatch(ProductVariant::active);
+    }
 }

@@ -1,10 +1,12 @@
 package com.floralshop.backend.scheduling.infra.adapter.out.persistence;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
 import com.floralshop.backend.scheduling.application.port.out.DeliverySlotRepositoryPort;
+import com.floralshop.backend.scheduling.domain.model.DateRange;
 import com.floralshop.backend.scheduling.domain.model.DeliverySlot;
 
 // Adaptador: implementa el puerto del dominio con JPA.
@@ -30,5 +32,12 @@ class DeliverySlotPersistenceAdapter implements DeliverySlotRepositoryPort {
         // Dominio -> entidad -> guardar -> la versión guardada, de vuelta a dominio.
         DeliverySlotJpaEntity saved = jpa.save(mapper.toEntity(slot));
         return mapper.toDomain(saved);
+    }
+
+    @Override
+    public List<DeliverySlot> findOpenByDateRange(DateRange range) {
+        return jpa.findOpenBetween(range.from(), range.to()).stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }

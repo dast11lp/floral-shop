@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-08 (cierre del sub-paso 2.6a).
+Última actualización: 2026-11-09 (cierre del sub-paso 2.6b).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -19,6 +19,10 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 16 | Paginación por cursor | Hoy se pagina con `LIMIT/OFFSET`, que se vuelve lento en páginas muy lejanas. Con el catálogo de una floristería no se nota. Si algún día hubiera miles de productos, pasar a paginación por cursor | Solo si el catálogo crece mucho |
 | 17 | Claves foráneas y SQL entre módulos (regla 5) | ArchUnit no puede comprobar claves foráneas ni consultas SQL entre tablas de módulos distintos. Cuando pedidos referencie variantes de producto, decidir: clave foránea con integridad referencial pero sin consultas en código ajeno, o guardar solo el id sin clave foránea. Añadir entonces una prueba que lea `information_schema` | Fase 3 |
 | 18 | Vista de administración de reservas | Hoy el cupo es solo un contador (`booked`). Las "reservas" que verá la administradora serán los pedidos agrupados por franja (fase 3 los crea, fase 4 los muestra), y cancelar un pedido debe liberar el cupo. Valorar una comprobación que cuadre `booked` con la suma de unidades de los pedidos activos | Fases 3 y 4 |
+| 19 | Qué muestra la tienda del cupo de una franja | Hoy: solo `available` (sí o no), sin cifras, para no revelar cuánto vende la florista cada día. Hablarlo con ella: puede preferir mostrar la cantidad (`availableUnits`) o un estado ("últimos cupos"). Añadir un campo a la respuesta no rompe nada; quitarlo sí, así que se mantiene lo mínimo hasta decidir | Antes de la fase 5 |
+| 20 | Antelación mínima de pedidos | Falta decidir con la florista cuántas horas antes de una franja se deja de ofrecer (el plan solo recomienda 24 a 48 h). Hoy se ofrecen todas las franjas desde hoy, incluso las que ya pasaron. Opciones: un mínimo de horas igual para todas, una hora de corte diaria, o sin regla (ella cierra a mano). También decidir hasta cuántos días adelante se puede pedir (hoy 31, fijo en el código) | Fase 3 |
+| 21 | Decisiones de la tienda por hablar con la florista | Orden de las zonas (hoy alfabético: la tabla no tiene `sort_order`, así que ella no podría elegirlo). Productos por página (hoy 20 por defecto, máximo 100). Franjas llenas: se muestran como no disponibles; cerradas: se ocultan | Antes de la fase 5 |
+
 
 ## Tareas pendientes
 
@@ -47,3 +51,4 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 |---|---|
 | Índice `product_category (category_id, product_id)` para buscar productos por categoría | Migración V2, sub-paso 2.5b |
 | Problema N+1 al listar productos con variantes y categorías | `default_batch_fetch_size: 100` en `application.yaml`. Comprobado con una prueba que cuenta las consultas |
+| Producto activo sin variantes activas | Se muestra con `available: false`, para que la tienda lo muestre como "no disponible por el momento". Decidido con la desarrolladora (2.6b) |
