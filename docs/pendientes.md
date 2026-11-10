@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-09 (cierre de la fase 2).
+Última actualización: 2026-11-09 (plan actualizado).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -31,8 +31,6 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 9 | Guía de repaso para principiantes | Desactualizada: ArchUnit pasó a la fase 2 y faltan los ADR 0009, 0010 y 0011 |
 | 10 | Repaso de Flyway | Quedó pendiente de la fase 1 |
 | 11 | `docker build` en el CI | Hoy un Dockerfile roto no lo detecta nadie |
-| 12 | `plan.md` | Marcar la fase 1 como terminada |
-| 13 | `.env.example` | Dice `POSTGRES_DB=tienda`, y el `.env` real usa `store` |
 | 14 | Spring Security | En la fase 4, `/api/v1/health` debe quedar público |
 
 
@@ -52,3 +50,4 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | Problema N+1 al listar productos con variantes y categorías | `default_batch_fetch_size: 100` en `application.yaml`. Comprobado con una prueba que cuenta las consultas |
 | Producto activo sin variantes activas | Se muestra con `available: false`, para que la tienda lo muestre como "no disponible por el momento". Decidido con la desarrolladora (2.6b) |
 | `.gitignore` ampliado con llaves, Terraform, respaldos y archivos de frontend | PR `chore/gitignore-completo` |
+| Fases 0, 1 y 2 marcadas como terminadas en `plan.md`. La diferencia de nombre entre `.env` y `.env.example` se descartó: la plantilla es coherente por sí sola | PR `docs/alinear-env-y-plan` |
