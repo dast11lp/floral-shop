@@ -1,5 +1,7 @@
 package com.floralshop.backend.scheduling.infra.adapter.out.persistence;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +20,12 @@ interface DeliverySlotJpaRepository extends JpaRepository<DeliverySlotJpaEntity,
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from DeliverySlotJpaEntity s where s.id = :id")
     Optional<DeliverySlotJpaEntity> findByIdForUpdate(@Param("id") long id);
+
+        // Franjas abiertas en el rango (BETWEEN incluye los dos extremos), por fecha y hora de inicio.
+    @Query("""
+            select s from DeliverySlotJpaEntity s
+            where s.slotDate between :from and :to and s.open = true
+            order by s.slotDate, s.startTime
+            """)
+    List<DeliverySlotJpaEntity> findOpenBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
 }
