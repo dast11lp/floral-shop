@@ -5,7 +5,8 @@ import java.util.List;
 import com.floralshop.backend.catalog.domain.model.Product;
 
 // Lo que ve el cliente de un producto. El slug es su identificador público.
-public record ProductResponse(String name, String slug, String description,
+// available es false cuando ninguna de sus variantes está activa.
+public record ProductResponse(String name, String slug, String description, boolean available,
                               List<ProductVariantResponse> variants,
                               List<CategoryResponse> categories) {
 
@@ -14,6 +15,7 @@ public record ProductResponse(String name, String slug, String description,
                 product.name(),
                 product.slug(),
                 product.description(),
+                product.available(),
                 product.variants().stream().map(ProductVariantResponse::from).toList(),
                 product.categories().stream().map(CategoryResponse::from).toList());
     }

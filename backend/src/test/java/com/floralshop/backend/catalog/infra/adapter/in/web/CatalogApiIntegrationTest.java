@@ -146,4 +146,16 @@ class CatalogApiIntegrationTest {
                 .andExpect(jsonPath("$[0].name").value("Zeta"))
                 .andExpect(jsonPath("$[1].name").value("Alfa"));
     }
+
+        @Test
+    void productWithoutActiveVariantsIsListedAsNotAvailable() throws Exception {
+        long id = product("Ramo agotado", "ramo-agotado", true);
+        variant(id, "Único", "50000", false, 1); // su única variante está inactiva
+
+        mockMvc.perform(get("/api/v1/products"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].slug").value("ramo-agotado"))
+                .andExpect(jsonPath("$.content[0].available").value(false))
+                .andExpect(jsonPath("$.content[0].variants.length()").value(0));
+    }
 }

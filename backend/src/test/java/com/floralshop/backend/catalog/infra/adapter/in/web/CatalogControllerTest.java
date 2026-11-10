@@ -61,6 +61,7 @@ class CatalogControllerTest {
                 .andExpect(jsonPath("$.content[0].categories[0].slug").value("rosas"))
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.content[0].available").value(true))
                 // Lo interno no se expone:
                 .andExpect(jsonPath("$.content[0].id").doesNotExist())
                 .andExpect(jsonPath("$.content[0].active").doesNotExist())
