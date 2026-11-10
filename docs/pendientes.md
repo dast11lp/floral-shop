@@ -28,7 +28,6 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 
 | # | Tarea | Detalle |
 |---|---|---|
-| 8 | `.gitignore` | Añadir: `*.key`, `*.p12`, `*.pfx`, `*.jks`, `*.keystore`, `.aws/`; Terraform (`*.tfplan`, `tfplan`, `override.tf`, `override.tf.json`, `*_override.tf`, `.terraformrc`, `terraform.rc`); respaldos (`*.dump`, `*.backup`, `*.bak`); frontend (`coverage/`, `*.tsbuildinfo`, `.sass-cache/`, `npm-debug.log*`, `yarn-error.log*`). **No** ignorar `*.sql` ni `.terraform.lock.hcl`. Rama sugerida: `chore/gitignore-completo` |
 | 9 | Guía de repaso para principiantes | Desactualizada: ArchUnit pasó a la fase 2 y faltan los ADR 0009, 0010 y 0011 |
 | 10 | Repaso de Flyway | Quedó pendiente de la fase 1 |
 | 11 | `docker build` en el CI | Hoy un Dockerfile roto no lo detecta nadie |
@@ -52,3 +51,4 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | Índice `product_category (category_id, product_id)` para buscar productos por categoría | Migración V2, sub-paso 2.5b |
 | Problema N+1 al listar productos con variantes y categorías | `default_batch_fetch_size: 100` en `application.yaml`. Comprobado con una prueba que cuenta las consultas |
 | Producto activo sin variantes activas | Se muestra con `available: false`, para que la tienda lo muestre como "no disponible por el momento". Decidido con la desarrolladora (2.6b) |
+| `.gitignore` ampliado con llaves, Terraform, respaldos y archivos de frontend | PR `chore/gitignore-completo` |
