@@ -5,6 +5,7 @@
 **Stack:** Spring Boot, Angular (SSR), PostgreSQL, Docker, Nginx, AWS, GitHub Actions, Terraform.
 
 **Estado del plan:** todo se desarrolla en local (Docker Compose y Floci) y el despliegue real en AWS se hace **al final, en la cuenta de ella**.
+**Progreso:** fases 0, 1 y 2 terminadas. El backend de lectura está completo: catálogo, zonas, franjas y reserva atómica de cupos, con pruebas y reglas de arquitectura. Siguiente: fase 3 (pedidos y pagos). Los pendientes y las decisiones por revisar están en `docs/pendientes.md`.
 
 ---
 
