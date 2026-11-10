@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-09 (plan actualizado).
+Última actualización: 2026-11-09 (CI con prueba del stack).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -51,3 +51,4 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | Producto activo sin variantes activas | Se muestra con `available: false`, para que la tienda lo muestre como "no disponible por el momento". Decidido con la desarrolladora (2.6b) |
 | `.gitignore` ampliado con llaves, Terraform, respaldos y archivos de frontend | PR `chore/gitignore-completo` |
 | Fases 0, 1 y 2 marcadas como terminadas en `plan.md`. La diferencia de nombre entre `.env` y `.env.example` se descartó: la plantilla es coherente por sí sola | PR `docs/alinear-env-y-plan` |
+| El CI levanta postgres, backend y nginx con Docker y prueba `/api/v1/health` a través de Nginx | PR `ci/docker-smoke-test` |
