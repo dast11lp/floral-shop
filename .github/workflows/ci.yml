@@ -2,7 +2,7 @@ name: ci
 
 # 1
 on: #revisa en que casos se puede ejecutar
-  pull_request: # se peude ejecutar en un pull request si
+  pull_request: # se puede ejecutar en un pull request si
     branches: [main] # solo en la rama main
   workflow_dispatch: # permite ejecutar las pruebas manualmente desde github, sin necesidad de abrir un pull request
 
@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }} #Cuando termine este job, quiero publicar un output llamado backend, cuyo valor vendrá del output
+      stack: ${{ steps.filter.outputs.stack }} # NUEVO: si hay que probar el stack con Docker (backend, proxy o compose)
       #3
     steps:
       #3.1
@@ -33,6 +34,7 @@ jobs:
         run: |  # si no es un pull request, es una prueba manual, no hay caambios que revisar, 
           if [ "$EVENT" != "pull_request" ]; then
             echo "backend=true" >> "$GITHUB_OUTPUT"
+            echo "stack=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           changed=$(git diff --name-only "origin/$BASE_REF...HEAD")
@@ -41,6 +43,11 @@ jobs:
             echo "backend=true" >> "$GITHUB_OUTPUT"
           else
             echo "backend=false" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$changed" | grep -Eq '^(backend/|proxy/|docker-compose\.yml|\.github/workflows/)'; then
+            echo "stack=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stack=false" >> "$GITHUB_OUTPUT"
           fi
 
   backend:
@@ -59,9 +66,34 @@ jobs:
           cache: maven
       - run: ./mvnw -B verify
 
+  # NUEVO: construye la imagen y levanta postgres + backend + nginx, como en producción
+  docker:
+    needs: changes
+    if: needs.changes.outputs.stack == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Levantar el stack (sin Floci)
+        run: |
+          cp .env.example .env
+          docker compose up -d --build postgres backend nginx
+      - name: Probar la salud a través de Nginx
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost/api/v1/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "El stack no respondió a tiempo"
+          exit 1
+      - name: Mostrar los logs si algo falló
+        if: failure()
+        run: docker compose logs
+
   ci-ok:
     if: always()
-    needs: [changes, backend]
+    needs: [changes, backend, docker] # NUEVO: también espera al trabajo docker
     runs-on: ubuntu-latest
     steps:
       - name: Check results
