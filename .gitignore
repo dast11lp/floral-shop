@@ -4,32 +4,59 @@ build/
 .gradle/
 *.class
 *.log
+hs_err_pid*
+replay_pid*
 
 # Node / Angular
 node_modules/
 dist/
 .angular/
+coverage/
+*.tsbuildinfo
+.sass-cache/
+npm-debug.log*
+yarn-error.log*
 
 # IDEs
 .idea/
 .vscode/
 *.iml
 
-# Sistema operativo
+# Sistema operativo y editores
 .DS_Store
 Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.swp
+*~
 
-# Secretos y configuración real 
+# Secretos y configuración real
 .env
 .env.*
 !.env.example
 *.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+.aws/
 
-# Terraform
+# Terraform (el archivo .terraform.lock.hcl SÍ se versiona)
 .terraform/
 *.tfstate
 *.tfstate.*
 *.tfvars
+*.tfplan
+tfplan
+override.tf
+override.tf.json
+*_override.tf
+.terraformrc
+terraform.rc
 
-# Datos locales de bases de datos
+# Datos locales y respaldos de bases de datos
 postgres-data/
+*.dump
+*.backup
+*.bak
