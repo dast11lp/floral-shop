@@ -167,6 +167,8 @@ Reglas:
 - **Contra entrega viene deshabilitado por defecto.** El producto es perecedero y hecho por encargo: si el cliente lo rechaza, se pierde. Si se habilita (decisión con ella), va con límites (monto, zonas) y confirmación previa.
 - **Qué ofrece cada proveedor** (revisado en documentación de terceros y del proveedor; confirmar en el sandbox): Wompi lista tarjetas, PSE, Nequi, Daviplata y opciones de Bancolombia; Mercado Pago en Colombia ofrece en Checkout Pro tarjetas, saldo de la cuenta y PSE o Efecty, y Nequi pasaría por PSE.
 
+> **Cambio del 2026-11-10 (ADR 0012):** al lanzar se habilitan tarjeta, PSE y Nequi, porque responden en minutos. Efecty queda fuera y la transferencia manual queda posible pero deshabilitada por defecto. El contra entrega sigue deshabilitado y, si se habilita, es con monto máximo y solo para las variantes que ella marque. La tabla de arriba se deja como estaba, como registro de lo que se planeó.
+
 ---
 
 ## 4. Problema estrella: control de cupos
@@ -343,6 +345,8 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 **Fase 3: Pedidos y pagos.** Pedido como invitado, reserva temporal del cupo con vencimiento y job que libera las reservas sin pago (se une al pedido, por eso va aquí), `PaymentGateway` con Mercado Pago en sandbox, webhook, idempotencia y pruebas de contrato, y los medios de pago como concepto propio con su política (tarjeta, PSE, Nequi, efectivo en un punto de pago, transferencia manual y contra entrega, deshabilitado por defecto).
 
 *Pruebas:* contrato compartido con JUnit 5 (`FakePaymentGateway` escrito a mano y adaptador con WireMock), webhook con firma inválida, evento duplicado y estados desordenados (integración con Testcontainers), expiración y liberación de reservas con un `Clock` fijo, y unitarias del flujo de pedido con JUnit 5 y Mockito (por ejemplo, un pedido ya pagado no se cobra de nuevo), más la máquina de estados del pago y la política de cada medio (retención del cupo, límites y contra entrega deshabilitado por defecto).
+
+> **Cambio del 2026-11-10 (ADR 0012):** la fase 3 suma el tiempo de preparación por producto y variante (en horas), los combos que arma la florista (diseñados desde ya para poder activarlos el primer día), los cupos que ocupa cada variante, el tiempo del carrito (la suma de sus líneas), los márgenes de entrega (general y por zona) y el filtro de franjas según ese tiempo. El cliente elige la zona antes de ver las franjas. Los medios habilitados al lanzar son tarjeta, PSE y Nequi. Antes de liberar un cupo vencido se consulta al proveedor, y un pago aprobado sin cupo deja el pedido "pagado y sin franja" para que decida ella. Se adelanta a esta fase un correo simple con el comprobante en PDF. Pruebas que se suman: el cálculo del tiempo del pedido (con combos y márgenes) y del filtro de franjas con un `Clock` fijo, la reserva por cupos ocupados y el caso del pago que llega con el cupo ya liberado.
 
 **Fase 4: Identidad y operación (solo backend).** Login con roles muchos a muchos, API de administración (productos, franjas, pedidos, moderación, confirmación de pagos manuales y registro de cobros contra entrega) y fotos en S3 (contra Floci). La interfaz del panel llega en la fase 5.
 

@@ -1,6 +1,6 @@
 # 0003. Medios de pago y `PaymentGateway` como puerto y adaptador
 
-**Estado:** aceptada, con puntos pendientes de verificar · **Fecha:** 2026-10-08
+**Estado:** aceptada, con puntos pendientes de verificar; enmendada en parte por el 0012 (medios que se ofrecen al lanzar y condiciones del contra entrega) · **Fecha:** 2026-10-08
 
 ## Contexto
 En Colombia mucha gente paga con PSE, Nequi, Daviplata o efectivo, y no solo con tarjeta. Un checkout que no ofrece el medio del cliente pierde la venta. Además, el negocio es una persona sola que vende un producto perecedero, hecho por encargo y con entrega programada, así que cada medio de pago implica un riesgo distinto (por ejemplo, un cliente que rechaza el pedido en efectivo).
