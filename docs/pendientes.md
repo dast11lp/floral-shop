@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-10 (ADR 0012, flujo de compra).
+Última actualización: 2026-11-10 (tiempo de preparación y márgenes, V3).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -25,6 +25,7 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 23 | Días que no trabaja | Hoy todos los días cuentan para el tiempo de preparación (ADR 0012). Si ella lo pide, pasar a días hábiles: se cambia el servicio que calcula la fecha y se agrega una tabla con los días que no trabaja | Cuando ella lo pida |
 | 24 | Detectar la zona desde la dirección | Hoy el cliente elige su zona de una lista (ADR 0012). Detectarla sola exige un servicio de mapas (geocodificación, con costo) y los límites de cada zona, y las direcciones llegan incompletas. Se agrega sin cambiar el modelo de zonas | Si elegir la zona a mano da problemas |
 | 25 | Sedes en otras ciudades | Misma tienda y misma cuenta de cobro, con otra persona que arma y entrega en otra ciudad (ADR 0012, punto 12). Cada sede tendría sus zonas, franjas, márgenes y quizá sus tiempos. No se construye todavía; zonas, franjas y márgenes ya son datos, así que agregarlo es indicar a qué sede pertenecen | Cuando haya una segunda sede |
+| 26 | Dueño de `shop_settings` (regla 5) | Desde la V3, `scheduling` mapea solo `delivery_margin_hours` (`DeliverySettingsJpaEntity`). Los máximos por línea y por pedido los usará el módulo de pedidos, y dos módulos mapeando la misma tabla rompe "cada módulo es dueño de sus tablas". Opciones: separar la tabla por módulo (por ejemplo `delivery_settings` y `order_settings`) o que un módulo la exponga por un servicio | Al crear el módulo de pedidos |
 
 
 ## Tareas pendientes

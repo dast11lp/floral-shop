@@ -23,6 +23,7 @@ import com.floralshop.backend.catalog.domain.model.PageQuery;
 import com.floralshop.backend.catalog.domain.model.PagedResult;
 import com.floralshop.backend.catalog.domain.model.Product;
 import com.floralshop.backend.catalog.domain.model.ProductVariant;
+import com.floralshop.backend.catalog.domain.model.VariantWorkload;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -67,6 +68,63 @@ class CatalogPersistenceAdapterTest {
 
     // ---- Datos de prueba, insertados directo por JDBC ----
 
+    private long variantId(long productId, String name) {
+        return jdbc.queryForObject("select id from product_variant where product_id = ? and name = ?",
+                Long.class, productId, name);
+    }
+
+    @Test
+    void workloadInheritsOrUsesItsOwnTime() {
+        long ramo = product("Ramo", "ramo", true);
+        variant(ramo, "Pequeño", "50000", true, 1);
+        variant(ramo, "Boda", "300000", true, 2);
+        jdbc.update("update product set preparation_hours = 4 where id = ?", ramo);
+        jdbc.update("update product_variant set preparation_hours = 48, slot_units = 3 "
+                + "where product_id = ? and name = 'Boda'", ramo);
+        long small = variantId(ramo, "Pequeño");
+        long wedding = variantId(ramo, "Boda");
+
+        List<VariantWorkload> found = catalog.findAvailableWorkloads(List.of(small, wedding));
+
+        assertThat(found).containsExactlyInAnyOrder(
+                new VariantWorkload(small, null, 4, 1),      // hereda; 1 cupo por defecto
+                new VariantWorkload(wedding, 48, 4, 3));
+        assertThat(found).extracting(VariantWorkload::preparationHours).containsExactlyInAnyOrder(4, 48);
+    }
+
+    @Test
+    void onlyRequestedVariantsCome() {
+        long ramo = product("Ramo", "ramo", true);
+        variant(ramo, "Pequeño", "50000", true, 1);
+        variant(ramo, "Mediano", "70000", true, 2);
+
+        assertThat(catalog.findAvailableWorkloads(List.of(variantId(ramo, "Mediano"))))
+                .extracting(VariantWorkload::variantId)
+                .containsExactly(variantId(ramo, "Mediano"));
+    }
+
+    @Test
+    void inactiveVariantDoesNotCome() {
+        long ramo = product("Ramo", "ramo", true);
+        variant(ramo, "Retirado", "70000", false, 1);
+
+        assertThat(catalog.findAvailableWorkloads(List.of(variantId(ramo, "Retirado")))).isEmpty();
+    }
+
+    @Test
+    void variantOfInactiveProductDoesNotCome() {
+        long oculto = product("Oculto", "oculto", false);
+        variant(oculto, "Único", "50000", true, 1);
+
+        assertThat(catalog.findAvailableWorkloads(List.of(variantId(oculto, "Único")))).isEmpty();
+    }
+
+    @Test
+    void unknownIdsAndEmptyRequestReturnNothing() {
+        assertThat(catalog.findAvailableWorkloads(List.of(999_999L))).isEmpty();
+        assertThat(catalog.findAvailableWorkloads(List.of())).isEmpty();
+    }
+
     private long category(String name, String slug, boolean active, int sortOrder) {
         return jdbc.queryForObject(
                 "insert into category (name, slug, active, sort_order) values (?, ?, ?, ?) returning id",
@@ -75,7 +133,7 @@ class CatalogPersistenceAdapterTest {
 
     private long product(String name, String slug, boolean active) {
         return jdbc.queryForObject(
-                "insert into product (name, slug, active) values (?, ?, ?) returning id",
+                "insert into product (name, slug, active, preparation_hours) values (?, ?, ?, 24) returning id",
                 Long.class, name, slug, active);
     }
 

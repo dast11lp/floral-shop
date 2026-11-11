@@ -16,7 +16,7 @@ public record ProductResponse(String name, String slug, String description, bool
                 product.slug(),
                 product.description(),
                 product.available(),
-                product.variants().stream().map(ProductVariantResponse::from).toList(),
+                product.variants().stream().map(variant -> ProductVariantResponse.from(product, variant)).toList(),
                 product.categories().stream().map(CategoryResponse::from).toList());
     }
 }

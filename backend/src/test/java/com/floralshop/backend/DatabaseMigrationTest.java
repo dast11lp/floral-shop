@@ -49,6 +49,38 @@ class DatabaseMigrationTest {
         assertThat(rows).isEqualTo(1);
     }
 
+    // V3: un producto nuevo tiene que decir cuánto tarda (la columna no tiene valor por defecto)
+    @Test
+    void productRequiresPreparationHours() {
+        assertThatThrownBy(() -> jdbc.update(
+                "insert into product (name, slug) values ('Sin tiempo', 'sin-tiempo-v3')"))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    // V3: una variante ocupa al menos un cupo
+    @Test
+    void variantSlotUnitsMustBePositive() {
+        Long productId = jdbc.queryForObject(
+                "insert into product (name, slug, preparation_hours) values ('Cupos', 'cupos-v3', 4) returning id",
+                Long.class);
+        try {
+            assertThatThrownBy(() -> jdbc.update(
+                    "insert into product_variant (product_id, name, price, slot_units) values (?, 'Cero', 1000, 0)",
+                    productId))
+                    .isInstanceOf(DataIntegrityViolationException.class)
+                    .hasMessageContaining("ck_variant_slot_units");
+        } finally {
+            jdbc.update("delete from product where id = ?", productId);
+        }
+    }
+
+    // V3: el margen general arranca en 2 horas
+    @Test
+    void generalDeliveryMarginStartsAtTwoHours() {
+        assertThat(jdbc.queryForObject("select delivery_margin_hours from shop_settings", Integer.class))
+                .isEqualTo(2);
+    }
+
         // comprueba que la migración V2 creó el índice para buscar productos por categoría
     @Test
     void migrationCreatesProductCategoryIndex() {

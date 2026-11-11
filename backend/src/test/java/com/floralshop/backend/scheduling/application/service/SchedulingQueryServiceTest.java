@@ -71,7 +71,7 @@ class SchedulingQueryServiceTest {
 
     @Test
     void listsZonesFromThePort() {
-        List<DeliveryZone> expected = List.of(new DeliveryZone(1L, "Centro", new BigDecimal("8000"), true));
+        List<DeliveryZone> expected = List.of(new DeliveryZone(1L, "Centro", new BigDecimal("8000"), true, 0));
         when(zones.findActive()).thenReturn(expected);
 
         assertThat(service.listZones()).isSameAs(expected);

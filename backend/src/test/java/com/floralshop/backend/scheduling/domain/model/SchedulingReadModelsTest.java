@@ -45,18 +45,18 @@ class SchedulingReadModelsTest {
 
     @Test
     void zoneAcceptsZeroShippingFee() {
-        assertThat(new DeliveryZone(1L, "Centro", BigDecimal.ZERO, true).shippingFee()).isZero();
+        assertThat(new DeliveryZone(1L, "Centro", BigDecimal.ZERO, true, 0).shippingFee()).isZero();
     }
 
     @Test
     void zoneRejectsNegativeShippingFee() {
-        assertThatThrownBy(() -> new DeliveryZone(1L, "Centro", new BigDecimal("-1"), true))
+        assertThatThrownBy(() -> new DeliveryZone(1L, "Centro", new BigDecimal("-1"), true, 0))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void zoneRejectsBlankName() {
-        assertThatThrownBy(() -> new DeliveryZone(1L, " ", BigDecimal.TEN, true))
+        assertThatThrownBy(() -> new DeliveryZone(1L, " ", BigDecimal.TEN, true, 0))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }
