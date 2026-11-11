@@ -106,11 +106,11 @@ class SchedulingReadAdaptersTest {
     @Test
     void findsActiveZoneByIdWithItsMargin() {
         zone("Chía", "15000", true);
-        jdbc.update("update delivery_zone set margin_hours = 3 where name = 'Chía'");
+        jdbc.update("update delivery_zone set travel_margin_hours = 3 where name = 'Chía'");
 
         assertThat(zones.findActiveById(zoneId("Chía")))
                 .get()
-                .extracting(DeliveryZone::marginHours)
+                .extracting(DeliveryZone::travelMarginHours)
                 .isEqualTo(3);
     }
 
@@ -119,7 +119,7 @@ class SchedulingReadAdaptersTest {
         zone("Centro", "8000", true);
 
         assertThat(zones.findActiveById(zoneId("Centro"))).get()
-                .extracting(DeliveryZone::marginHours).isEqualTo(0);
+                .extracting(DeliveryZone::travelMarginHours).isEqualTo(0);
     }
 
     @Test
@@ -131,13 +131,13 @@ class SchedulingReadAdaptersTest {
 
     @Test
     void generalMarginStartsAtTwoHours() {
-        assertThat(settings.get().deliveryMarginHours()).isEqualTo(2);
+        assertThat(settings.get().dispatchMarginHours()).isEqualTo(2);
     }
 
     @Test
     void generalMarginReflectsWhatTheFloristSaved() {
-        jdbc.update("update shop_settings set delivery_margin_hours = 5");
+        jdbc.update("update shop_settings set dispatch_margin_hours = 5");
 
-        assertThat(settings.get().deliveryMarginHours()).isEqualTo(5);
+        assertThat(settings.get().dispatchMarginHours()).isEqualTo(5);
     }
 }

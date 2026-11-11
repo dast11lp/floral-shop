@@ -32,8 +32,8 @@ public class ProductVariantJpaEntity {
     private int sortOrder;
 
     // null: la variante usa el tiempo de su producto.
-    @Column(name = "preparation_hours")
-    private Integer preparationHours;
+    @Column(name = "crafting_hours")
+    private Integer craftingHours;
 
     @Column(name = "slot_units", nullable = false)
     private int slotUnits;
@@ -46,6 +46,6 @@ public class ProductVariantJpaEntity {
     public BigDecimal getPrice() { return price; }
     public boolean isActive() { return active; }
     public int getSortOrder() { return sortOrder; }
-    public Integer getPreparationHours() { return preparationHours; }
+    public Integer getCraftingHours() { return craftingHours; }
     public int getSlotUnits() { return slotUnits; }
 }

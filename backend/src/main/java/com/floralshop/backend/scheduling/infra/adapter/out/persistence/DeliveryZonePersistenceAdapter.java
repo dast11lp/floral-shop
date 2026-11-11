@@ -33,6 +33,6 @@ class DeliveryZonePersistenceAdapter implements DeliveryZoneRepositoryPort {
 
     private DeliveryZone toDomain(DeliveryZoneJpaEntity zone) {
         return new DeliveryZone(zone.getId(), zone.getName(), zone.getShippingFee(), zone.isActive(),
-                zone.getMarginHours());
+                zone.getTravelMarginHours());
     }
 }

@@ -1,6 +1,6 @@
 # 0012. Flujo de compra: tiempo de preparación, franja y pago (enmienda del 0003)
 
-**Estado:** aceptada, con puntos pendientes de hablar con la florista · **Fecha:** 2026-11-10
+**Estado:** aceptada, con puntos pendientes de hablar con la florista; con una precisión de nombres (2026-11-11) · **Fecha:** 2026-11-10
 
 ## Contexto
 Los productos no están hechos: se arman por encargo, y cada uno tarda distinto (un ramo grande para una boda no tarda lo mismo que uno pequeño). Hasta ahora el plan solo preveía una antelación mínima igual para todo (pendiente 20), que no refleja esa diferencia ni el tiempo de llevar el pedido. El negocio funciona desde una casa, sin tienda física, así que todo pedido se entrega a domicilio. Además, al empezar la fase 3 se revisó qué medios de pago convienen: los que tardan horas o días en confirmarse obligan a retener el cupo mucho tiempo y complican deshacer el pedido si el pago no llega.
@@ -72,3 +72,14 @@ Los productos no están hechos: se arman por encargo, y cada uno tarda distinto 
 - **Transferencia manual y contra entrega:** si habilita alguno, y con qué límites.
 - **Valores de arranque:** las 2 horas de margen general y los 15 minutos de cupo apartado.
 - Confirmar en el sandbox qué tan rápido responde Nequi por Mercado Pago, que según el 0003 pasaría por PSE (Wompi lo ofrece directo).
+
+## Precisión de nombres (2026-11-11)
+Al revisar el código, "preparation" y "margin" a secas no decían qué cubre cada tiempo. Se renombraron con la migración V4, sin cambiar datos ni reglas. El texto de arriba se deja como estaba.
+
+| En este ADR | Nombre en el código | Qué cubre |
+|---|---|---|
+| Tiempo de preparación (`preparation_hours`) | `craftingHours` | Lo que tarda en elaborarse el producto o la variante |
+| Margen general | `dispatchMarginHours` (margen de despacho) | Empacar, salir de la casa e imprevistos; aplica a todo pedido |
+| Margen por zona | `travelMarginHours` (margen de viaje) | Lo extra de llegar a esa zona |
+
+La fórmula queda: inicio más temprano = ahora + elaboración del carrito + margen de despacho + margen de viaje de la zona.

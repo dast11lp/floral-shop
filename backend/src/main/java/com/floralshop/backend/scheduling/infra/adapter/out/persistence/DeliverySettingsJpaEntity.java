@@ -17,12 +17,12 @@ public class DeliverySettingsJpaEntity {
     @Id
     private Short id;
 
-    @Column(name = "delivery_margin_hours", nullable = false)
-    private int deliveryMarginHours;
+    @Column(name = "dispatch_margin_hours", nullable = false)
+    private int dispatchMarginHours;
 
     protected DeliverySettingsJpaEntity() {
     }
 
     public Short getId() { return id; }
-    public int getDeliveryMarginHours() { return deliveryMarginHours; }
+    public int getDispatchMarginHours() { return dispatchMarginHours; }
 }

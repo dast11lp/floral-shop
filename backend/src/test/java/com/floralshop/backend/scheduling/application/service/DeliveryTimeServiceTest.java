@@ -26,7 +26,7 @@ import com.floralshop.backend.scheduling.domain.model.DeliverySettings;
 import com.floralshop.backend.scheduling.domain.model.DeliverySlot;
 import com.floralshop.backend.scheduling.domain.model.DeliveryZone;
 
-// inicio más temprano = ahora + preparación + margen general + margen de la zona (ADR 0012, punto 5).
+// inicio más temprano = ahora + elaboración + margen de despacho + margen de viaje de la zona (ADR 0012, punto 5).
 @ExtendWith(MockitoExtension.class)
 class DeliveryTimeServiceTest {
 
@@ -48,9 +48,9 @@ class DeliveryTimeServiceTest {
         service = new DeliveryTimeService(zones, settings, CLOCK);
     }
 
-    private void zoneWithMargin(long id, int marginHours) {
+    private void zoneWithMargin(long id, int travelMarginHours) {
         when(zones.findActiveById(id))
-                .thenReturn(Optional.of(new DeliveryZone(id, "Zona", new BigDecimal("8000"), true, marginHours)));
+                .thenReturn(Optional.of(new DeliveryZone(id, "Zona", new BigDecimal("8000"), true, travelMarginHours)));
     }
 
     private void generalMargin(int hours) {
@@ -58,7 +58,7 @@ class DeliveryTimeServiceTest {
     }
 
     @Test
-    void addsPreparationAndBothMargins() {
+    void addsCraftingAndBothMargins() {
         // 48 h + 2 h generales + 2 h de la zona = 52 h: miércoles 16, 14:00
         generalMargin(2);
         zoneWithMargin(1L, 2);
@@ -91,7 +91,7 @@ class DeliveryTimeServiceTest {
     }
 
     @Test
-    void negativePreparationIsRejected() {
+    void negativeCraftingIsRejected() {
         assertThatThrownBy(() -> service.earliestDeliveryStart(-1, 1L))
                 .isInstanceOf(IllegalArgumentException.class);
     }

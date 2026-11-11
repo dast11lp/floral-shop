@@ -78,8 +78,8 @@ class CatalogPersistenceAdapterTest {
         long ramo = product("Ramo", "ramo", true);
         variant(ramo, "Pequeño", "50000", true, 1);
         variant(ramo, "Boda", "300000", true, 2);
-        jdbc.update("update product set preparation_hours = 4 where id = ?", ramo);
-        jdbc.update("update product_variant set preparation_hours = 48, slot_units = 3 "
+        jdbc.update("update product set crafting_hours = 4 where id = ?", ramo);
+        jdbc.update("update product_variant set crafting_hours = 48, slot_units = 3 "
                 + "where product_id = ? and name = 'Boda'", ramo);
         long small = variantId(ramo, "Pequeño");
         long wedding = variantId(ramo, "Boda");
@@ -89,7 +89,7 @@ class CatalogPersistenceAdapterTest {
         assertThat(found).containsExactlyInAnyOrder(
                 new VariantWorkload(small, null, 4, 1),      // hereda; 1 cupo por defecto
                 new VariantWorkload(wedding, 48, 4, 3));
-        assertThat(found).extracting(VariantWorkload::preparationHours).containsExactlyInAnyOrder(4, 48);
+        assertThat(found).extracting(VariantWorkload::craftingHours).containsExactlyInAnyOrder(4, 48);
     }
 
     @Test
@@ -133,7 +133,7 @@ class CatalogPersistenceAdapterTest {
 
     private long product(String name, String slug, boolean active) {
         return jdbc.queryForObject(
-                "insert into product (name, slug, active, preparation_hours) values (?, ?, ?, 24) returning id",
+                "insert into product (name, slug, active, crafting_hours) values (?, ?, ?, 24) returning id",
                 Long.class, name, slug, active);
     }
 

@@ -59,7 +59,7 @@ class CatalogControllerTest {
                 .andExpect(jsonPath("$.content[0].slug").value("ramo-primavera"))
                 .andExpect(jsonPath("$.content[0].variants[0].id").value(11))
                 .andExpect(jsonPath("$.content[0].variants[0].price").value(80000.0))
-                .andExpect(jsonPath("$.content[0].variants[0].preparationHours").value(24)) // heredado del producto
+                .andExpect(jsonPath("$.content[0].variants[0].craftingHours").value(24)) // heredado del producto
                 .andExpect(jsonPath("$.content[0].categories[0].slug").value("rosas"))
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.totalPages").value(1))
@@ -68,7 +68,7 @@ class CatalogControllerTest {
                 .andExpect(jsonPath("$.content[0].id").doesNotExist())
                 .andExpect(jsonPath("$.content[0].active").doesNotExist())
                 .andExpect(jsonPath("$.content[0].categories[0].id").doesNotExist())
-                .andExpect(jsonPath("$.content[0].preparationHours").doesNotExist())
+                .andExpect(jsonPath("$.content[0].craftingHours").doesNotExist())
                 .andExpect(jsonPath("$.content[0].variants[0].slotUnits").doesNotExist());
     }
 

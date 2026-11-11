@@ -8,8 +8,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-// Tiempo de preparación y cupos que ocupa (ADR 0012). Java puro.
-class PreparationTimeModelTest {
+// Tiempo de elaboración y cupos que ocupa (ADR 0012). Java puro.
+class CraftingTimeModelTest {
 
     private ProductVariant variant(Integer hours, int slotUnits) {
         return new ProductVariant(1L, "Grande", new BigDecimal("130000"), true, 1, hours, slotUnits);
@@ -23,14 +23,14 @@ class PreparationTimeModelTest {
     void variantWithoutOwnTimeUsesTheProductTime() {
         ProductVariant variant = variant(null, 1);
 
-        assertThat(product(24, variant).preparationHoursOf(variant)).isEqualTo(24);
+        assertThat(product(24, variant).craftingHoursOf(variant)).isEqualTo(24);
     }
 
     @Test
     void variantOwnTimeWinsOverTheProductTime() {
         ProductVariant variant = variant(48, 1);
 
-        assertThat(product(24, variant).preparationHoursOf(variant)).isEqualTo(48);
+        assertThat(product(24, variant).craftingHoursOf(variant)).isEqualTo(48);
     }
 
     @Test
@@ -38,7 +38,7 @@ class PreparationTimeModelTest {
         // 0 es un valor propio ("ya está listo"), no "sin valor": no hereda
         ProductVariant variant = variant(0, 1);
 
-        assertThat(product(24, variant).preparationHoursOf(variant)).isZero();
+        assertThat(product(24, variant).craftingHoursOf(variant)).isZero();
     }
 
     @Test
@@ -63,22 +63,22 @@ class PreparationTimeModelTest {
 
     @Test
     void ruleUsesTheProductTimeWhenTheVariantHasNone() {
-        assertThat(ProductVariant.effectivePreparationHours(null, 24)).isEqualTo(24);
+        assertThat(ProductVariant.effectiveCraftingHours(null, 24)).isEqualTo(24);
     }
 
     @Test
     void ruleKeepsTheVariantOwnTimeEvenIfZero() {
-        assertThat(ProductVariant.effectivePreparationHours(0, 24)).isZero();
+        assertThat(ProductVariant.effectiveCraftingHours(0, 24)).isZero();
     }
 
     @Test
     void workloadInheritsTheProductTime() {
-        assertThat(new VariantWorkload(1L, null, 24, 1).preparationHours()).isEqualTo(24);
+        assertThat(new VariantWorkload(1L, null, 24, 1).craftingHours()).isEqualTo(24);
     }
 
     @Test
     void workloadUsesItsOwnTime() {
-        assertThat(new VariantWorkload(1L, 48, 24, 3).preparationHours()).isEqualTo(48);
+        assertThat(new VariantWorkload(1L, 48, 24, 3).craftingHours()).isEqualTo(48);
     }
 
     @Test

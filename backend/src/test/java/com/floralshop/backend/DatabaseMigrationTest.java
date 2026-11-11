@@ -51,7 +51,7 @@ class DatabaseMigrationTest {
 
     // V3: un producto nuevo tiene que decir cuánto tarda (la columna no tiene valor por defecto)
     @Test
-    void productRequiresPreparationHours() {
+    void productRequiresCraftingHours() {
         assertThatThrownBy(() -> jdbc.update(
                 "insert into product (name, slug) values ('Sin tiempo', 'sin-tiempo-v3')"))
                 .isInstanceOf(DataIntegrityViolationException.class);
@@ -61,7 +61,7 @@ class DatabaseMigrationTest {
     @Test
     void variantSlotUnitsMustBePositive() {
         Long productId = jdbc.queryForObject(
-                "insert into product (name, slug, preparation_hours) values ('Cupos', 'cupos-v3', 4) returning id",
+                "insert into product (name, slug, crafting_hours) values ('Cupos', 'cupos-v3', 4) returning id",
                 Long.class);
         try {
             assertThatThrownBy(() -> jdbc.update(
@@ -74,10 +74,10 @@ class DatabaseMigrationTest {
         }
     }
 
-    // V3: el margen general arranca en 2 horas
+    // V3 y V4: el margen de despacho arranca en 2 horas
     @Test
-    void generalDeliveryMarginStartsAtTwoHours() {
-        assertThat(jdbc.queryForObject("select delivery_margin_hours from shop_settings", Integer.class))
+    void dispatchMarginStartsAtTwoHours() {
+        assertThat(jdbc.queryForObject("select dispatch_margin_hours from shop_settings", Integer.class))
                 .isEqualTo(2);
     }
 

@@ -11,7 +11,7 @@ import com.floralshop.backend.scheduling.domain.model.DeliveryZone;
 
 // Desde cuándo se puede entregar un pedido (ADR 0012, punto 5). Java puro, sin anotaciones de Spring.
 //
-//   inicio más temprano = ahora + preparación del carrito + margen general + margen de la zona
+//   inicio más temprano = ahora + elaboración del carrito + margen de despacho + margen de viaje de la zona
 //
 // Todos los días cuentan, también los que la florista no trabaja (los maneja cerrando franjas).
 // Si eso cambia (pendiente 23), se cambia este servicio.
@@ -28,14 +28,14 @@ public class DeliveryTimeService {
         this.clock = clock;
     }
 
-    // preparationHours es el tiempo del carrito completo (CartPreparationService, en catalog).
-    public LocalDateTime earliestDeliveryStart(int preparationHours, long zoneId) {
-        if (preparationHours < 0) {
-            throw new IllegalArgumentException("El tiempo de preparación no puede ser negativo");
+    // craftingHours es el tiempo del carrito completo (CartWorkloadService, en catalog).
+    public LocalDateTime earliestDeliveryStart(int craftingHours, long zoneId) {
+        if (craftingHours < 0) {
+            throw new IllegalArgumentException("El tiempo de elaboración no puede ser negativo");
         }
         DeliveryZone zone = zones.findActiveById(zoneId)
                 .orElseThrow(() -> new ZoneNotFoundException(zoneId));
-        long totalHours = (long) preparationHours + settings.get().deliveryMarginHours() + zone.marginHours();
+        long totalHours = (long) craftingHours + settings.get().dispatchMarginHours() + zone.travelMarginHours();
         return LocalDateTime.now(clock).plusHours(totalHours);
     }
 
