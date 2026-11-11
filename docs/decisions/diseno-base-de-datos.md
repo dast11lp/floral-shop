@@ -2,6 +2,8 @@
 
 **Estado:** borrador. Léelo con calma, dime qué cambiar, y solo entonces se pega el SQL. Mientras la V1 no se haya fusionado en `main`, se puede cambiar sin costo.
 
+> **Nota del 2026-11-11:** este documento describe la V1, ya aplicada. Lo que cambió después está en las migraciones (`backend/src/main/resources/db/migration`, V2 a V6) y en los ADR 0012 y 0013. En particular, `shop_settings` ya no existe: se separó en `delivery_settings` y `order_settings`. El texto de abajo se deja como estaba, como registro del diseño original.
+
 **Método:** primero la base de datos (SQL con Flyway). Después las clases de Java la mapean. Hibernate solo **comprueba** (`ddl-auto: validate`), nunca crea tablas.
 
 ---

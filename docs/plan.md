@@ -5,7 +5,7 @@
 **Stack:** Spring Boot, Angular (SSR), PostgreSQL, Docker, Nginx, AWS, GitHub Actions, Terraform.
 
 **Estado del plan:** todo se desarrolla en local (Docker Compose y Floci) y el despliegue real en AWS se hace **al final, en la cuenta de ella**.
-**Progreso:** fases 0, 1 y 2 terminadas. El backend de lectura está completo: catálogo, zonas, franjas y reserva atómica de cupos, con pruebas y reglas de arquitectura. Siguiente: fase 3 (pedidos y pagos). Los pendientes y las decisiones por revisar están en `docs/pendientes.md`.
+**Progreso:** fases 0, 1 y 2 terminadas; fase 3 en curso (actualizado el 2026-11-11). Hechos de la fase 3: tiempo de elaboración por producto y variante, cupos que ocupa cada variante y márgenes de entrega (ADR 0012); franjas que alcanzan para un carrito; decisiones de pedidos (ADR 0013); y pedido como invitado con el cupo apartado en la misma transacción. El dominio de pagos (estados y medios) también está hecho. Siguiente: pagos (pasarela falsa y luego Mercado Pago, webhook y job que libera cupos vencidos) y después combos. Los pendientes y las decisiones por revisar están en `docs/pendientes.md`.
 
 ---
 
@@ -194,10 +194,12 @@ El corazón técnico del proyecto y el mejor tema de entrevista.
 - `order_item` (producto, cantidad, **precio al momento de la compra**)
 - `payment` (orden, `provider`, `method`, referencia única, estado y, en los manuales, quién confirmó y cuándo)
 - `payment_event` (provider, event_id, restricción única)
+
+> **Cambio del 2026-11-11 (ADR 0012 y 0013, migraciones V3 a V6):** `shop_settings` se separó en `delivery_settings` (margen de despacho y capacidad por defecto, de `scheduling`) y `order_settings` (máximos por línea y por pedido, de pedidos). Los pedidos son `customer_order` y `order_line` (`order` es palabra reservada en SQL). No hay tabla `customer`: el cliente compra como invitado y sus datos van en el pedido. El pedido guarda una copia de lo comprado (precio, horas de elaboración y cupos), de la zona y de la franja, sin claves foráneas hacia otros módulos. `product` y `product_variant` suman `crafting_hours` y `slot_units`, y `delivery_zone` suma `travel_margin_hours`. La lista de arriba se deja como registro de lo planeado.
 - `review` (orden, producto, calificación, texto, estado de moderación, respuesta del dueño)
 - `user`, `role`, `user_role`
 
-**Las tablas se crean en la fase que las necesita**, no todas de golpe. La V1 (paso 1.3) crea las tablas de catálogo y franjas: `category`, `product`, `product_category`, `product_variant`, `delivery_zone`, `delivery_slot` y `shop_settings`. El diseño completo y su SQL están en `docs/database-design.md`. El inventario (existencias por variante, y después insumos y recetas) queda para después del MVP y se agrega con migraciones nuevas.
+**Las tablas se crean en la fase que las necesita**, no todas de golpe. La V1 (paso 1.3) crea las tablas de catálogo y franjas: `category`, `product`, `product_category`, `product_variant`, `delivery_zone`, `delivery_slot` y `shop_settings`. El diseño completo y su SQL están en `docs/decisions/diseno-base-de-datos.md`. El inventario (existencias por variante, y después insumos y recetas) queda para después del MVP y se agrega con migraciones nuevas.
 
 **Reglas de datos:**
 - Dinero con `BigDecimal` o enteros, nunca con `double`.
