@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-09 (CI con prueba del stack).
+Última actualización: 2026-11-10 (ADR 0012, flujo de compra).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -20,8 +20,11 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 17 | Claves foráneas y SQL entre módulos (regla 5) | ArchUnit no puede comprobar claves foráneas ni consultas SQL entre tablas de módulos distintos. Cuando pedidos referencie variantes de producto, decidir: clave foránea con integridad referencial pero sin consultas en código ajeno, o guardar solo el id sin clave foránea. Añadir entonces una prueba que lea `information_schema` | Fase 3 |
 | 18 | Vista de administración de reservas | Hoy el cupo es solo un contador (`booked`). Las "reservas" que verá la administradora serán los pedidos agrupados por franja (fase 3 los crea, fase 4 los muestra), y cancelar un pedido debe liberar el cupo. Valorar una comprobación que cuadre `booked` con la suma de unidades de los pedidos activos | Fases 3 y 4 |
 | 19 | Qué muestra la tienda del cupo de una franja | Hoy: solo `available` (sí o no), sin cifras, para no revelar cuánto vende la florista cada día. Hablarlo con ella: puede preferir mostrar la cantidad (`availableUnits`) o un estado ("últimos cupos"). Añadir un campo a la respuesta no rompe nada; quitarlo sí, así que se mantiene lo mínimo hasta decidir | Antes de la fase 5 |
-| 20 | Antelación mínima de pedidos | Falta decidir con la florista cuántas horas antes de una franja se deja de ofrecer (el plan solo recomienda 24 a 48 h). Hoy se ofrecen todas las franjas desde hoy, incluso las que ya pasaron. Opciones: un mínimo de horas igual para todas, una hora de corte diaria, o sin regla (ella cierra a mano). También decidir hasta cuántos días adelante se puede pedir (hoy 31, fijo en el código) | Fase 3 |
 | 21 | Decisiones de la tienda por hablar con la florista | Orden de las zonas (hoy alfabético: la tabla no tiene `sort_order`, así que ella no podría elegirlo). Productos por página (hoy 20 por defecto, máximo 100). Franjas llenas: se muestran como no disponibles; cerradas: se ocultan | Antes de la fase 5 |
+| 22 | Puntos del ADR 0012 por hablar con la florista | Si los combos se activan al lanzar o después; qué zonas, con qué costo y margen (localidades, barrios o municipios cercanos como Chía); si habilita la transferencia manual o el contra entrega, y con qué límites; valores de arranque (2 horas de margen general y 15 minutos de cupo apartado) | Antes de terminar la fase 3 |
+| 23 | Días que no trabaja | Hoy todos los días cuentan para el tiempo de preparación (ADR 0012). Si ella lo pide, pasar a días hábiles: se cambia el servicio que calcula la fecha y se agrega una tabla con los días que no trabaja | Cuando ella lo pida |
+| 24 | Detectar la zona desde la dirección | Hoy el cliente elige su zona de una lista (ADR 0012). Detectarla sola exige un servicio de mapas (geocodificación, con costo) y los límites de cada zona, y las direcciones llegan incompletas. Se agrega sin cambiar el modelo de zonas | Si elegir la zona a mano da problemas |
+| 25 | Sedes en otras ciudades | Misma tienda y misma cuenta de cobro, con otra persona que arma y entrega en otra ciudad (ADR 0012, punto 12). Cada sede tendría sus zonas, franjas, márgenes y quizá sus tiempos. No se construye todavía; zonas, franjas y márgenes ya son datos, así que agregarlo es indicar a qué sede pertenecen | Cuando haya una segunda sede |
 
 
 ## Tareas pendientes
@@ -36,7 +39,7 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 
 ## Por verificar (nadie lo ha confirmado)
 
-- Comisiones y medios (Nequi, Efecty, PSE) de Mercado Pago y Wompi en Colombia.
+- Comisiones y medios (Nequi, Efecty, PSE) de Mercado Pago y Wompi en Colombia, y qué tan rápido responde Nequi por Mercado Pago (pasaría por PSE).
 - Si la cuenta de AWS de la florista recibe créditos de cuenta nueva.
 - Soporte real de EC2 e IAM en Floci.
 - Si las pasarelas exigen constitución legal para las llaves de producción.
@@ -52,3 +55,4 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | `.gitignore` ampliado con llaves, Terraform, respaldos y archivos de frontend | PR `chore/gitignore-completo` |
 | Fases 0, 1 y 2 marcadas como terminadas en `plan.md`. La diferencia de nombre entre `.env` y `.env.example` se descartó: la plantilla es coherente por sí sola | PR `docs/alinear-env-y-plan` |
 | El CI levanta postgres, backend y nginx con Docker y prueba `/api/v1/health` a través de Nginx | PR `ci/docker-smoke-test` |
+| Antelación mínima de pedidos (antes pendiente 20): se reemplaza por un tiempo de preparación en horas por producto y variante, y el tiempo del carrito con reglas que ajusta la florista | ADR 0012, PR `docs/flujo-de-compra` (2026-11-10) |
