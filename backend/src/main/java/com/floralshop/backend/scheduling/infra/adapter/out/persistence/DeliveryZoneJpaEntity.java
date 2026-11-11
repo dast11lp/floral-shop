@@ -27,6 +27,9 @@ public class DeliveryZoneJpaEntity {
     @Column(nullable = false)
     private boolean active;
 
+    @Column(name = "margin_hours", nullable = false)
+    private int marginHours;
+
     protected DeliveryZoneJpaEntity() {
     }
 
@@ -34,4 +37,5 @@ public class DeliveryZoneJpaEntity {
     public String getName() { return name; }
     public BigDecimal getShippingFee() { return shippingFee; }
     public boolean isActive() { return active; }
+    public int getMarginHours() { return marginHours; }
 }

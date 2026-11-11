@@ -53,7 +53,7 @@ class SchedulingControllerTest {
 
     @Test
     void listsZones() throws Exception {
-        when(scheduling.listZones()).thenReturn(List.of(new DeliveryZone(1L, "Centro", new BigDecimal("8000"), true)));
+        when(scheduling.listZones()).thenReturn(List.of(new DeliveryZone(1L, "Centro", new BigDecimal("8000"), true, 0)));
 
         mockMvc.perform(get("/api/v1/delivery-zones"))
                 .andExpect(status().isOk())

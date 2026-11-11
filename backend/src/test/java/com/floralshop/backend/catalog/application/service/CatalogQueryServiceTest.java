@@ -40,7 +40,7 @@ class CatalogQueryServiceTest {
     }
 
     private Product product(String slug) {
-        return new Product(1L, "Ramo", slug, "Descripción", true, List.of(), List.of());
+        return new Product(1L, "Ramo", slug, "Descripción", true, 24, List.of(), List.of());
     }
 
     private PagedResult<Product> pageOf(Product product) {

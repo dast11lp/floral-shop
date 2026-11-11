@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.floralshop.backend.TestcontainersConfiguration;
+import com.floralshop.backend.scheduling.application.port.out.DeliverySettingsRepositoryPort;
 import com.floralshop.backend.scheduling.application.port.out.DeliverySlotRepositoryPort;
 import com.floralshop.backend.scheduling.application.port.out.DeliveryZoneRepositoryPort;
 import com.floralshop.backend.scheduling.domain.model.DateRange;
@@ -31,6 +32,9 @@ class SchedulingReadAdaptersTest {
 
     @Autowired
     DeliveryZoneRepositoryPort zones;
+
+    @Autowired
+    DeliverySettingsRepositoryPort settings;
 
     @Autowired
     JdbcTemplate jdbc;
@@ -93,5 +97,47 @@ class SchedulingReadAdaptersTest {
     @Test
     void noZonesReturnsEmptyList() {
         assertThat(zones.findActive()).isEmpty();
+    }
+
+    private long zoneId(String name) {
+        return jdbc.queryForObject("select id from delivery_zone where name = ?", Long.class, name);
+    }
+
+    @Test
+    void findsActiveZoneByIdWithItsMargin() {
+        zone("Chía", "15000", true);
+        jdbc.update("update delivery_zone set margin_hours = 3 where name = 'Chía'");
+
+        assertThat(zones.findActiveById(zoneId("Chía")))
+                .get()
+                .extracting(DeliveryZone::marginHours)
+                .isEqualTo(3);
+    }
+
+    @Test
+    void newZoneHasNoMargin() {
+        zone("Centro", "8000", true);
+
+        assertThat(zones.findActiveById(zoneId("Centro"))).get()
+                .extracting(DeliveryZone::marginHours).isEqualTo(0);
+    }
+
+    @Test
+    void inactiveZoneIsNotFoundById() {
+        zone("Antigua", "15000", false);
+
+        assertThat(zones.findActiveById(zoneId("Antigua"))).isEmpty();
+    }
+
+    @Test
+    void generalMarginStartsAtTwoHours() {
+        assertThat(settings.get().deliveryMarginHours()).isEqualTo(2);
+    }
+
+    @Test
+    void generalMarginReflectsWhatTheFloristSaved() {
+        jdbc.update("update shop_settings set delivery_margin_hours = 5");
+
+        assertThat(settings.get().deliveryMarginHours()).isEqualTo(5);
     }
 }

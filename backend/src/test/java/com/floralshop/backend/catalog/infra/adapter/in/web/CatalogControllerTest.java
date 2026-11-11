@@ -42,8 +42,9 @@ class CatalogControllerTest {
     CatalogQueryService catalog; // doble del servicio
 
     private Product product() {
-        return new Product(7L, "Ramo primavera", "ramo-primavera", "Flores de temporada", true,
-                List.of(new ProductVariant(11L, "Mediano", new BigDecimal("80000.00"), true, 1)),
+        // El producto tarda 24 h; la variante no tiene tiempo propio y ocupa 2 cupos.
+        return new Product(7L, "Ramo primavera", "ramo-primavera", "Flores de temporada", true, 24,
+                List.of(new ProductVariant(11L, "Mediano", new BigDecimal("80000.00"), true, 1, null, 2)),
                 List.of(new Category(3L, "Rosas", "rosas", true, 1)));
     }
 
@@ -58,6 +59,7 @@ class CatalogControllerTest {
                 .andExpect(jsonPath("$.content[0].slug").value("ramo-primavera"))
                 .andExpect(jsonPath("$.content[0].variants[0].id").value(11))
                 .andExpect(jsonPath("$.content[0].variants[0].price").value(80000.0))
+                .andExpect(jsonPath("$.content[0].variants[0].preparationHours").value(24)) // heredado del producto
                 .andExpect(jsonPath("$.content[0].categories[0].slug").value("rosas"))
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.totalPages").value(1))
@@ -65,7 +67,9 @@ class CatalogControllerTest {
                 // Lo interno no se expone:
                 .andExpect(jsonPath("$.content[0].id").doesNotExist())
                 .andExpect(jsonPath("$.content[0].active").doesNotExist())
-                .andExpect(jsonPath("$.content[0].categories[0].id").doesNotExist());
+                .andExpect(jsonPath("$.content[0].categories[0].id").doesNotExist())
+                .andExpect(jsonPath("$.content[0].preparationHours").doesNotExist())
+                .andExpect(jsonPath("$.content[0].variants[0].slotUnits").doesNotExist());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.floralshop.backend.catalog.infra.adapter.out.persistence;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ import com.floralshop.backend.catalog.domain.model.Category;
 import com.floralshop.backend.catalog.domain.model.PageQuery;
 import com.floralshop.backend.catalog.domain.model.PagedResult;
 import com.floralshop.backend.catalog.domain.model.Product;
+import com.floralshop.backend.catalog.domain.model.VariantWorkload;
 
 // Adaptador de salida: implementa el puerto del catálogo con JPA.
 // Cada método es una transacción de solo lectura, para que las colecciones perezosas
@@ -57,6 +59,18 @@ class CatalogPersistenceAdapter implements CatalogRepositoryPort {
     public List<Category> findActiveCategories() {
         return categories.findByActiveTrueOrderBySortOrderAscNameAsc().stream()
                 .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<VariantWorkload> findAvailableWorkloads(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return List.of(); // "IN ()" vacío no es SQL válido
+        }
+        return products.findAvailableWorkloads(variantIds).stream()
+                .map(row -> new VariantWorkload(row.getVariantId(), row.getVariantPreparationHours(),
+                        row.getProductPreparationHours(), row.getSlotUnits()))
                 .toList();
     }
 

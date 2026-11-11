@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class CatalogModelTest {
 
     private ProductVariant variant(String price) {
-        return new ProductVariant(1L, "Mediano", new BigDecimal(price), true, 1);
+        return new ProductVariant(1L, "Mediano", new BigDecimal(price), true, 1, null, 1);
     }
 
     @Test
@@ -41,20 +41,20 @@ class CatalogModelTest {
 
     @Test
     void productRejectsBlankName() {
-        assertThatThrownBy(() -> new Product(1L, " ", "ramo", "Descripción", true, List.of(), List.of()))
+        assertThatThrownBy(() -> new Product(1L, " ", "ramo", "Descripción", true, 24, List.of(), List.of()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void productRejectsBlankSlug() {
-        assertThatThrownBy(() -> new Product(1L, "Ramo", "", "Descripción", true, List.of(), List.of()))
+        assertThatThrownBy(() -> new Product(1L, "Ramo", "", "Descripción", true, 24, List.of(), List.of()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void productCopiesItsLists() {
         List<ProductVariant> variants = new ArrayList<>(List.of(variant("50000")));
-        Product product = new Product(1L, "Ramo", "ramo", "Descripción", true, variants, List.of());
+        Product product = new Product(1L, "Ramo", "ramo", "Descripción", true, 24, variants, List.of());
 
         variants.add(variant("80000")); // si el producto no copiara la lista, vería este cambio
 
@@ -63,14 +63,14 @@ class CatalogModelTest {
 
     @Test
     void productIsAvailableWithAnActiveVariant() {
-        Product product = new Product(1L, "Ramo", "ramo", "Descripción", true, List.of(variant("50000")), List.of());
+        Product product = new Product(1L, "Ramo", "ramo", "Descripción", true, 24, List.of(variant("50000")), List.of());
 
         assertThat(product.available()).isTrue();
     }
 
     @Test
     void productWithoutVariantsIsNotAvailable() {
-        Product product = new Product(1L, "Ramo", "ramo", "Descripción", true, List.of(), List.of());
+        Product product = new Product(1L, "Ramo", "ramo", "Descripción", true, 24, List.of(), List.of());
 
         assertThat(product.available()).isFalse();
     }
