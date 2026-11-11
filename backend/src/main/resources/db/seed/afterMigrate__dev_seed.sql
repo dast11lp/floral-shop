@@ -9,8 +9,8 @@ INSERT INTO category (name, slug, active, sort_order) VALUES
     ('Categoría oculta', 'oculta', false, 4)
 ON CONFLICT DO NOTHING;
 
--- preparation_hours: horas que tarda en armarse (ADR 0012).
-INSERT INTO product (name, slug, description, active, preparation_hours) VALUES
+-- crafting_hours: horas que tarda en armarse (ADR 0012).
+INSERT INTO product (name, slug, description, active, crafting_hours) VALUES
     ('Ramo de rosas rojas', 'ramo-rosas-rojas', 'Rosas rojas de ejemplo', true, 4),
     ('Girasoles del campo', 'girasoles-del-campo', 'Girasoles de ejemplo', true, 6),
     ('Arreglo de cumpleaños', 'arreglo-cumpleanos', 'Arreglo de ejemplo', true, 24),
@@ -34,7 +34,7 @@ ON CONFLICT DO NOTHING;
 
 -- El ramo grande tarda más que el del producto y ocupa 2 cupos de la franja (ADR 0012).
 -- Se repite en cada arranque, así que es un UPDATE y no parte del INSERT.
-UPDATE product_variant v SET preparation_hours = 48, slot_units = 2
+UPDATE product_variant v SET crafting_hours = 48, slot_units = 2
 FROM product p
 WHERE v.product_id = p.id AND p.slug = 'ramo-rosas-rojas' AND v.name = 'Grande';
 
@@ -60,8 +60,8 @@ INSERT INTO delivery_zone (name, shipping_fee, active) VALUES
 ON CONFLICT DO NOTHING;
 
 -- Margen de cada zona: el tiempo extra de llegar a ella (ADR 0012).
-UPDATE delivery_zone SET margin_hours = 1 WHERE name = 'Norte';
-UPDATE delivery_zone SET margin_hours = 2 WHERE name = 'Sur';
+UPDATE delivery_zone SET travel_margin_hours = 1 WHERE name = 'Norte';
+UPDATE delivery_zone SET travel_margin_hours = 2 WHERE name = 'Sur';
 
 -- Dos franjas al día durante los próximos 7 días.
 INSERT INTO delivery_slot (slot_date, start_time, end_time, capacity, booked, is_open)

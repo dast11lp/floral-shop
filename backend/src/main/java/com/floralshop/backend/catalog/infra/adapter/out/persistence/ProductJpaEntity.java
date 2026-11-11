@@ -39,8 +39,8 @@ public class ProductJpaEntity {
     @Column(nullable = false)
     private boolean active;
 
-    @Column(name = "preparation_hours", nullable = false)
-    private int preparationHours;
+    @Column(name = "crafting_hours", nullable = false)
+    private int craftingHours;
 
     // Las rellena la base con now(): Hibernate nunca las escribe.
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
@@ -74,7 +74,7 @@ public class ProductJpaEntity {
     public String getSlug() { return slug; }
     public String getDescription() { return description; }
     public boolean isActive() { return active; }
-    public int getPreparationHours() { return preparationHours; }
+    public int getCraftingHours() { return craftingHours; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public List<ProductVariantJpaEntity> getVariants() { return variants; }

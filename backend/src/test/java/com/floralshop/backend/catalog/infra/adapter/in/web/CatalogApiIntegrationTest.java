@@ -52,7 +52,7 @@ class CatalogApiIntegrationTest {
 
     private long product(String name, String slug, boolean active) {
         return jdbc.queryForObject(
-                "insert into product (name, slug, active, preparation_hours) values (?, ?, ?, 24) returning id",
+                "insert into product (name, slug, active, crafting_hours) values (?, ?, ?, 24) returning id",
                 Long.class, name, slug, active);
     }
 

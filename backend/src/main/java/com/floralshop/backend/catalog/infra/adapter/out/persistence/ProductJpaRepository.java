@@ -33,8 +33,8 @@ interface ProductJpaRepository extends JpaRepository<ProductJpaEntity, Long> {
     // Una sola consulta y cuatro columnas por variante. v.active va explícito: no se depende
     // de que el @SQLRestriction de la colección se aplique dentro de un join.
     @Query("""
-            select v.id as variantId, v.preparationHours as variantPreparationHours,
-                   p.preparationHours as productPreparationHours, v.slotUnits as slotUnits
+            select v.id as variantId, v.craftingHours as variantCraftingHours,
+                   p.craftingHours as productCraftingHours, v.slotUnits as slotUnits
             from ProductJpaEntity p join p.variants v
             where p.active = true and v.active = true and v.id in :variantIds
             """)

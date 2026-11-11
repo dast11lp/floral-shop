@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.floralshop.backend.catalog.application.port.out.CatalogRepositoryPort;
-import com.floralshop.backend.catalog.application.service.CartPreparationService;
+import com.floralshop.backend.catalog.application.service.CartWorkloadService;
 import com.floralshop.backend.catalog.application.service.CatalogQueryService;
 
 @Configuration
@@ -16,7 +16,7 @@ class CatalogBeanConfig {
     }
 
     @Bean
-    CartPreparationService cartPreparationService(CatalogRepositoryPort catalog) {
-        return new CartPreparationService(catalog);
+    CartWorkloadService cartWorkloadService(CatalogRepositoryPort catalog) {
+        return new CartWorkloadService(catalog);
     }
 }

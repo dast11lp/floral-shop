@@ -20,6 +20,6 @@ class DeliverySettingsPersistenceAdapter implements DeliverySettingsRepositoryPo
     public DeliverySettings get() {
         DeliverySettingsJpaEntity row = jpa.findById(DeliverySettingsJpaEntity.SINGLE_ROW_ID)
                 .orElseThrow(() -> new IllegalStateException("Falta la fila de shop_settings"));
-        return new DeliverySettings(row.getDeliveryMarginHours());
+        return new DeliverySettings(row.getDispatchMarginHours());
     }
 }

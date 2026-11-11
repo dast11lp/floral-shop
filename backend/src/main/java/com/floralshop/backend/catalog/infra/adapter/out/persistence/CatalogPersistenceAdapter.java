@@ -69,8 +69,8 @@ class CatalogPersistenceAdapter implements CatalogRepositoryPort {
             return List.of(); // "IN ()" vacío no es SQL válido
         }
         return products.findAvailableWorkloads(variantIds).stream()
-                .map(row -> new VariantWorkload(row.getVariantId(), row.getVariantPreparationHours(),
-                        row.getProductPreparationHours(), row.getSlotUnits()))
+                .map(row -> new VariantWorkload(row.getVariantId(), row.getVariantCraftingHours(),
+                        row.getProductCraftingHours(), row.getSlotUnits()))
                 .toList();
     }
 

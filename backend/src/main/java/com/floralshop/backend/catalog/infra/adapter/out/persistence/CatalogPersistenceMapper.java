@@ -16,14 +16,14 @@ class CatalogPersistenceMapper {
     ProductVariant toDomain(ProductVariantJpaEntity entity) {
         return new ProductVariant(entity.getId(), entity.getName(), entity.getPrice(),
                 entity.isActive(), entity.getSortOrder(),
-                entity.getPreparationHours(), entity.getSlotUnits());
+                entity.getCraftingHours(), entity.getSlotUnits());
     }
 
     // Recorre las colecciones perezosas (variantes y categorías): por eso debe ejecutarse
     // dentro de una transacción abierta. Lo garantiza el @Transactional del adapter.
     Product toDomain(ProductJpaEntity entity) {
         return new Product(entity.getId(), entity.getName(), entity.getSlug(),
-                entity.getDescription(), entity.isActive(), entity.getPreparationHours(),
+                entity.getDescription(), entity.isActive(), entity.getCraftingHours(),
                 entity.getVariants().stream().map(this::toDomain).toList(),
                 entity.getCategories().stream().map(this::toDomain).toList());
     }

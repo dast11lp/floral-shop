@@ -6,9 +6,9 @@ interface VariantWorkloadRow {
 
     Long getVariantId();
 
-    Integer getVariantPreparationHours(); // null: hereda el del producto
+    Integer getVariantCraftingHours(); // null: hereda el del producto
 
-    Integer getProductPreparationHours();
+    Integer getProductCraftingHours();
 
     Integer getSlotUnits();
 }
