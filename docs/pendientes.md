@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-11 (nombres de los tiempos, V4).
+Última actualización: 2026-11-11 (ADR 0013, decisiones de pedidos).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -12,20 +12,16 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 2 | Variante agotada visible | Hoy lo inactivo se oculta en la tienda (opción A). **B:** devolver también las inactivas con una marca, para mostrarlas deshabilitadas. **C:** columna `available` aparte de `active`. Inactiva (la florista la oculta) y agotada (no quedan) son conceptos distintos | Al diseñar el inventario, o si la florista pide mostrar agotados |
 | 3 | Escritura del catálogo | Las entidades JPA no llevan setters. Decidir cómo se escribe (métodos en las entidades o entidades aparte) y cómo se actualiza `updated_at` (trigger o código) | Fase 4 |
 | 4 | Consulta de inventario | La florista debe ver también lo inactivo y las existencias en 0. Requiere otro puerto, o más métodos que no filtren por `active` | Cuando se haga el inventario |
-| 5 | Eventos internos con publisher | Decidir con su propio ADR | Fase 3 |
-| 6 | Transacción de pedido y reserva | El ADR 0011 declara la transacción en `infra`. Si crear un pedido y reservar cupo deben deshacerse juntos, la transacción tiene que abarcar ambos pasos. Si un pedido toca varias franjas, bloquearlas siempre en el mismo orden para evitar interbloqueos | Fase 3 |
 | 7 | Paginación compartida | `PageQuery` y `PagedResult` viven en `catalog/domain/model`. Si otro módulo los necesita, se mueven a `shared` y se ajustan las reglas de ArchUnit | Cuando otro módulo pagine |
 | 15 | Fechas del producto en el dominio | `created_at` y `updated_at` están mapeadas en `ProductJpaEntity` (solo lectura), pero el modelo `Product` no las lleva. Añadirlas al dominio y al mapper cuando el inventario las necesite | Cuando se haga el inventario |
 | 16 | Paginación por cursor | Hoy se pagina con `LIMIT/OFFSET`, que se vuelve lento en páginas muy lejanas. Con el catálogo de una floristería no se nota. Si algún día hubiera miles de productos, pasar a paginación por cursor | Solo si el catálogo crece mucho |
-| 17 | Claves foráneas y SQL entre módulos (regla 5) | ArchUnit no puede comprobar claves foráneas ni consultas SQL entre tablas de módulos distintos. Cuando pedidos referencie variantes de producto, decidir: clave foránea con integridad referencial pero sin consultas en código ajeno, o guardar solo el id sin clave foránea. Añadir entonces una prueba que lea `information_schema` | Fase 3 |
 | 18 | Vista de administración de reservas | Hoy el cupo es solo un contador (`booked`). Las "reservas" que verá la administradora serán los pedidos agrupados por franja (fase 3 los crea, fase 4 los muestra), y cancelar un pedido debe liberar el cupo. Valorar una comprobación que cuadre `booked` con la suma de unidades de los pedidos activos | Fases 3 y 4 |
 | 19 | Qué muestra la tienda del cupo de una franja | Hoy: solo `available` (sí o no), sin cifras, para no revelar cuánto vende la florista cada día. Hablarlo con ella: puede preferir mostrar la cantidad (`availableUnits`) o un estado ("últimos cupos"). Añadir un campo a la respuesta no rompe nada; quitarlo sí, así que se mantiene lo mínimo hasta decidir | Antes de la fase 5 |
 | 21 | Decisiones de la tienda por hablar con la florista | Orden de las zonas (hoy alfabético: la tabla no tiene `sort_order`, así que ella no podría elegirlo). Productos por página (hoy 20 por defecto, máximo 100). Franjas llenas: se muestran como no disponibles; cerradas: se ocultan | Antes de la fase 5 |
-| 22 | Puntos del ADR 0012 por hablar con la florista | Si los combos se activan al lanzar o después; qué zonas, con qué costo y margen (localidades, barrios o municipios cercanos como Chía); si habilita la transferencia manual o el contra entrega, y con qué límites; valores de arranque (2 horas de margen general y 15 minutos de cupo apartado) | Antes de terminar la fase 3 |
+| 22 | Puntos del ADR 0012 por hablar con la florista | Si los combos se activan al lanzar o después; qué zonas, con qué costo y margen (localidades, barrios o municipios cercanos como Chía); si habilita la transferencia manual o el contra entrega, y con qué límites; valores de arranque (2 horas de margen de despacho; el cupo apartado ya no es un valor a ojo: 36 minutos con fuentes, ADR 0013) | Antes de terminar la fase 3 |
 | 23 | Días que no trabaja | Hoy todos los días cuentan para el tiempo de preparación (ADR 0012). Si ella lo pide, pasar a días hábiles: se cambia el servicio que calcula la fecha y se agrega una tabla con los días que no trabaja | Cuando ella lo pida |
 | 24 | Detectar la zona desde la dirección | Hoy el cliente elige su zona de una lista (ADR 0012). Detectarla sola exige un servicio de mapas (geocodificación, con costo) y los límites de cada zona, y las direcciones llegan incompletas. Se agrega sin cambiar el modelo de zonas | Si elegir la zona a mano da problemas |
 | 25 | Sedes en otras ciudades | Misma tienda y misma cuenta de cobro, con otra persona que arma y entrega en otra ciudad (ADR 0012, punto 12). Cada sede tendría sus zonas, franjas, márgenes y quizá sus tiempos. No se construye todavía; zonas, franjas y márgenes ya son datos, así que agregarlo es indicar a qué sede pertenecen | Cuando haya una segunda sede |
-| 26 | Dueño de `shop_settings` (regla 5) | Desde la V3, `scheduling` mapea solo el margen de despacho (`dispatch_margin_hours` desde la V4, en `DeliverySettingsJpaEntity`). Los máximos por línea y por pedido los usará el módulo de pedidos, y dos módulos mapeando la misma tabla rompe "cada módulo es dueño de sus tablas". Opciones: separar la tabla por módulo (por ejemplo `delivery_settings` y `order_settings`) o que un módulo la exponga por un servicio | Al crear el módulo de pedidos |
 
 
 ## Tareas pendientes
@@ -45,6 +41,7 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 - Soporte real de EC2 e IAM en Floci.
 - Si las pasarelas exigen constitución legal para las llaves de producción.
 - Cómo se servirán las fotos, y las condiciones de su cuenta de Nequi o banco.
+- Que el vencimiento de 15 minutos de PSE aplica también a Checkout Pro, y los 21 minutos máximos de procesamiento de PSE (ADR 0013, fuentes no oficiales de ACH).
 
 ## Resuelto
 
@@ -57,3 +54,7 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | Fases 0, 1 y 2 marcadas como terminadas en `plan.md`. La diferencia de nombre entre `.env` y `.env.example` se descartó: la plantilla es coherente por sí sola | PR `docs/alinear-env-y-plan` |
 | El CI levanta postgres, backend y nginx con Docker y prueba `/api/v1/health` a través de Nginx | PR `ci/docker-smoke-test` |
 | Antelación mínima de pedidos (antes pendiente 20): se reemplaza por un tiempo de preparación en horas por producto y variante, y el tiempo del carrito con reglas que ajusta la florista | ADR 0012, PR `docs/flujo-de-compra` (2026-11-10) |
+| Eventos internos (antes pendiente 5): no se usan por ahora; los pedidos llaman directo a los servicios públicos | ADR 0013, punto 4 (2026-11-11) |
+| Transacción de pedido y reserva (antes pendiente 6): una sola transacción, declarada en `infra/config` de pedidos | ADR 0013, punto 1 (2026-11-11) |
+| Claves foráneas entre módulos (antes pendiente 17): el pedido guarda ids y una copia de los datos, sin claves foráneas, con una prueba sobre `information_schema` | ADR 0013, punto 2 (2026-11-11) |
+| Dueño de `shop_settings` (antes pendiente 26): se separa en una tabla de ajustes por módulo | ADR 0013, punto 3 (2026-11-11) |

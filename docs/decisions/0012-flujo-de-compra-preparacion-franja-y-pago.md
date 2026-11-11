@@ -1,6 +1,6 @@
 # 0012. Flujo de compra: tiempo de preparación, franja y pago (enmienda del 0003)
 
-**Estado:** aceptada, con puntos pendientes de hablar con la florista; con una precisión de nombres (2026-11-11) · **Fecha:** 2026-11-10
+**Estado:** aceptada, con puntos pendientes de hablar con la florista; con una precisión de nombres (2026-11-11); enmendada en parte por el 0013 (tiempo de cupo apartado) · **Fecha:** 2026-11-10
 
 ## Contexto
 Los productos no están hechos: se arman por encargo, y cada uno tarda distinto (un ramo grande para una boda no tarda lo mismo que uno pequeño). Hasta ahora el plan solo preveía una antelación mínima igual para todo (pendiente 20), que no refleja esa diferencia ni el tiempo de llevar el pedido. El negocio funciona desde una casa, sin tienda física, así que todo pedido se entrega a domicilio. Además, al empezar la fase 3 se revisó qué medios de pago convienen: los que tardan horas o días en confirmarse obligan a retener el cupo mucho tiempo y complican deshacer el pedido si el pago no llega.
