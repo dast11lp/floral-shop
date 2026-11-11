@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-11 (ADR 0013, decisiones de pedidos).
+Última actualización: 2026-11-11 (estado de la fase 3 tras los PR #35 a #38).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -28,10 +28,11 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 
 | # | Tarea | Detalle |
 |---|---|---|
-| 9 | Guía de repaso para principiantes | Desactualizada: ArchUnit pasó a la fase 2 y faltan los ADR 0009, 0010 y 0011 |
+| 9 | Guía de repaso para principiantes | Desactualizada: ArchUnit pasó a la fase 2 y faltan los ADR 0009 a 0013 (reglas en application, paquetes, transacciones, flujo de compra y pedidos) |
 | 10 | Repaso de Flyway | Quedó pendiente de la fase 1 |
 | 11 | `docker build` en el CI | Hoy un Dockerfile roto no lo detecta nadie |
 | 14 | Spring Security | En la fase 4, `/api/v1/health` debe quedar público |
+| 27 | El cupo apartado todavía no vence | Desde el PR #38, un pedido pendiente de pago retiene su cupo sin vencimiento. Se resuelve con los pagos: el job que libera cupos a los 36 minutos (ADR 0013). Mientras tanto, en desarrollo, los pedidos de prueba dejan cupos ocupados; se limpian recreando la base | Con los pagos (fase 3) |
 
 
 ## Por verificar (nadie lo ha confirmado)
