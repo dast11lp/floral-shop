@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.floralshop.backend.catalog.application.port.out.CatalogRepositoryPort;
 import com.floralshop.backend.catalog.domain.model.Category;
+import com.floralshop.backend.catalog.domain.model.OrderableVariant;
 import com.floralshop.backend.catalog.domain.model.PageQuery;
 import com.floralshop.backend.catalog.domain.model.PagedResult;
 import com.floralshop.backend.catalog.domain.model.Product;
@@ -71,6 +72,19 @@ class CatalogPersistenceAdapter implements CatalogRepositoryPort {
         return products.findAvailableWorkloads(variantIds).stream()
                 .map(row -> new VariantWorkload(row.getVariantId(), row.getVariantCraftingHours(),
                         row.getProductCraftingHours(), row.getSlotUnits()))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderableVariant> findOrderableVariants(Collection<Long> variantIds) {
+        if (variantIds.isEmpty()) {
+            return List.of(); // "IN ()" vacío no es SQL válido
+        }
+        return products.findOrderableVariants(variantIds).stream()
+                .map(row -> new OrderableVariant(row.getVariantId(), row.getProductName(), row.getVariantName(),
+                        row.getPrice(), row.getVariantCraftingHours(), row.getProductCraftingHours(),
+                        row.getSlotUnits()))
                 .toList();
     }
 

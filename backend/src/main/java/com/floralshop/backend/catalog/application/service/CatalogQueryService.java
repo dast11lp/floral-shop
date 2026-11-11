@@ -1,10 +1,12 @@
 package com.floralshop.backend.catalog.application.service;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.floralshop.backend.catalog.application.port.out.CatalogRepositoryPort;
 import com.floralshop.backend.catalog.domain.exception.ProductNotFoundException;
 import com.floralshop.backend.catalog.domain.model.Category;
+import com.floralshop.backend.catalog.domain.model.OrderableVariant;
 import com.floralshop.backend.catalog.domain.model.PageQuery;
 import com.floralshop.backend.catalog.domain.model.PagedResult;
 import com.floralshop.backend.catalog.domain.model.Product;
@@ -35,5 +37,11 @@ public class CatalogQueryService {
 
     public List<Category> listCategories() {
         return catalog.findActiveCategories();
+    }
+
+    // Las variantes pedidas que están a la venta, con lo que el pedido copia.
+    // Las que no existen o no están a la venta no vienen: quien llama decide qué hacer.
+    public List<OrderableVariant> orderableVariants(Collection<Long> variantIds) {
+        return catalog.findOrderableVariants(variantIds);
     }
 }

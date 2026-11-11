@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size;
 
 // El carrito y la zona que manda el cliente para ver qué franjas le sirven.
 // Los topes (50 líneas, 100 unidades por línea) son de cordura, para un endpoint público.
-// Los máximos del negocio (por línea y por pedido, en shop_settings) los aplicará el pedido.
+// Los máximos del negocio (por línea y por pedido, en order_settings) los aplica el pedido.
 public record DeliveryOptionsRequest(
         @NotNull Long zoneId,
         @NotEmpty @Size(max = 50) List<@Valid @NotNull Line> lines) {

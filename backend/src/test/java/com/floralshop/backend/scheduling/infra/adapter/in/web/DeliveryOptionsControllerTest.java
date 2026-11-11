@@ -53,7 +53,7 @@ class DeliveryOptionsControllerTest {
         DeliverySlot slot = new DeliverySlot(3L, LocalDate.of(2026, 12, 16), LocalTime.of(14, 0),
                 LocalTime.of(16, 0), 4, 1, true);
         when(options.optionsFor(List.of(new CartLine(1L, 2)), 7L)).thenReturn(new DeliveryOptions(
-                48, LocalDateTime.of(2026, 12, 16, 12, 0), List.of(new SlotOption(slot, true))));
+                48, 1, LocalDateTime.of(2026, 12, 16, 12, 0), List.of(new SlotOption(slot, true))));
 
         send(VALID)
                 .andExpect(status().isOk())

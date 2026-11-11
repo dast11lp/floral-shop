@@ -73,6 +73,7 @@ class DeliveryOptionsServiceTest {
         DeliveryOptions options = service.optionsFor(lines, 7L);
 
         assertThat(options.craftingHours()).isEqualTo(48);
+        assertThat(options.slotUnits()).isEqualTo(1);
         assertThat(options.earliestStart()).isEqualTo(earliest);
     }
 

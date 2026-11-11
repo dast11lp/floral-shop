@@ -19,6 +19,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.floralshop.backend.TestcontainersConfiguration;
 import com.floralshop.backend.catalog.application.port.out.CatalogRepositoryPort;
 import com.floralshop.backend.catalog.domain.model.Category;
+import com.floralshop.backend.catalog.domain.model.OrderableVariant;
 import com.floralshop.backend.catalog.domain.model.PageQuery;
 import com.floralshop.backend.catalog.domain.model.PagedResult;
 import com.floralshop.backend.catalog.domain.model.Product;
@@ -90,6 +91,42 @@ class CatalogPersistenceAdapterTest {
                 new VariantWorkload(small, null, 4, 1),      // hereda; 1 cupo por defecto
                 new VariantWorkload(wedding, 48, 4, 3));
         assertThat(found).extracting(VariantWorkload::craftingHours).containsExactlyInAnyOrder(4, 48);
+    }
+
+    @Test
+    void orderableVariantCarriesNamesPriceAndResolvedTime() {
+        long ramo = product("Ramo", "ramo", true);
+        variant(ramo, "Boda", "300000", true, 1);
+        jdbc.update("update product set crafting_hours = 4 where id = ?", ramo);
+        jdbc.update("update product_variant set crafting_hours = 48, slot_units = 3 "
+                + "where product_id = ? and name = 'Boda'", ramo);
+        long wedding = variantId(ramo, "Boda");
+
+        List<OrderableVariant> found = catalog.findOrderableVariants(List.of(wedding, 999_999L));
+
+        assertThat(found).hasSize(1);
+        OrderableVariant variant = found.get(0);
+        assertThat(variant.productName()).isEqualTo("Ramo");
+        assertThat(variant.variantName()).isEqualTo("Boda");
+        assertThat(variant.price()).isEqualByComparingTo("300000");
+        assertThat(variant.craftingHours()).isEqualTo(48);
+        assertThat(variant.slotUnits()).isEqualTo(3);
+    }
+
+    @Test
+    void inactiveVariantIsNotOrderable() {
+        long ramo = product("Ramo", "ramo", true);
+        variant(ramo, "Retirado", "70000", false, 1);
+
+        assertThat(catalog.findOrderableVariants(List.of(variantId(ramo, "Retirado")))).isEmpty();
+    }
+
+    @Test
+    void variantOfInactiveProductIsNotOrderable() {
+        long oculto = product("Oculto", "oculto", false);
+        variant(oculto, "Único", "50000", true, 1);
+
+        assertThat(catalog.findOrderableVariants(List.of(variantId(oculto, "Único")))).isEmpty();
     }
 
     @Test

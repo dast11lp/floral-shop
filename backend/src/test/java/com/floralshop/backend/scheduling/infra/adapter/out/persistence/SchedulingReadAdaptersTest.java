@@ -136,7 +136,7 @@ class SchedulingReadAdaptersTest {
 
     @Test
     void generalMarginReflectsWhatTheFloristSaved() {
-        jdbc.update("update shop_settings set dispatch_margin_hours = 5");
+        jdbc.update("update delivery_settings set dispatch_margin_hours = 5");
 
         assertThat(settings.get().dispatchMarginHours()).isEqualTo(5);
     }
