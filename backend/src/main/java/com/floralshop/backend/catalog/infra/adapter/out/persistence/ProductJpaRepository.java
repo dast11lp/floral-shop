@@ -39,4 +39,14 @@ interface ProductJpaRepository extends JpaRepository<ProductJpaEntity, Long> {
             where p.active = true and v.active = true and v.id in :variantIds
             """)
     List<VariantWorkloadRow> findAvailableWorkloads(@Param("variantIds") Collection<Long> variantIds);
+
+    // Igual que la anterior, más nombres y precio, para que el pedido los copie.
+    @Query("""
+            select v.id as variantId, p.name as productName, v.name as variantName, v.price as price,
+                   v.craftingHours as variantCraftingHours, p.craftingHours as productCraftingHours,
+                   v.slotUnits as slotUnits
+            from ProductJpaEntity p join p.variants v
+            where p.active = true and v.active = true and v.id in :variantIds
+            """)
+    List<OrderableVariantRow> findOrderableVariants(@Param("variantIds") Collection<Long> variantIds);
 }

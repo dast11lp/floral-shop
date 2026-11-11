@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,9 @@ class DatabaseMigrationTest {
 
         assertThat(tables).contains( // comprueba que la lista contiene todos los nombres de tablas esperados
                 "category", "product", "product_category", "product_variant",
-                "delivery_zone", "delivery_slot", "shop_settings");
+                "delivery_zone", "delivery_slot", "delivery_settings",
+                "customer_order", "order_line", "order_settings")
+                .doesNotContain("shop_settings"); // V5 la separó por módulo
     }
 
     // comprueba que la regla de que a capacidad de entrega no supere el número de pedidos en una franja horaria
@@ -41,12 +44,53 @@ class DatabaseMigrationTest {
                 .hasMessageContaining("ck_slot_booked_le_capacity"); // el mensaje de la excepción debe contener el nombre de la restricción que se violó
     }
 
-    // comprueba que actualm ente tengamos justamente una migración
+    // V5: cada tabla de ajustes tiene exactamente una fila, con los valores que traía shop_settings
     @Test
-    void shopSettingsHasExactlyOneRow() {
-        Integer rows = jdbc.queryForObject("select count(*) from shop_settings", Integer.class); // ejecuta una consulta que devuelve exactamente un valor y dámelo, convertido a este tipo
+    void settingsTablesHaveExactlyOneRowEach() {
+        assertThat(jdbc.queryForObject("select count(*) from delivery_settings", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from order_settings", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select max_units_per_order from order_settings", Integer.class)).isEqualTo(20);
+        assertThat(jdbc.queryForObject("select default_slot_capacity from delivery_settings", Integer.class)).isEqualTo(4);
+    }
 
-        assertThat(rows).isEqualTo(1);
+    // ADR 0013, punto 2 (regla 5 del ADR 0001): ninguna clave foránea cruza de un módulo a otro.
+    // Cada tabla debe estar en este mapa: una tabla nueva sin dueño hace fallar la prueba.
+    private static final Map<String, String> TABLE_MODULE = Map.ofEntries(
+            Map.entry("category", "catalog"), Map.entry("product", "catalog"),
+            Map.entry("product_category", "catalog"), Map.entry("product_variant", "catalog"),
+            Map.entry("delivery_zone", "scheduling"), Map.entry("delivery_slot", "scheduling"),
+            Map.entry("delivery_settings", "scheduling"),
+            Map.entry("customer_order", "ordering"), Map.entry("order_line", "ordering"),
+            Map.entry("order_settings", "ordering"));
+
+    @Test
+    void everyTableHasAnOwnerModule() {
+        List<String> tables = jdbc.queryForList(
+                "select table_name from information_schema.tables "
+                        + "where table_schema = 'public' and table_type = 'BASE TABLE' "
+                        + "and table_name <> 'flyway_schema_history'", String.class);
+
+        assertThat(TABLE_MODULE.keySet()).containsExactlyInAnyOrderElementsOf(tables);
+    }
+
+    @Test
+    void noForeignKeyCrossesModules() {
+        List<Map<String, Object>> foreignKeys = jdbc.queryForList("""
+                select tc.table_name as from_table, ccu.table_name as to_table
+                from information_schema.table_constraints tc
+                join information_schema.constraint_column_usage ccu
+                  on ccu.constraint_name = tc.constraint_name and ccu.table_schema = tc.table_schema
+                where tc.constraint_type = 'FOREIGN KEY' and tc.table_schema = 'public'
+                """);
+
+        assertThat(foreignKeys).isNotEmpty(); // las hay dentro de cada módulo
+        for (Map<String, Object> fk : foreignKeys) {
+            String from = (String) fk.get("from_table");
+            String to = (String) fk.get("to_table");
+            assertThat(TABLE_MODULE.get(from))
+                    .as("clave foránea %s -> %s", from, to)
+                    .isEqualTo(TABLE_MODULE.get(to));
+        }
     }
 
     // V3: un producto nuevo tiene que decir cuánto tarda (la columna no tiene valor por defecto)
@@ -77,7 +121,7 @@ class DatabaseMigrationTest {
     // V3 y V4: el margen de despacho arranca en 2 horas
     @Test
     void dispatchMarginStartsAtTwoHours() {
-        assertThat(jdbc.queryForObject("select dispatch_margin_hours from shop_settings", Integer.class))
+        assertThat(jdbc.queryForObject("select dispatch_margin_hours from delivery_settings", Integer.class))
                 .isEqualTo(2);
     }
 

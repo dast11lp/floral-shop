@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import com.floralshop.backend.scheduling.application.port.out.DeliverySettingsRepositoryPort;
 import com.floralshop.backend.scheduling.domain.model.DeliverySettings;
 
-// Adaptador de salida: lee los ajustes de entrega de la única fila de shop_settings.
+// Adaptador de salida: lee los ajustes de entrega de la única fila de delivery_settings.
 @Repository
 class DeliverySettingsPersistenceAdapter implements DeliverySettingsRepositoryPort {
 
@@ -15,11 +15,11 @@ class DeliverySettingsPersistenceAdapter implements DeliverySettingsRepositoryPo
         this.jpa = jpa;
     }
 
-    // La migración V1 inserta la fila y un CHECK impide que haya otra: si falta, es un error de instalación.
+    // La migración V5 inserta la fila y un CHECK impide que haya otra: si falta, es un error de instalación.
     @Override
     public DeliverySettings get() {
         DeliverySettingsJpaEntity row = jpa.findById(DeliverySettingsJpaEntity.SINGLE_ROW_ID)
-                .orElseThrow(() -> new IllegalStateException("Falta la fila de shop_settings"));
+                .orElseThrow(() -> new IllegalStateException("Falta la fila de delivery_settings"));
         return new DeliverySettings(row.getDispatchMarginHours());
     }
 }

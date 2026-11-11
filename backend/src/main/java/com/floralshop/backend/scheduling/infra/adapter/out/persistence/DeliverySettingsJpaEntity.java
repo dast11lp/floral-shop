@@ -5,11 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-// Refleja solo las columnas de entrega de shop_settings (una sola fila, id = 1).
-// Las demás columnas (máximos por línea y por pedido) las mapeará el módulo que las use;
-// ver el pendiente 26 sobre quién es dueño de shop_settings.
+// Refleja la tabla delivery_settings (una sola fila, id = 1), que es de scheduling (ADR 0013, punto 3).
+// Solo mapea lo que el módulo usa hoy: el margen de despacho.
 @Entity
-@Table(name = "shop_settings")
+@Table(name = "delivery_settings")
 public class DeliverySettingsJpaEntity {
 
     static final short SINGLE_ROW_ID = 1;

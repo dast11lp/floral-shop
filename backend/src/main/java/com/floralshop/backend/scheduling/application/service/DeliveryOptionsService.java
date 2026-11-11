@@ -37,7 +37,7 @@ public class DeliveryOptionsService {
         List<SlotOption> slots = scheduling.listSlots().stream()
                 .map(slot -> new SlotOption(slot, fits(slot, earliest, work.slotUnits())))
                 .toList();
-        return new DeliveryOptions(work.craftingHours(), earliest, slots);
+        return new DeliveryOptions(work.craftingHours(), work.slotUnits(), earliest, slots);
     }
 
     private static boolean fits(DeliverySlot slot, LocalDateTime earliest, int slotUnits) {

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.floralshop.backend.catalog.domain.model.Category;
+import com.floralshop.backend.catalog.domain.model.OrderableVariant;
 import com.floralshop.backend.catalog.domain.model.PageQuery;
 import com.floralshop.backend.catalog.domain.model.PagedResult;
 import com.floralshop.backend.catalog.domain.model.Product;
@@ -26,4 +27,7 @@ public interface CatalogRepositoryPort {
     // Para el carrito: una fila por cada variante pedida que esté a la venta (variante activa y
     // producto activo). Las que no existen o no están a la venta no vienen; el servicio decide qué hacer.
     List<VariantWorkload> findAvailableWorkloads(Collection<Long> variantIds);
+
+    // Para el pedido: lo mismo que findAvailableWorkloads, más nombres y precio, que el pedido copia.
+    List<OrderableVariant> findOrderableVariants(Collection<Long> variantIds);
 }

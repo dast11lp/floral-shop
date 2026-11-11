@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.floralshop.backend.scheduling.application.port.out.DeliverySlotRepositoryPort;
 import com.floralshop.backend.scheduling.application.port.out.DeliveryZoneRepositoryPort;
+import com.floralshop.backend.scheduling.domain.exception.ZoneNotFoundException;
 import com.floralshop.backend.scheduling.domain.model.DateRange;
 import com.floralshop.backend.scheduling.domain.model.DeliverySlot;
 import com.floralshop.backend.scheduling.domain.model.DeliveryZone;
@@ -31,5 +32,10 @@ public class SchedulingQueryService {
 
     public List<DeliveryZone> listZones() {
         return zones.findActive();
+    }
+
+    // Una zona activa por su id. Si no existe o está inactiva, error de negocio.
+    public DeliveryZone getActiveZone(long zoneId) {
+        return zones.findActiveById(zoneId).orElseThrow(() -> new ZoneNotFoundException(zoneId));
     }
 }
