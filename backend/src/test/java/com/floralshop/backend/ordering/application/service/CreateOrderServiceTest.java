@@ -11,9 +11,12 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +60,8 @@ class CreateOrderServiceTest {
 
     CreateOrderService service;
 
+    private static final Instant NOW = Instant.parse("2026-12-10T15:00:00Z");
+
     private final CustomerContact customer = new CustomerContact("Ana", "ana@example.com", "3000000000");
     // Ramo grande: 48 h propias, 2 cupos por unidad, $130.000
     private final OrderableVariant big = new OrderableVariant(1L, "Ramo de rosas", "Grande",
@@ -67,7 +72,8 @@ class CreateOrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new CreateOrderService(settings, orders, catalog, scheduling, deliveryOptions, reserveSlot);
+        service = new CreateOrderService(settings, orders, catalog, scheduling, deliveryOptions, reserveSlot,
+                Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     private NewOrder request(long slotId, CartLine... lines) {
@@ -75,7 +81,7 @@ class CreateOrderServiceTest {
     }
 
     private void limits(int perLine, int perOrder) {
-        when(settings.get()).thenReturn(new OrderSettings(perLine, perOrder));
+        when(settings.get()).thenReturn(new OrderSettings(perLine, perOrder, 15, 51));
     }
 
     private void slotIs(boolean available) {
@@ -109,6 +115,9 @@ class CreateOrderServiceTest {
             assertThat(line.craftingHours()).isEqualTo(48);
             assertThat(line.slotUnits()).isEqualTo(2);
         });
+        // La franja queda retenida 15 minutos para empezar a pagar, con tope de 51 (order_settings).
+        assertThat(order.holdExpiresAt()).isEqualTo(NOW.plusSeconds(15 * 60));
+        assertThat(order.holdLimitAt()).isEqualTo(NOW.plusSeconds(51 * 60));
     }
 
     @Test

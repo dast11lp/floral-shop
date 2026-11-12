@@ -62,7 +62,7 @@ class DatabaseMigrationTest {
             Map.entry("delivery_settings", "scheduling"),
             Map.entry("customer_order", "ordering"), Map.entry("order_line", "ordering"),
             Map.entry("order_settings", "ordering"),
-            Map.entry("payment_method_policy", "payment"));
+            Map.entry("payment_method_policy", "payment"), Map.entry("payment", "payment"));
 
     @Test
     void everyTableHasAnOwnerModule() {

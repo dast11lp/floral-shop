@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.floralshop.backend.payment.application.port.out.CheckoutRequest;
+import com.floralshop.backend.payment.application.port.out.CheckoutSession;
 import com.floralshop.backend.payment.application.port.out.PaymentGateway;
 import com.floralshop.backend.payment.application.port.out.PaymentMethodPolicyRepositoryPort;
 import com.floralshop.backend.payment.domain.model.PaymentMethod;
@@ -36,6 +38,11 @@ class PaymentOptionsServiceTest {
 
             @Override
             public boolean isConfigured() { return configured; }
+
+            @Override
+            public CheckoutSession createCheckout(CheckoutRequest request) {
+                throw new UnsupportedOperationException("No se usa en estas pruebas");
+            }
         };
     }
 

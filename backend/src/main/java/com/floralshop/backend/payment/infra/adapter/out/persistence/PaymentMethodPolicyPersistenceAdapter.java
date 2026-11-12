@@ -1,6 +1,7 @@
 package com.floralshop.backend.payment.infra.adapter.out.persistence;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
@@ -23,6 +24,12 @@ class PaymentMethodPolicyPersistenceAdapter implements PaymentMethodPolicyReposi
         return jpa.findByEnabledTrueOrderByPriorityAscProviderAscMethodAsc().stream()
                 .map(PaymentMethodPolicyPersistenceAdapter::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<PaymentMethodPolicy> findEnabled(String provider, PaymentMethod method) {
+        return jpa.findByProviderAndMethodAndEnabledTrue(provider, PaymentMethodColumn.valueOf(method.name()))
+                .map(PaymentMethodPolicyPersistenceAdapter::toDomain);
     }
 
     private static PaymentMethodPolicy toDomain(PaymentMethodPolicyJpaEntity row) {

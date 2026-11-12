@@ -20,6 +20,7 @@ class OrderSettingsPersistenceAdapter implements OrderSettingsRepositoryPort {
     public OrderSettings get() {
         OrderSettingsJpaEntity row = jpa.findById(OrderSettingsJpaEntity.SINGLE_ROW_ID)
                 .orElseThrow(() -> new IllegalStateException("Falta la fila de order_settings"));
-        return new OrderSettings(row.getMaxUnitsPerLine(), row.getMaxUnitsPerOrder());
+        return new OrderSettings(row.getMaxUnitsPerLine(), row.getMaxUnitsPerOrder(),
+                row.getPaymentStartMinutes(), row.getMaxHoldMinutes());
     }
 }

@@ -83,6 +83,14 @@ public class CustomerOrderJpaEntity {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
+    // Hasta cuándo retiene la franja y su tope (ADR 0012). La extensión se hace con una consulta
+    // de actualización en CustomerOrderJpaRepository, no cambiando esta entidad.
+    @Column(name = "hold_expires_at", nullable = false)
+    private Instant holdExpiresAt;
+
+    @Column(name = "hold_limit_at", nullable = false, updatable = false)
+    private Instant holdLimitAt;
+
     // La rellena la base con now(): Hibernate nunca la escribe.
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private Instant createdAt;
@@ -99,7 +107,8 @@ public class CustomerOrderJpaEntity {
                            String customerPhone, String deliveryAddress, long zoneId, String zoneName,
                            BigDecimal shippingFee, long slotId, LocalDate slotDate, LocalTime slotStart,
                            LocalTime slotEnd, int craftingHours, int slotUnits, BigDecimal subtotal,
-                           BigDecimal total, List<OrderLineJpaEntity> lines) {
+                           BigDecimal total, Instant holdExpiresAt, Instant holdLimitAt,
+                           List<OrderLineJpaEntity> lines) {
         this.publicCode = publicCode;
         this.status = status;
         this.customerName = customerName;
@@ -117,11 +126,15 @@ public class CustomerOrderJpaEntity {
         this.slotUnits = slotUnits;
         this.subtotal = subtotal;
         this.total = total;
+        this.holdExpiresAt = holdExpiresAt;
+        this.holdLimitAt = holdLimitAt;
         this.lines.addAll(lines);
     }
 
     public Long getId() { return id; }
     public UUID getPublicCode() { return publicCode; }
+    public Instant getHoldExpiresAt() { return holdExpiresAt; }
+    public Instant getHoldLimitAt() { return holdLimitAt; }
     public OrderStatusColumn getStatus() { return status; }
     public String getCustomerName() { return customerName; }
     public String getCustomerEmail() { return customerEmail; }

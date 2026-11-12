@@ -16,7 +16,7 @@ import com.floralshop.backend.payment.domain.exception.InvalidPaymentTransitionE
 class PaymentTest {
 
     private Payment payment(PaymentStatus status, String amount) {
-        return new Payment(1L, 10L, "mercadopago", PaymentMethod.CARD, status, new BigDecimal(amount), "mp-123");
+        return new Payment(1L, 10L, "mercadopago", PaymentMethod.CARD, status, new BigDecimal(amount), "mp-123", null);
     }
 
     private Payment pending() {
@@ -27,7 +27,7 @@ class PaymentTest {
     void acceptsNullIdAndProviderReference() {
         // Un pago nuevo no tiene id, y un manual no tiene referencia del proveedor
         Payment manual = new Payment(null, 10L, "manual", PaymentMethod.MANUAL_TRANSFER,
-                PaymentStatus.PENDING, new BigDecimal("85000"), null);
+                PaymentStatus.PENDING, new BigDecimal("85000"), null, null);
 
         assertThat(manual.id()).isNull();
         assertThat(manual.providerReference()).isNull();
@@ -36,14 +36,14 @@ class PaymentTest {
     @Test
     void rejectsMissingOrder() {
         assertThatThrownBy(() -> new Payment(1L, null, "mercadopago", PaymentMethod.CARD,
-                PaymentStatus.PENDING, BigDecimal.TEN, null))
+                PaymentStatus.PENDING, BigDecimal.TEN, null, null))
                 .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void rejectsMissingMethod() {
         assertThatThrownBy(() -> new Payment(1L, 10L, "mercadopago", null,
-                PaymentStatus.PENDING, BigDecimal.TEN, null))
+                PaymentStatus.PENDING, BigDecimal.TEN, null, null))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -56,7 +56,7 @@ class PaymentTest {
     @Test
     void rejectsMissingAmount() {
         assertThatThrownBy(() -> new Payment(1L, 10L, "mercadopago", PaymentMethod.CARD,
-                PaymentStatus.PENDING, null, null))
+                PaymentStatus.PENDING, null, null, null))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -64,7 +64,7 @@ class PaymentTest {
     @ValueSource(strings = {"", "  "})
     void rejectsBlankProvider(String provider) {
         assertThatThrownBy(() -> new Payment(1L, 10L, provider, PaymentMethod.CARD,
-                PaymentStatus.PENDING, BigDecimal.TEN, null))
+                PaymentStatus.PENDING, BigDecimal.TEN, null, null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -116,5 +116,35 @@ class PaymentTest {
     void transitionToNullIsRejected() {
         assertThatThrownBy(() -> pending().transitionTo(null))
                 .isInstanceOf(NullPointerException.class);
+    }
+
+    // Un intento recién guardado no tiene cobro; al anotarlo conserva todo lo demás.
+    @Test
+    void withCheckoutKeepsEverythingElse() {
+        Payment attempt = new Payment(7L, 10L, "mercadopago", PaymentMethod.CARD, PaymentStatus.PENDING,
+                new BigDecimal("85000"), null, null);
+
+        Payment attached = attempt.withCheckout("ORDTST01ABC", "https://mp/pay");
+
+        assertThat(attempt.hasCheckout()).isFalse();
+        assertThat(attached.hasCheckout()).isTrue();
+        assertThat(attached.providerReference()).isEqualTo("ORDTST01ABC");
+        assertThat(attached).usingRecursiveComparison().ignoringFields("providerReference", "checkoutUrl")
+                .isEqualTo(attempt);
+    }
+
+    @Test
+    void withCheckoutRequiresReferenceAndUrl() {
+        assertThatThrownBy(() -> pending().withCheckout(null, "https://mp/pay"))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> pending().withCheckout("ORDTST01ABC", null))
+                .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void isForComparesProviderAndMethod() {
+        assertThat(pending().isFor("mercadopago", PaymentMethod.CARD)).isTrue();
+        assertThat(pending().isFor("mercadopago", PaymentMethod.PSE)).isFalse();
+        assertThat(pending().isFor("wompi", PaymentMethod.CARD)).isFalse();
     }
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -20,10 +21,16 @@ class OrderModelTest {
         return new OrderLine(1L, "Ramo", "Mediano", new BigDecimal(price), quantity, 4, 1);
     }
 
+    private static final Instant CREATED = Instant.parse("2026-12-10T15:00:00Z");
+
     private Order order(String shippingFee, List<OrderLine> lines) {
+        return order(shippingFee, lines, CREATED.plusSeconds(15 * 60), CREATED.plusSeconds(51 * 60));
+    }
+
+    private Order order(String shippingFee, List<OrderLine> lines, Instant holdExpiresAt, Instant holdLimitAt) {
         return new Order(null, UUID.randomUUID(), OrderStatus.PENDING_PAYMENT, customer, "Calle 1 # 2-3",
                 1L, "Centro", new BigDecimal(shippingFee), 9L, LocalDate.of(2026, 12, 16),
-                LocalTime.of(14, 0), LocalTime.of(16, 0), 8, 2, lines);
+                LocalTime.of(14, 0), LocalTime.of(16, 0), 8, 2, lines, holdExpiresAt, holdLimitAt);
     }
 
     @Test
@@ -43,6 +50,24 @@ class OrderModelTest {
     void orderWithoutLinesIsRejected() {
         assertThatThrownBy(() -> order("8000", List.of()))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // La franja puede retenerse justo hasta el tope, pero no más allá.
+    @Test
+    void holdCanReachTheLimitButNotPassIt() {
+        Instant limit = CREATED.plusSeconds(51 * 60);
+
+        assertThat(order("8000", List.of(line("60000", 1)), limit, limit).holdExpiresAt()).isEqualTo(limit);
+        assertThatThrownBy(() -> order("8000", List.of(line("60000", 1)), limit.plusSeconds(1), limit))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void holdIsRequired() {
+        assertThatThrownBy(() -> order("8000", List.of(line("60000", 1)), null, CREATED))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> order("8000", List.of(line("60000", 1)), CREATED, null))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test

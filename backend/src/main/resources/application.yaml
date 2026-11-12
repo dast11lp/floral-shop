@@ -19,3 +19,8 @@ springdoc:
 payment:
   mercadopago:
     access-token: ${MERCADOPAGO_ACCESS_TOKEN:}
+    base-url: https://api.mercadopago.com
+    # Adonde vuelve el cliente después de pagar: la página de resultado del frontend (fase 5).
+    return-url: ${PAYMENT_RETURN_URL:http://localhost:3000/pago/resultado}
+    # Cuánto vive el cobro en Mercado Pago (ADR 0013, punto 5: 15 minutos para empezar a pagar).
+    checkout-expiration: PT15M

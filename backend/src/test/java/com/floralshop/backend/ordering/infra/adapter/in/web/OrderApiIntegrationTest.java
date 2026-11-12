@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import com.floralshop.backend.TestcontainersConfiguration;
+import com.floralshop.backend.ordering.application.port.out.OrderRepositoryPort;
 
 // Punta a punta con Postgres real. Sin @Transactional: el caso de uso abre su propia transacción,
 // como en producción. Los datos se guardan de verdad y se borran al terminar.
@@ -34,6 +36,9 @@ class OrderApiIntegrationTest {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    @Autowired
+    OrderRepositoryPort orders;
 
     private final LocalDate inFiveDays = LocalDate.now(ZoneId.of("America/Bogota")).plusDays(5);
 
@@ -129,5 +134,44 @@ class OrderApiIntegrationTest {
 
         assertThat(jdbc.queryForObject("select unit_price from order_line", java.math.BigDecimal.class))
                 .isEqualByComparingTo("130000");
+    }
+
+    private double minutesAfterCreation(String column) {
+        return jdbc.queryForObject("select extract(epoch from " + column + " - created_at) / 60 from customer_order",
+                Double.class);
+    }
+
+    // order_settings (V9): 15 minutos para empezar a pagar, con tope de 51.
+    @Test
+    void aNewOrderHoldsItsSlot15MinutesWithALimitOf51() throws Exception {
+        order(1).andExpect(status().isCreated());
+
+        assertThat(minutesAfterCreation("hold_expires_at")).isBetween(14.9, 15.1);
+        assertThat(minutesAfterCreation("hold_limit_at")).isBetween(50.9, 51.1);
+    }
+
+    // La base vuelve a comprobar el tope: aunque alguien pida pasarse, no actualiza nada.
+    @Test
+    void theDatabaseNeverMovesTheHoldPastTheLimit() throws Exception {
+        order(1).andExpect(status().isCreated());
+        long id = jdbc.queryForObject("select id from customer_order", Long.class);
+        Instant limit = jdbc.queryForObject("select hold_limit_at from customer_order", java.sql.Timestamp.class)
+                .toInstant();
+
+        assertThat(orders.updateHold(id, limit.plusSeconds(60))).isFalse();
+        assertThat(minutesAfterCreation("hold_expires_at")).isBetween(14.9, 15.1);
+
+        assertThat(orders.updateHold(id, limit)).isTrue();
+        assertThat(minutesAfterCreation("hold_expires_at")).isBetween(50.9, 51.1);
+    }
+
+    // Un pedido que ya no está pendiente de pago no extiende su franja.
+    @Test
+    void aHoldIsOnlyExtendedWhilePendingPayment() throws Exception {
+        order(1).andExpect(status().isCreated());
+        long id = jdbc.queryForObject("select id from customer_order", Long.class);
+        jdbc.update("update customer_order set status = 'CANCELLED' where id = ?", id);
+
+        assertThat(orders.updateHold(id, Instant.now().plusSeconds(20 * 60))).isFalse();
     }
 }

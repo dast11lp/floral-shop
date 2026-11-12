@@ -4,6 +4,8 @@
 
 > **Nota del 2026-11-11:** este documento describe la V1, ya aplicada. Lo que cambió después está en las migraciones (`backend/src/main/resources/db/migration`, V2 a V6) y en los ADR 0012 y 0013. En particular, `shop_settings` ya no existe: se separó en `delivery_settings` y `order_settings`. El texto de abajo se deja como estaba, como registro del diseño original.
 
+> **Nota del 2026-11-12:** las migraciones siguen hasta la V9: política de pago (V7), pagos (V8) y vencimiento del cupo en el pedido (V9). Ver los ADR 0013 y 0014, con sus precisiones del 2026-11-12.
+
 **Método:** primero la base de datos (SQL con Flyway). Después las clases de Java la mapean. Hibernate solo **comprueba** (`ddl-auto: validate`), nunca crea tablas.
 
 ---

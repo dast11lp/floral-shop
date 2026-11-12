@@ -31,6 +31,7 @@
 		<java.version>21</java.version>
 		<archunit.version>1.4.2</archunit.version>
 		<springdoc.version>3.0.3</springdoc.version>
+		<wiremock.version>3.13.2</wiremock.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -109,6 +110,15 @@
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>testcontainers-postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Simula la API de Mercado Pago en las pruebas (ADR 0014, punto 8). Versión standalone: trae sus
+		     dependencias empaquetadas y no choca con las de Spring. -->
+		<dependency>
+			<groupId>org.wiremock</groupId>
+			<artifactId>wiremock-standalone</artifactId>
+			<version>${wiremock.version}</version>
 			<scope>test</scope>
 		</dependency>
 

@@ -1,6 +1,7 @@
 package com.floralshop.backend.ordering.domain.model;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -11,10 +12,13 @@ import java.util.UUID;
 // comprobante muestre lo que se compró aunque el catálogo o las franjas cambien (ADR 0013, punto 2).
 // publicCode es lo que el cliente usa para consultar su pedido; el id interno no se expone.
 // craftingHours y slotUnits son los del carrito completo, calculados por CartWorkloadService.
+// holdExpiresAt: hasta cuándo retiene su franja mientras está pendiente de pago (ADR 0012: vencer el cupo
+// es asunto del pedido). Cada intento de pago la extiende, pero nunca más allá de holdLimitAt.
 public record Order(Long id, UUID publicCode, OrderStatus status, CustomerContact customer,
                     String deliveryAddress, long zoneId, String zoneName, BigDecimal shippingFee,
                     long slotId, LocalDate slotDate, LocalTime slotStart, LocalTime slotEnd,
-                    int craftingHours, int slotUnits, List<OrderLine> lines) {
+                    int craftingHours, int slotUnits, List<OrderLine> lines,
+                    Instant holdExpiresAt, Instant holdLimitAt) {
 
     public Order {
         Objects.requireNonNull(publicCode, "El código público es obligatorio");
@@ -26,6 +30,11 @@ public record Order(Long id, UUID publicCode, OrderStatus status, CustomerContac
         Objects.requireNonNull(slotDate, "La fecha de la franja es obligatoria");
         Objects.requireNonNull(slotStart, "La hora de inicio es obligatoria");
         Objects.requireNonNull(slotEnd, "La hora de fin es obligatoria");
+        Objects.requireNonNull(holdExpiresAt, "El vencimiento de la franja es obligatorio");
+        Objects.requireNonNull(holdLimitAt, "El tope de la franja es obligatorio");
+        if (holdExpiresAt.isAfter(holdLimitAt)) {
+            throw new IllegalArgumentException("El vencimiento de la franja no puede pasar del tope");
+        }
         if (deliveryAddress.isBlank()) {
             throw new IllegalArgumentException("La dirección no puede estar vacía");
         }

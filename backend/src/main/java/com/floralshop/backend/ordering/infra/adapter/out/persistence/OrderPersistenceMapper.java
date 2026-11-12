@@ -15,6 +15,7 @@ class OrderPersistenceMapper {
                 order.deliveryAddress(), order.zoneId(), order.zoneName(), order.shippingFee(),
                 order.slotId(), order.slotDate(), order.slotStart(), order.slotEnd(),
                 order.craftingHours(), order.slotUnits(), order.subtotal(), order.total(),
+                order.holdExpiresAt(), order.holdLimitAt(),
                 order.lines().stream().map(this::toEntity).toList());
     }
 
@@ -29,7 +30,8 @@ class OrderPersistenceMapper {
                 entity.getDeliveryAddress(), entity.getZoneId(), entity.getZoneName(), entity.getShippingFee(),
                 entity.getSlotId(), entity.getSlotDate(), entity.getSlotStart(), entity.getSlotEnd(),
                 entity.getCraftingHours(), entity.getSlotUnits(),
-                entity.getLines().stream().map(this::toDomain).toList());
+                entity.getLines().stream().map(this::toDomain).toList(),
+                entity.getHoldExpiresAt(), entity.getHoldLimitAt());
     }
 
     private OrderLine toDomain(OrderLineJpaEntity line) {

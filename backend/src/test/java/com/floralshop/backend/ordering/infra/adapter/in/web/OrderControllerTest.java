@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -57,7 +58,8 @@ class OrderControllerTest {
                 new CustomerContact("Ana", "ana@example.com", "3000000000"), "Calle 1 # 2-3",
                 7L, "Chía", new BigDecimal("15000"), 9L, LocalDate.of(2026, 12, 18),
                 LocalTime.of(9, 0), LocalTime.of(11, 0), 96, 4,
-                List.of(new OrderLine(1L, "Ramo de rosas", "Grande", new BigDecimal("130000"), 2, 48, 2)));
+                List.of(new OrderLine(1L, "Ramo de rosas", "Grande", new BigDecimal("130000"), 2, 48, 2)),
+                Instant.parse("2026-12-10T15:15:00Z"), Instant.parse("2026-12-10T15:51:00Z"));
     }
 
     @Test

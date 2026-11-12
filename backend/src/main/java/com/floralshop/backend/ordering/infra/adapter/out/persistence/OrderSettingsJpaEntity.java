@@ -21,10 +21,18 @@ public class OrderSettingsJpaEntity {
     @Column(name = "max_units_per_order", nullable = false)
     private int maxUnitsPerOrder;
 
+    @Column(name = "payment_start_minutes", nullable = false)
+    private int paymentStartMinutes;
+
+    @Column(name = "max_hold_minutes", nullable = false)
+    private int maxHoldMinutes;
+
     protected OrderSettingsJpaEntity() {
     }
 
     public Short getId() { return id; }
     public int getMaxUnitsPerLine() { return maxUnitsPerLine; }
     public int getMaxUnitsPerOrder() { return maxUnitsPerOrder; }
+    public int getPaymentStartMinutes() { return paymentStartMinutes; }
+    public int getMaxHoldMinutes() { return maxHoldMinutes; }
 }

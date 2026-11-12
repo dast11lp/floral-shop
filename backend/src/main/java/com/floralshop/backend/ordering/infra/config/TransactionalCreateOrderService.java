@@ -1,5 +1,7 @@
 package com.floralshop.backend.ordering.infra.config;
 
+import java.time.Clock;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import com.floralshop.backend.catalog.application.service.CatalogQueryService;
@@ -19,8 +21,9 @@ class TransactionalCreateOrderService extends CreateOrderService {
 
     TransactionalCreateOrderService(OrderSettingsRepositoryPort settings, OrderRepositoryPort orders,
                                     CatalogQueryService catalog, SchedulingQueryService scheduling,
-                                    DeliveryOptionsService deliveryOptions, ReserveSlotService reserveSlot) {
-        super(settings, orders, catalog, scheduling, deliveryOptions, reserveSlot);
+                                    DeliveryOptionsService deliveryOptions, ReserveSlotService reserveSlot,
+                                    Clock clock) {
+        super(settings, orders, catalog, scheduling, deliveryOptions, reserveSlot, clock);
     }
 
     @Override
