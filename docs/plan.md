@@ -5,7 +5,7 @@
 **Stack:** Spring Boot, Angular (SSR), PostgreSQL, Docker, Nginx, AWS, GitHub Actions, Terraform.
 
 **Estado del plan:** todo se desarrolla en local (Docker Compose y Floci) y el despliegue real en AWS se hace **al final, en la cuenta de ella**.
-**Progreso:** fases 0, 1 y 2 terminadas; fase 3 en curso (actualizado el 2026-11-11). Hechos de la fase 3: tiempo de elaboración por producto y variante, cupos que ocupa cada variante y márgenes de entrega (ADR 0012); franjas que alcanzan para un carrito; decisiones de pedidos (ADR 0013); y pedido como invitado con el cupo apartado en la misma transacción. El dominio de pagos (estados y medios) también está hecho. Siguiente: pagos (pasarela falsa y luego Mercado Pago, webhook y job que libera cupos vencidos) y después combos. Los pendientes y las decisiones por revisar están en `docs/pendientes.md`.
+**Progreso:** fases 0, 1 y 2 terminadas; fase 3 en curso (actualizado el 2026-11-11). Hechos de la fase 3: tiempo de elaboración por producto y variante, cupos que ocupa cada variante y márgenes de entrega (ADR 0012); franjas que alcanzan para un carrito; decisiones de pedidos (ADR 0013); y pedido como invitado con el cupo apartado en la misma transacción. El dominio de pagos (estados y medios) también está hecho. Siguiente: pagos con Mercado Pago en sandbox, en tres PR pequeños (ADR 0014), y después combos. Los pendientes y las decisiones por revisar están en `docs/pendientes.md`.
 
 ---
 
@@ -352,6 +352,8 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 
 > **Cambio del 2026-11-11 (ADR 0013):** el pedido y la reserva del cupo van en una sola transacción; el pedido guarda una copia de lo comprado, sin claves foráneas a otros módulos; `shop_settings` se separa en ajustes por módulo; no se usan eventos internos todavía. El cupo se aparta 36 minutos (15 de vigencia de la preferencia + 21 de procesamiento máximo de PSE), por medio de pago y ajustable con datos propios después de lanzar.
 
+> **Cambio del 2026-11-11 (ADR 0014):** varias pasarelas pueden estar encendidas a la vez. La política es por pasarela y medio, con una prioridad: la primera es la sugerida al cliente y las demás se muestran en pequeño. La sugerida al arrancar es Mercado Pago con tarjeta, que es también la que se prueba primero en el sandbox. Las credenciales viven en la configuración del servidor, y una combinación no se puede habilitar sin ellas. No hay `FakePaymentGateway`: se prueba con el sandbox de Mercado Pago, el puerto se simula con Mockito y el adaptador se prueba con WireMock. No hay tabla de eventos procesados: un aviso repetido se reconoce por el estado del pago, leído con bloqueo de fila. Pagos llama directo a pedidos en una sola transacción, y un pago fallido cancela el pedido (el carrito sigue en el navegador para reintentar). Los pagos se construyen en tres PR: (1) puerto, adaptador de Mercado Pago, política e inicio del pago; (2) aviso de la pasarela, consulta del estado y confirmación o cancelación del pedido; (3) el job que devuelve los cupos vencidos. Para recibir avisos en el PC hace falta un túnel (ngrok o similar).
+
 **Fase 4: Identidad y operación (solo backend).** Login con roles muchos a muchos, API de administración (productos, franjas, pedidos, moderación, confirmación de pagos manuales y registro de cobros contra entrega) y fotos en S3 (contra Floci). La interfaz del panel llega en la fase 5.
 
 *Pruebas:* seguridad con Spring Security Test sobre JUnit 5 (rutas de admin protegidas, roles, acceso denegado; solo el admin confirma pagos manuales y confirmarlos dos veces no los duplica) y subida de fotos con Testcontainers y Floci, sin simulaciones.
@@ -363,6 +365,8 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 **Fase 6: Extras.** Correos asíncronos (SQS a SES) y reseñas moderadas (backend y su interfaz en Angular, incluida la moderación en el panel admin).
 
 *Pruebas:* reglas de reseña con JUnit 5 y Mockito (solo con pedido entregado, una por pedido, moderación), `FakeEmailSender` en las unitarias y el envío por SQS contra Floci con Testcontainers.
+
+> **Cambio del 2026-11-11 (ADR 0014):** el correo no usa SQS ni SES. Va por SMTP con un solo adaptador de `EmailSender`: Mailpit en local, Gmail solo para mostrárselo a la florista, y Brevo en producción (Resend como plan B). La cola es una bandeja de salida en PostgreSQL, con eventos que publica pedidos y escuchadores que toleran recibir un evento dos veces. Cómo se implementa la bandeja (Spring Modulith, tabla y job propios, o solo después de guardar) se decide al construir el correo. Las pruebas del envío usan Mailpit en vez de Floci.
 
 **Fase 7: Listo para desplegar.** Terraform genérico validado contra Floci (cubre bien RDS, S3, SQS, SES y ECR; EC2 e IAM tienen soporte parcial, así que esas partes se confirman con `plan` y en AWS real), `docker-compose.prod.yml`, workflows de despliegue del backend y del frontend escritos pero apagados, README técnico con diagrama y decisiones, y el acuerdo de propiedad del código con ella (sección 14).
 

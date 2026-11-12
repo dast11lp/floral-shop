@@ -1,6 +1,6 @@
 # 0013. Pedidos: transacción con el cupo, copia de los datos, ajustes por módulo y tiempo de cupo apartado (enmienda del 0012)
 
-**Estado:** aceptada, con valores por confirmar en el sandbox · **Fecha:** 2026-11-11
+**Estado:** aceptada, con valores por confirmar en el sandbox; enmendada en parte por el 0014 (eventos solo para los efectos hacia afuera; cupo apartado por pasarela y medio) · **Fecha:** 2026-11-11
 
 ## Contexto
 La fase 3 sigue con el módulo de pedidos (`ordering`): el cliente compra como invitado, elige una franja y, al empezar el pago, el cupo queda apartado (ADR 0012). Antes de programarlo quedaban cuatro decisiones técnicas abiertas (pendientes 5, 6, 17 y 26) y un valor sin fundamento: el ADR 0012 apartaba el cupo 15 minutos, un número que venía del plan y no de datos.
