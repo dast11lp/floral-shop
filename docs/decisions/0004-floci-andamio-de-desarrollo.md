@@ -1,6 +1,6 @@
 # 0004. Floci como andamio de desarrollo, no como dependencia
 
-**Estado:** aceptada · **Fecha:** 2026-10-08
+**Estado:** aceptada; enmendada en parte por el 0014 (el correo ya no usa SQS ni SES, así que Floci deja de usarse para el correo) · **Fecha:** 2026-10-08
 
 ## Contexto
 Se quiere aprender y desarrollar contra servicios de AWS sin depender de una cuenta real ni gastar créditos. Floci es un emulador de AWS gratuito y de código abierto, que corre en un contenedor y escucha en `localhost:4566`.

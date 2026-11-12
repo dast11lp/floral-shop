@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-11 (estado de la fase 3 tras los PR #35 a #38).
+Última actualización: 2026-11-11 (ADR 0014: pasarelas, avisos entre módulos y correo).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -22,17 +22,20 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 23 | Días que no trabaja | Hoy todos los días cuentan para el tiempo de preparación (ADR 0012). Si ella lo pide, pasar a días hábiles: se cambia el servicio que calcula la fecha y se agrega una tabla con los días que no trabaja | Cuando ella lo pida |
 | 24 | Detectar la zona desde la dirección | Hoy el cliente elige su zona de una lista (ADR 0012). Detectarla sola exige un servicio de mapas (geocodificación, con costo) y los límites de cada zona, y las direcciones llegan incompletas. Se agrega sin cambiar el modelo de zonas | Si elegir la zona a mano da problemas |
 | 25 | Sedes en otras ciudades | Misma tienda y misma cuenta de cobro, con otra persona que arma y entrega en otra ciudad (ADR 0012, punto 12). Cada sede tendría sus zonas, franjas, márgenes y quizá sus tiempos. No se construye todavía; zonas, franjas y márgenes ya son datos, así que agregarlo es indicar a qué sede pertenecen | Cuando haya una segunda sede |
+| 28 | Bandeja de salida de eventos | Los efectos hacia afuera (correo, aviso a la florista, PDF) salen por eventos guardados en una bandeja de salida (ADR 0014, punto 4). Opciones: Spring Modulith (verificar compatibilidad con Spring Boot 4.1), tabla y job propios, o solo después de guardar con un botón para reenviar | Al construir el correo |
+| 29 | Dominio de la tienda | El correo de producción necesita un dominio propio con SPF, DKIM y DMARC (ADR 0014, punto 6). Elegirlo con la florista | Antes de producción |
 
 
 ## Tareas pendientes
 
 | # | Tarea | Detalle |
 |---|---|---|
-| 9 | Guía de repaso para principiantes | Desactualizada: ArchUnit pasó a la fase 2 y faltan los ADR 0009 a 0013 (reglas en application, paquetes, transacciones, flujo de compra y pedidos) |
+| 9 | Guía de repaso para principiantes | Desactualizada: ArchUnit pasó a la fase 2 y faltan los ADR 0009 a 0014 (reglas en application, paquetes, transacciones, flujo de compra, pedidos, y pagos y correo) |
 | 10 | Repaso de Flyway | Quedó pendiente de la fase 1 |
 | 11 | `docker build` en el CI | Hoy un Dockerfile roto no lo detecta nadie |
 | 14 | Spring Security | En la fase 4, `/api/v1/health` debe quedar público |
-| 27 | El cupo apartado todavía no vence | Desde el PR #38, un pedido pendiente de pago retiene su cupo sin vencimiento. Se resuelve con los pagos: el job que libera cupos a los 36 minutos (ADR 0013). Mientras tanto, en desarrollo, los pedidos de prueba dejan cupos ocupados; se limpian recreando la base | Con los pagos (fase 3) |
+| 27 | El cupo apartado todavía no vence | Desde el PR #38, un pedido pendiente de pago retiene su cupo sin vencimiento. Se resuelve con los pagos: el job que libera cupos a los 36 minutos (ADR 0013), en el tercer PR de pagos (ADR 0014). Mientras tanto, en desarrollo, los pedidos de prueba dejan cupos ocupados; se limpian recreando la base | Con los pagos (fase 3) |
+| 30 | Explicarle a la florista por qué Gmail no sirve en producción | Para la demostración, los correos salen de un Gmail personal (ADR 0014, punto 6). En producción no: el remitente sería un Gmail personal, tiene límites y no está pensado para una tienda. Preparar la explicación cuando toque |
 
 
 ## Por verificar (nadie lo ha confirmado)
@@ -42,6 +45,8 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 - Soporte real de EC2 e IAM en Floci.
 - Si las pasarelas exigen constitución legal para las llaves de producción.
 - Cómo se servirán las fotos, y las condiciones de su cuenta de Nequi o banco.
+- Límites gratuitos de Brevo y Resend en sus páginas oficiales, y que Gmail siga ofreciendo contraseñas de aplicación (ADR 0014).
+- Que la cuenta de sandbox de Mercado Pago sigue activa.
 - Que el vencimiento de 15 minutos de PSE aplica también a Checkout Pro, y los 21 minutos máximos de procesamiento de PSE (ADR 0013, fuentes no oficiales de ACH).
 
 ## Resuelto
