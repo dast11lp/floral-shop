@@ -13,3 +13,9 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+# Pasarelas de pago (ADR 0014, punto 2). Las credenciales vienen de variables de entorno
+# (en local, del .env). Si una falta, sus opciones de pago no se ofrecen.
+payment:
+  mercadopago:
+    access-token: ${MERCADOPAGO_ACCESS_TOKEN:}
