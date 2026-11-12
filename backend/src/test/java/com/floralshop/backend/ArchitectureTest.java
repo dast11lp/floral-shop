@@ -19,7 +19,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 
 import jakarta.persistence.Entity;
 
-// Pruebas de arquitectura: hacen cumplir el ADR 0001 y sus enmiendas (0009 y 0010).
+// Pruebas de arquitectura: hacen cumplir el ADR 0001 y sus enmiendas (0009 y 0010), y el punto 7 del ADR 0014.
 // Leen el código ya compilado. No necesitan Spring ni base de datos.
 class ArchitectureTest {
 
@@ -115,6 +115,16 @@ class ArchitectureTest {
         classes().that().areAssignableTo(JpaRepository.class)
                 .should().notBePublic()
                 .because("un repositorio público dejaría a otros módulos leer tablas ajenas (ADR 0001, regla 5)")
+                .check(mainClasses);
+    }
+
+    // ADR 0014, punto 7: las librerías de un proveedor (Amazon, Mercado Pago) solo se usan en su adaptador.
+    // Así, cambiar de proveedor o pasar a una VPS toca un adaptador y nada más.
+    @Test
+    void providerLibrariesStayInsideOutboundAdapters() {
+        noClasses().that().resideOutsideOfPackage("..infra.adapter.out..")
+                .should().dependOnClassesThat().resideInAnyPackage("software.amazon..", "com.mercadopago..")
+                .because("solo el adaptador de un proveedor puede conocer su librería (ADR 0014, punto 7)")
                 .check(mainClasses);
     }
 
