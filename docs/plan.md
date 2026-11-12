@@ -4,6 +4,8 @@
 
 **Stack:** Spring Boot, Angular (SSR), PostgreSQL, Docker, Nginx, AWS, GitHub Actions, Terraform.
 
+> **Cambio del 2026-11-12 (ADR 0015):** el frontend pasa de Angular a **Next.js** (React y TypeScript), desplegado con Docker detrás de Nginx, sin Vercel. Las menciones de Angular en este documento se dejan como registro; donde dicen Angular, ahora va Next.js.
+
 **Estado del plan:** todo se desarrolla en local (Docker Compose y Floci) y el despliegue real en AWS se hace **al final, en la cuenta de ella**.
 **Progreso:** fases 0, 1 y 2 terminadas; fase 3 en curso (actualizado el 2026-11-11). Hechos de la fase 3: tiempo de elaboración por producto y variante, cupos que ocupa cada variante y márgenes de entrega (ADR 0012); franjas que alcanzan para un carrito; decisiones de pedidos (ADR 0013); y pedido como invitado con el cupo apartado en la misma transacción. El dominio de pagos (estados y medios) también está hecho. Siguiente: pagos con Mercado Pago en sandbox, en tres PR pequeños (ADR 0014), y después combos. Los pendientes y las decisiones por revisar están en `docs/pendientes.md`.
 
@@ -112,6 +114,8 @@ Sirve para tres cosas: HTTPS (exigido por la pasarela y favorable al SEO), servi
 - Estado con signals y servicios, sin NgRx.
 - **Medir la memoria del servidor de Node en local** antes de elegir el tamaño de la EC2.
 - Vercel descartado: el plan gratuito (Hobby) es solo para uso no comercial, y separar frontend y API complica el despliegue.
+
+> **Cambio del 2026-11-12 (ADR 0015):** esta sección aplica ahora a Next.js. Inicio, catálogo y producto se renderizan en el servidor o se generan estáticos; carrito, checkout y panel corren en el navegador. Next.js solo muestra datos y llama a la API: las reglas de negocio siguen en Spring Boot. Vercel sigue descartado; se despliega con `output: "standalone"` en Docker.
 
 ---
 
@@ -361,6 +365,8 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 **Fase 5: Frontend.** Angular con SSR en catálogo y producto, cliente en carrito, checkout (con los medios de pago disponibles) y la interfaz del panel admin sobre la API de la fase 4, incluida la confirmación de pagos manuales. Dockerfile del frontend y su ruta en el CI. SEO técnico (metadatos, `sitemap.xml`, datos estructurados) y Lighthouse medido en local con la compilación de producción, antes y después de optimizar.
 
 *Pruebas:* unitarias del carrito y la selección de franja con el runner del proyecto Angular (aquí no se usa JUnit ni Mockito), un E2E con Playwright del flujo de compra en sandbox y los resultados de Lighthouse registrados.
+
+> **Cambio del 2026-11-12 (ADR 0015):** la fase 5 se hace con Next.js en vez de Angular. Las pruebas unitarias del frontend usan Vitest y Testing Library; Playwright y Lighthouse no cambian.
 
 **Fase 6: Extras.** Correos asíncronos (SQS a SES) y reseñas moderadas (backend y su interfaz en Angular, incluida la moderación en el panel admin).
 

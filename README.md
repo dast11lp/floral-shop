@@ -2,7 +2,7 @@
 
 Proyecto de portafolio: tienda online para una florista de Bogotá.
 
-**Stack:** Spring Boot, Angular (SSR), PostgreSQL, Docker, AWS.
+**Stack:** Spring Boot, Next.js (React), PostgreSQL, Docker, AWS.
 
 ## Estado
 En desarrollo. Fases 0, 1 y 2 terminadas; fase 3 (pedidos y pagos) en curso.
