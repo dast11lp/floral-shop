@@ -1,6 +1,6 @@
 # 0013. Pedidos: transacción con el cupo, copia de los datos, ajustes por módulo y tiempo de cupo apartado (enmienda del 0012)
 
-**Estado:** aceptada, con valores por confirmar en el sandbox; enmendada en parte por el 0014 (eventos solo para los efectos hacia afuera; cupo apartado por pasarela y medio) · **Fecha:** 2026-11-11
+**Estado:** aceptada, con valores por confirmar en el sandbox; enmendada en parte por el 0014 (eventos solo para los efectos hacia afuera; cupo apartado por pasarela y medio); con una precisión sobre dónde vence el cupo (2026-11-12) · **Fecha:** 2026-11-11
 
 ## Contexto
 La fase 3 sigue con el módulo de pedidos (`ordering`): el cliente compra como invitado, elige una franja y, al empezar el pago, el cupo queda apartado (ADR 0012). Antes de programarlo quedaban cuatro decisiones técnicas abiertas (pendientes 5, 6, 17 y 26) y un valor sin fundamento: el ADR 0012 apartaba el cupo 15 minutos, un número que venía del plan y no de datos.
@@ -51,3 +51,12 @@ La fase 3 sigue con el módulo de pedidos (`ordering`): el cliente compra como i
 - **Confirmar en el sandbox** que el vencimiento de 15 minutos aplica también a Checkout Pro (la fuente es de Checkout API) y qué pasa si el cliente intenta pagar después de `expiration_date_to`.
 - **Los 21 minutos** vienen de un banco y de prensa, no de ACH Colombia. Confirmarlos con la pasarela o en el sandbox.
 - Medir después del lanzamiento cuánto tardan los pagos aprobados por medio, y ajustar la retención.
+
+## Precisión (2026-11-12): el vencimiento del cupo vive en el pedido, con un tope
+Al construir el inicio del pago (PR 1b) se definió dónde se guarda el tiempo del punto 5 y qué pasa antes de empezar a pagar. Los 36 minutos y sus fuentes no cambian.
+- **El vencimiento es del pedido, no del pago**, como dice el ADR 0012 (punto 9: vencer el cupo es asunto del pedido). `customer_order` guarda `hold_expires_at` (hasta cuándo retiene su cupo) y `hold_limit_at` (el tope). Un pedido tiene un solo reloj aunque tenga varios intentos de pago.
+- **El cupo se aparta al crear el pedido** (punto 1), no al empezar el pago. Para el rato entre crear el pedido y empezar a pagar hay **15 minutos** (`payment_start_minutes` en `order_settings`), los mismos 15 minutos que el punto 5 da para iniciar el pago. Un pedido que nunca inicia un pago suelta su cupo a los 15 minutos, no a los 36.
+- **Cada intento de pago extiende el vencimiento** a "ahora + los minutos de su opción" (36 con tarjeta, en `payment_method_policy`). Nunca lo acorta.
+- **Tope de 51 minutos desde que se crea el pedido** (`max_hold_minutes` en `order_settings`): los 15 para empezar a pagar más los 36 del peor caso del punto 5. Sin tope, un cliente que reintenta una y otra vez retendría el cupo para siempre. La base de datos vuelve a comprobar el tope al actualizar.
+- Los dos valores se editan en la base de datos, sin desplegar (migración V9).
+- Lo que este ADR y el 0012 dicen de liberar el cupo no cambia: antes se consulta al proveedor, y un pago aprobado tarde deja el pedido "pagado y sin franja". El job que libera los cupos llega en el tercer PR de pagos (ADR 0014) y usa `hold_expires_at`.

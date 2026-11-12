@@ -1,6 +1,6 @@
 # 0014. Pagos con varias pasarelas, avisos entre módulos y correo sin atarse a un proveedor (enmienda del 0003, 0004, 0012 y 0013)
 
-**Estado:** aceptada · **Fecha:** 2026-11-11
+**Estado:** aceptada; con dos precisiones (2026-11-12): Mercado Pago con Checkout Pro, y el inicio del pago en tres pasos · **Fecha:** 2026-11-11
 
 ## Contexto
 Antes de programar los pagos de la fase 3 se revisaron cinco preguntas:
@@ -103,6 +103,25 @@ Cómo se resuelve cada uno:
 - Confirmar en las páginas oficiales los límites gratuitos de Brevo y Resend, y que Gmail siga ofreciendo contraseñas de aplicación, cuando se configure el correo.
 - Elegir la implementación de la bandeja de salida al construir el correo. Si es Spring Modulith, verificar que su versión sea compatible con Spring Boot 4.1.
 - Confirmar que la cuenta de sandbox de Mercado Pago sigue activa y sacar sus credenciales de prueba.
+
+## Precisión (2026-11-12): Mercado Pago con Checkout Pro vía la API de Orders
+Al construir el inicio del pago (PR 1b) se eligió cómo hablar con Mercado Pago y se comprobó en el sandbox. El texto de arriba no cambia.
+- **Checkout Pro vía la API de Orders**, no vía preferencias. El panel de Colombia la ofrece al crear la aplicación y Mercado Pago la recomienda para integraciones nuevas. El cobro se crea con `POST /v1/orders` y el cliente va a su `checkout_url`.
+- **El cobro vence a los 15 minutos** con `expiration_time` (`PT15M`), que reemplaza al `expiration_date_to` de las preferencias que citaba el ADR 0013. Los 36 minutos de cupo no cambian.
+- **En pesos colombianos los montos van enteros** ("145000", no "145000.00"); con decimales, Mercado Pago responde 400.
+- **Cada opción excluye los demás tipos de pago** (`not_allowed_types`). Con tarjeta se excluyen `bank_transfer`, `ticket` y `account_money`, y la página de Mercado Pago solo muestra "Tarjeta (crédito, débito o prepago)". Con PSE se excluyen las tarjetas, `ticket` y `account_money`.
+- **Nequi sí aparece como banco dentro de PSE** en Mercado Pago (consulta de `GET /v1/payment_methods` de la cuenta de prueba). Resuelve el punto que el ADR 0013 dejaba por verificar.
+- **Sin SDK de Mercado Pago:** el adaptador usa el `RestClient` de Spring, con HTTP/1.1 y tiempos máximos (5 segundos para conectar y 15 para responder).
+
+## Precisión (2026-11-12): iniciar el pago en tres pasos
+Al revisar el PR 1b antes de fusionarlo se ajustó cómo se inicia el pago, para que la llamada a la pasarela también cumpla el punto 4: lo que sale de la aplicación no va dentro de la transacción. El texto de arriba no cambia.
+- **Tres pasos, con la pasarela fuera de toda transacción:**
+  1. Guardar el intento de pago (pendiente, todavía sin cobro) y extender el vencimiento del cupo del pedido (ADR 0013, precisión del 2026-11-12). Es una transacción corta.
+  2. Crear el cobro en la pasarela, sin transacción abierta. Así una pasarela lenta no deja una conexión ni una fila bloqueadas.
+  3. Anotar el cobro (su id y su URL), o marcar el intento `FAILED` si algo falló. Es otra transacción corta. Un intento fallido no impide reintentar.
+- **Dos peticiones a la vez para el mismo pedido:** un índice único deja un solo pago pendiente por pedido (punto 3). La segunda petición choca al guardar, antes de llamar a la pasarela, y recibe 409 ("ya hay un pago en curso"), no un error interno.
+- **Llave de idempotencia:** el código público del pedido más el id del intento. Si la red repite la llamada del mismo intento, no se crean dos cobros. Y es única aunque la base de datos se recree y los ids vuelvan a empezar.
+- **Cambiar de opción con un pago en curso** responde 409 por ahora, con un mensaje que pide terminar ese pago o esperar a que venza. Hacerlo bien exige consultar y cancelar el cobro en la pasarela, y eso llega con el PR 2. La espera está acotada por el tope del cupo (51 minutos).
 
 ## Fuentes del punto 6
 Consultadas el 2026-11-11. En parte son de terceros; se confirman al configurar.

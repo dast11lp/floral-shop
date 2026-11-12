@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-11 (ADR 0014: pasarelas, avisos entre módulos y correo).
+Última actualización: 2026-11-12 (PR 1b de pagos: inicio del pago con Mercado Pago).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -34,19 +34,18 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 10 | Repaso de Flyway | Quedó pendiente de la fase 1 |
 | 11 | `docker build` en el CI | Hoy un Dockerfile roto no lo detecta nadie |
 | 14 | Spring Security | En la fase 4, `/api/v1/health` debe quedar público |
-| 27 | El cupo apartado todavía no vence | Desde el PR #38, un pedido pendiente de pago retiene su cupo sin vencimiento. Se resuelve con los pagos: el job que libera cupos a los 36 minutos (ADR 0013), en el tercer PR de pagos (ADR 0014). Mientras tanto, en desarrollo, los pedidos de prueba dejan cupos ocupados; se limpian recreando la base | Con los pagos (fase 3) |
+| 27 | El cupo apartado todavía no vence | Desde el PR #38, un pedido pendiente de pago retiene su cupo sin vencimiento. Desde el PR 1b el pedido ya guarda hasta cuándo retiene su cupo (`hold_expires_at`: 15 minutos al crearse, 36 al iniciar el pago, con tope de 51; ADR 0013, precisión del 2026-11-12), pero nadie lo libera todavía. Lo hace el job del tercer PR de pagos (ADR 0014), usando ese vencimiento. Como el vencimiento es del pedido, el job cubre también los pedidos que nunca inician un pago. Mientras tanto, en desarrollo, los pedidos de prueba dejan cupos ocupados; se limpian recreando la base | Con los pagos (fase 3) |
 | 30 | Explicarle a la florista por qué Gmail no sirve en producción | Para la demostración, los correos salen de un Gmail personal (ADR 0014, punto 6). En producción no: el remitente sería un Gmail personal, tiene límites y no está pensado para una tienda. Preparar la explicación cuando toque |
 
 
 ## Por verificar (nadie lo ha confirmado)
 
-- Comisiones y medios (Nequi, Efecty, PSE) de Mercado Pago y Wompi en Colombia, y qué tan rápido responde Nequi por Mercado Pago (pasaría por PSE).
+- Comisiones de Mercado Pago y Wompi en Colombia, y qué tan rápido responde Nequi por Mercado Pago (aparece como banco dentro de PSE: confirmado el 2026-11-12).
 - Si la cuenta de AWS de la florista recibe créditos de cuenta nueva.
 - Soporte real de EC2 e IAM en Floci.
 - Si las pasarelas exigen constitución legal para las llaves de producción.
 - Cómo se servirán las fotos, y las condiciones de su cuenta de Nequi o banco.
 - Límites gratuitos de Brevo y Resend en sus páginas oficiales, y que Gmail siga ofreciendo contraseñas de aplicación (ADR 0014).
-- Que la cuenta de sandbox de Mercado Pago sigue activa.
 - Que el vencimiento de 15 minutos de PSE aplica también a Checkout Pro, y los 21 minutos máximos de procesamiento de PSE (ADR 0013, fuentes no oficiales de ACH).
 
 ## Resuelto

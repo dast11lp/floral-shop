@@ -1,5 +1,8 @@
 package com.floralshop.backend.ordering.application.service;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,21 +44,25 @@ public class CreateOrderService {
     private final SchedulingQueryService scheduling;
     private final DeliveryOptionsService deliveryOptions;
     private final ReserveSlotService reserveSlot;
+    private final Clock clock;
 
     public CreateOrderService(OrderSettingsRepositoryPort settings, OrderRepositoryPort orders,
                               CatalogQueryService catalog, SchedulingQueryService scheduling,
-                              DeliveryOptionsService deliveryOptions, ReserveSlotService reserveSlot) {
+                              DeliveryOptionsService deliveryOptions, ReserveSlotService reserveSlot,
+                              Clock clock) {
         this.settings = settings;
         this.orders = orders;
         this.catalog = catalog;
         this.scheduling = scheduling;
         this.deliveryOptions = deliveryOptions;
         this.reserveSlot = reserveSlot;
+        this.clock = clock;
     }
 
     public Order create(NewOrder request) {
         // 1. Los máximos de la florista, antes de consultar nada más.
-        checkLimits(request.lines(), settings.get());
+        OrderSettings orderSettings = settings.get();
+        checkLimits(request.lines(), orderSettings);
 
         // 2. Lo que se va a copiar de cada variante. Si alguna no está a la venta, no hay pedido.
         Map<Long, OrderableVariant> variants = catalog.orderableVariants(
@@ -79,11 +86,15 @@ public class CreateOrderService {
         // 4. Apartar los cupos. Es atómico: si otro cliente tomó el último cupo, falla aquí.
         reserveSlot.reserve(slot.id(), options.slotUnits());
 
-        // 5. Guardar el pedido, pendiente de pago.
+        // 5. Guardar el pedido, pendiente de pago. Retiene la franja los minutos para empezar a pagar;
+        //    iniciar el pago la extiende, nunca más allá del tope (OrderHoldService).
+        Instant now = clock.instant();
+        Instant holdExpiresAt = now.plus(Duration.ofMinutes(orderSettings.paymentStartMinutes()));
+        Instant holdLimitAt = now.plus(Duration.ofMinutes(orderSettings.maxHoldMinutes()));
         return orders.save(new Order(null, UUID.randomUUID(), OrderStatus.PENDING_PAYMENT, request.customer(),
                 request.deliveryAddress(), zone.id(), zone.name(), zone.shippingFee(),
                 slot.id(), slot.date(), slot.startTime(), slot.endTime(),
-                options.craftingHours(), options.slotUnits(), lines));
+                options.craftingHours(), options.slotUnits(), lines, holdExpiresAt, holdLimitAt));
     }
 
     private static void checkLimits(List<CartLine> lines, OrderSettings limits) {

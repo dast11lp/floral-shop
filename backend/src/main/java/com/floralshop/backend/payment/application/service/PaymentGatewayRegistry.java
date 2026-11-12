@@ -24,4 +24,12 @@ public class PaymentGatewayRegistry {
         PaymentGateway gateway = byProvider.get(provider);
         return gateway != null && gateway.isConfigured();
     }
+
+    // El adaptador de una pasarela disponible. Se llama después de comprobar isAvailable.
+    public PaymentGateway get(String provider) {
+        if (!isAvailable(provider)) {
+            throw new IllegalStateException("La pasarela " + provider + " no está disponible");
+        }
+        return byProvider.get(provider);
+    }
 }

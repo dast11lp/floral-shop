@@ -5,10 +5,12 @@ import java.util.Objects;
 
 import com.floralshop.backend.payment.domain.exception.InvalidPaymentTransitionException;
 
-// Un pago de un pedido. Inmutable: un cambio de estado devuelve un pago nuevo.
-// providerReference es la referencia del proveedor; puede ser null hasta que la entregue (o en los manuales).
+// Un pago (un intento de pago) de un pedido. Inmutable: un cambio devuelve un pago nuevo.
+// providerReference: el id del cobro en la pasarela. Null mientras el cobro no existe allá (o en los manuales).
+// checkoutUrl: adónde se manda al cliente a pagar. Null mientras el cobro no existe (o en los manuales).
+// Hasta cuándo se retiene la franja no vive aquí: es del pedido (ADR 0012).
 public record Payment(Long id, Long orderId, String provider, PaymentMethod method,
-                      PaymentStatus status, BigDecimal amount, String providerReference) {
+                      PaymentStatus status, BigDecimal amount, String providerReference, String checkoutUrl) {
 
     public Payment {
         Objects.requireNonNull(orderId, "El pedido es obligatorio");
@@ -30,6 +32,23 @@ public record Payment(Long id, Long orderId, String provider, PaymentMethod meth
         if (!status.canTransitionTo(next)) {
             throw new InvalidPaymentTransitionException(status, next);
         }
-        return new Payment(id, orderId, provider, method, next, amount, providerReference);
+        return new Payment(id, orderId, provider, method, next, amount, providerReference, checkoutUrl);
+    }
+
+    // El cobro ya se creó en la pasarela: se anotan su id allá y la URL de pago.
+    public Payment withCheckout(String providerReference, String checkoutUrl) {
+        Objects.requireNonNull(providerReference, "La referencia del cobro es obligatoria");
+        Objects.requireNonNull(checkoutUrl, "La URL de pago es obligatoria");
+        return new Payment(id, orderId, provider, method, status, amount, providerReference, checkoutUrl);
+    }
+
+    // Si es la misma opción que eligió el cliente (pasarela y medio).
+    public boolean isFor(String provider, PaymentMethod method) {
+        return this.provider.equals(provider) && this.method == method;
+    }
+
+    // Si el cobro ya existe en la pasarela. Un intento recién guardado todavía no lo tiene.
+    public boolean hasCheckout() {
+        return checkoutUrl != null;
     }
 }

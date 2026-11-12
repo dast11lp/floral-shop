@@ -1,6 +1,7 @@
 package com.floralshop.backend.payment.infra.adapter.out.persistence;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -9,4 +10,7 @@ interface PaymentMethodPolicyJpaRepository extends JpaRepository<PaymentMethodPo
 
     // A igual prioridad, el orden por pasarela y medio evita que la sugerida cambie al azar.
     List<PaymentMethodPolicyJpaEntity> findByEnabledTrueOrderByPriorityAscProviderAscMethodAsc();
+
+    Optional<PaymentMethodPolicyJpaEntity> findByProviderAndMethodAndEnabledTrue(String provider,
+                                                                                 PaymentMethodColumn method);
 }
