@@ -3,6 +3,7 @@ package com.floralshop.backend;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +63,8 @@ class DatabaseMigrationTest {
             Map.entry("delivery_settings", "scheduling"),
             Map.entry("customer_order", "ordering"), Map.entry("order_line", "ordering"),
             Map.entry("order_settings", "ordering"),
-            Map.entry("payment_method_policy", "payment"), Map.entry("payment", "payment"));
+            Map.entry("payment_method_policy", "payment"), Map.entry("payment", "payment"),
+            Map.entry("payment_settings", "payment"));
 
     @Test
     void everyTableHasAnOwnerModule() {
@@ -96,6 +98,105 @@ class DatabaseMigrationTest {
                     .as("clave foránea %s -> %s", from, to)
                     .isEqualTo(TABLE_MODULE.get(to));
         }
+    }
+
+    // V10: los ajustes de pagos tienen una sola fila, con el tope de 5 intentos por pedido (ADR 0016, A.9)
+    @Test
+    void paymentSettingsStartWithFiveAttempts() {
+        assertThat(jdbc.queryForObject("select count(*) from payment_settings", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select max_attempts_per_order from payment_settings", Integer.class))
+                .isEqualTo(5);
+    }
+
+    // V10: el pago acepta el estado REFUNDED (ADR 0016, A.4)
+    @Test
+    void paymentAcceptsRefunded() {
+        Long id = insertPayment("REFUNDED", null);
+        jdbc.update("delete from payment where id = ?", id);
+    }
+
+    // V10: los dos motivos de FAILED se aceptan, y un pago sin motivo también (pendiente o pagado no lo llevan).
+    // Los motivos de un pago que sigue PENDING (A.2, A.19, A.20) llegan con el job, en su propia migración.
+    @Test
+    void paymentAcceptsEachKnownReasonAndNoReason() {
+        List<Long> ids = new ArrayList<>();
+        try {
+            ids.add(insertPayment("FAILED", "'GATEWAY_REJECTED'"));
+            ids.add(insertPayment("FAILED", "'CREATION_UNCONFIRMED'"));
+            ids.add(insertPayment("PAID", null));
+        } finally {
+            ids.forEach(id -> jdbc.update("delete from payment where id = ?", id));
+        }
+    }
+
+    // V10: un motivo que el ADR 0016 no define se rechaza, aunque se parezca a uno válido
+    @Test
+    void paymentRejectsUnknownReasons() {
+        for (String reason : List.of("'SOMETHING_ELSE'", "'gateway_rejected'", "''")) {
+            assertThatThrownBy(() -> insertPayment("FAILED", reason))
+                    .as("motivo %s", reason)
+                    .isInstanceOf(DataIntegrityViolationException.class)
+                    .hasMessageContaining("ck_payment_status_reason");
+        }
+    }
+
+    // V10: el índice para contar los intentos de un pedido (ADR 0016, A.9)
+    @Test
+    void migrationCreatesPaymentOrderIndex() {
+        Integer count = jdbc.queryForObject(
+                "select count(*) from pg_indexes where tablename = 'payment' and indexname = 'ix_payment_order'",
+                Integer.class);
+
+        assertThat(count).isEqualTo(1);
+    }
+
+    // order_id es un dato sin clave foránea (ADR 0013, punto 2): un número cualquiera sirve para estas pruebas.
+    private Long insertPayment(String status, String reason) {
+        return jdbc.queryForObject("insert into payment (order_id, provider, method, status, amount, status_reason) "
+                + "values (-10, 'mercadopago', 'CARD', '" + status + "', 1000, " + reason + ") returning id",
+                Long.class);
+    }
+
+    // V10: los ajustes de pagos no admiten una segunda fila ni un tope de cero intentos
+    @Test
+    void paymentSettingsRejectSecondRowAndZeroAttempts() {
+        assertThatThrownBy(() -> jdbc.update("insert into payment_settings (id) values (2)"))
+                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbc.update("update payment_settings set max_attempts_per_order = 0"))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("ck_payment_settings_max_attempts_per_order");
+    }
+
+    // V10: un pedido sin franja tiene que decir desde cuándo lo está (ADR 0016, A.17)
+    @Test
+    void orderWithoutSlotRequiresNoSlotSince() {
+        assertThatThrownBy(() -> insertOrder("PENDING_PAYMENT_NO_SLOT", "null"))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("ck_order_no_slot_since");
+
+        jdbc.update("delete from customer_order where id = ?", insertOrder("PENDING_PAYMENT_NO_SLOT", "now()"));
+    }
+
+    // V10: no_slot_since se conserva como historial cuando el pedido sale de ese estado (ADR 0016, F)
+    @Test
+    void noSlotSinceIsKeptAfterLeavingThatState() {
+        Long id = insertOrder("PENDING_PAYMENT_NO_SLOT", "now()");
+        try {
+            jdbc.update("update customer_order set status = 'PAID_WITHOUT_SLOT' where id = ?", id);
+            assertThat(jdbc.queryForObject("select no_slot_since is not null from customer_order where id = ?",
+                    Boolean.class, id)).isTrue();
+        } finally {
+            jdbc.update("delete from customer_order where id = ?", id);
+        }
+    }
+
+    private Long insertOrder(String status, String noSlotSince) {
+        return jdbc.queryForObject("insert into customer_order (public_code, status, customer_name, customer_email, "
+                + "customer_phone, delivery_address, zone_id, zone_name, shipping_fee, slot_id, slot_date, "
+                + "slot_start, slot_end, crafting_hours, slot_units, subtotal, total, hold_expires_at, "
+                + "hold_limit_at, no_slot_since) values (gen_random_uuid(), '" + status + "', 'Ana', "
+                + "'ana@example.com', '3000000000', 'Calle 1', 1, 'Centro', 0, 1, '2026-12-24', '09:00', '11:00', "
+                + "4, 1, 1000, 1000, now(), now(), " + noSlotSince + ") returning id", Long.class);
     }
 
     // V3: un producto nuevo tiene que decir cuánto tarda (la columna no tiene valor por defecto)
