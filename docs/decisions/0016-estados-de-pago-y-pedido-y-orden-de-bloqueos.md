@@ -383,8 +383,16 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
    - Si Mercado Pago creó la order "fantasma", sus avisos llegan con un id que no conocemos (P16). Nunca crean un pago.
 4. **Avisos idempotentes: la regla central del aviso (P4, aprobada el 2026-11-15).** Los avisos de la pasarela pueden repetirse o llegar desordenados. Procesar un aviso repetido no repite sus efectos: ni el cambio de estado, ni la liberación de la franja, ni el aviso a la florista o al cliente. La misma regla la usa la conciliación (A.17).
    - **Secuencia:**
-     1. Validar la firma del aviso (ADR 0003 y 0014).
-     2. Buscar nuestro pago por la pasarela y la referencia del cobro. Una referencia desconocida se trata según P16 y nunca crea un pago.
+     1. Validar la firma del aviso (ADR 0003 y 0014). **Si la firma es inválida o falta** (P16, parte 3, aprobada el 2026-11-15): se responde **401**, no se consulta a la pasarela, no se procesa nada y se registra en el log.
+        - Así, si el aviso era real y nuestra clave estaba mal configurada, la pasarela lo sigue reenviando, y al corregir la clave se procesa solo. Responder 200 haría perder avisos reales sin enterarnos.
+        - Si se repiten muchos avisos con firma inválida seguidos, se genera una alerta, porque probablemente la clave está mal configurada (P11).
+        - Sin clave configurada en el servidor, se rechazan todos los avisos y se registra un error al arrancar. Nada se acepta sin verificar.
+        - **Por ahora no se limita la antigüedad del aviso** (el `ts` de la firma). No se sabe si la pasarela lo renueva en cada reintento, y un límite podría rechazar reintentos legítimos. Un aviso repetido no hace daño (D.4). Se revisa con V8.
+        - Aunque un aviso falso pasara, no podría cambiar el estado de un pago, porque el estado siempre se consulta a la pasarela (D.2). La firma protege sobre todo de que alguien nos obligue a hacer consultas sin fin.
+     2. Buscar nuestro pago por la pasarela y la referencia del cobro. **Si la referencia es desconocida** (P16, parte 2, aprobada el 2026-11-15): se responde 200, se registra en el log con su id, **no se consulta a la pasarela y nunca se crea un pago**.
+        - Casos: una order "fantasma" de una creación sin confirmar (D.3); un aviso de order creada que llega antes de guardar la referencia (`attachCheckout`), cuando el cliente todavía no tiene el enlace; o una order ajena a la tienda en la misma cuenta.
+        - En ninguno hay dinero en juego: nadie puede pagar una order cuyo enlace no entregamos. Responder con un error solo haría que la pasarela lo reenviara sin final, sin un pago que actualizar.
+        - Vale por la misma razón que D.3: crear el cobro no cobra. Si una pasarela cobra al crear la operación, esta regla se revisa con su propia decisión.
      3. Consultar el estado real a la pasarela, fuera de toda transacción (D.2 y D.6). Si no responde, no se cambia nada y se contesta con un error para que la pasarela reintente (D.3).
      4. El adaptador traduce lo consultado a uno de cinco resultados:
         - **aprobado:** la order en `processed / accredited`;
@@ -416,6 +424,36 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
    - **Los avisos desordenados o viejos no afectan,** porque siempre se usa el estado actual que devuelve la consulta.
    - **Las alertas que no vienen de un cambio de estado no se duplican:** un mismo pago con el mismo motivo genera una sola alerta, aunque lleguen varios avisos. El mecanismo está en P11.
    - **Reemplaza el ADR 0014, punto 5** ("si el pago ya no está pendiente, el aviso se ignora"): no se ignoran los reembolsos ni las aprobaciones de intentos cerrados.
+   - **Cómo se procesa y en cuánto tiempo (P16, parte 1, aprobada el 2026-11-15).**
+     - **Lo que exige Mercado Pago** (página de avisos de Orders, consultada el 2026-11-15): responder 200 o 201 en un máximo de 22 segundos. Si no respondemos a tiempo, o respondemos con un error, reintenta cada 15 minutos; después del tercer intento espacia los envíos, pero sigue enviando. No documenta cuándo se detiene.
+     - **Se procesa dentro de esos 22 segundos (opción A).** Mercado Pago actúa como nuestra cola de reintentos: si algo falla, respondemos con un error y el aviso vuelve a llegar.
+     - **Tiempos máximos de cada paso**, para que la suma quede por debajo de 22 segundos:
+
+       | Paso | Tiempo máximo |
+       |---|---|
+       | Conectar con la pasarela para consultar | 3 s |
+       | Respuesta de la pasarela a la consulta | 8 s |
+       | Conseguir una conexión a la base | 3 s |
+       | Esperar el bloqueo del pedido o del pago | 5 s |
+       | **Total en el peor caso** | **unos 19 s** |
+
+       - Son valores técnicos: van en la configuración, no en la base de datos, y se ajustan con lo que se vea en producción.
+       - La espera al **crear** el cobro (5 s de conexión y 15 s de respuesta) no cambia: ahí espera el cliente, no la pasarela.
+       - Si se llega a cualquiera de estos límites, se responde **503** y no se cambia nada. La pasarela reintenta, y si el aviso no llega nunca, el job y la conciliación terminan resolviendo el pago (A.13 y A.17).
+     - **Requisito de diseño: la recepción del aviso va separada de su procesamiento.**
+       - **Recepción** (adaptador de entrada HTTP): valida la firma, lee la pasarela y la referencia del cobro, llama al procesamiento y traduce el resultado a la respuesta HTTP. Es lo único que sabe de HTTP.
+       - **Procesamiento** (un servicio de aplicación): recibe "pasarela + referencia del cobro" y aplica esta regla D.4 (consulta, traducción, bloqueos, tabla de decisión y efectos). No sabe de HTTP ni de quién lo llamó.
+       - Así, el mismo procesamiento lo usan el aviso, la conciliación (A.17) y, si se adopta, la opción B.
+     - **Opción B, para más adelante: responder primero y procesar después.**
+       - **Cómo sería:** la recepción guarda el aviso en una tabla de avisos recibidos y responde 200 de inmediato; un proceso programado recorre esa tabla, llama al **mismo** servicio de procesamiento y reintenta los que fallen.
+       - **Por qué sería bueno:**
+         - siempre respondemos a tiempo, aunque la pasarela o la base estén lentas;
+         - la confirmación de un pedido no queda esperando los 15 minutos del siguiente reintento de la pasarela;
+         - los reintentos los controlamos nosotros (frecuencia, límite y alerta), en lugar de depender de una política de la pasarela que no documenta su final;
+         - deja un registro propio de cada aviso recibido, útil para revisar casos raros.
+       - **Cuándo conviene pasar a B:** si en producción hay avisos que se acercan o pasan de los 22 segundos, o confirmaciones que se retrasan por esa causa, o si se quiere controlar los reintentos.
+       - **Qué cuesta, con el requisito de separación cumplido:** una migración para la tabla, cambiar la recepción para que guarde y responda, el proceso programado con sus reintentos, y sus pruebas. Más o menos un PR pequeño. El PR 3 trae la infraestructura de procesos programados del job, así que después del PR 3 es más barato.
+       - **Qué no cambia:** la tabla de decisión, el criterio común de D.10, los bloqueos, la conciliación y las pruebas del procesamiento.
 5. **Lo que debe pasar junto, pasa junto (ADR 0014, punto 4, tipo 1).** El cambio del pago, el cambio del pedido y la liberación de la franja van en una sola transacción. Si un paso falla, no queda ninguno.
 6. **Las llamadas a Mercado Pago van fuera de las transacciones** (ADR 0014, punto 4 y precisión del 2026-11-12). Primero se consulta o se actúa en la pasarela; después se abre una transacción corta.
 7. **Orden de bloqueo: pedido → pago → franja.** Todo proceso que modifique un pago o un pedido toma los bloqueos de fila en ese orden. El pedido es el punto de encuentro, porque un pedido puede tener varios pagos.
@@ -450,7 +488,7 @@ Las reglas D.6 a D.9 se aplican a todos. Lo que falta definir de cada proceso es
 | Crear el cobro | Nada en la base | Fuera de toda transacción (D.6) | — |
 | `attachCheckout` | Referencia y URL del pago | Actualización condicional (D.8) | — |
 | `markFailed` | Estado del pago | Actualización condicional (D.8); también ante una falta de respuesta al crear (D.3, P6); guarda el motivo (P5) | — |
-| Aviso de Mercado Pago | Pago y pedido; nunca la franja (D.4) | D.2; la regla central de D.4; D.5 a D.7; criterio común de D.10; A.21 y A.22 | La respuesta HTTP ante una referencia desconocida y los tiempos máximos (P16) |
+| Aviso de Mercado Pago | Pago y pedido; nunca la franja (D.4) | D.2; la regla central de D.4; D.5 a D.7; criterio común de D.10; A.21 y A.22 | — |
 | Job de vencimiento (PR 3) | Pago, pedido y franja | D.6, D.7 y D.9; C2 para `processing / in_process` y `processing / pending_review_manual`; A.13 a A.15; A.18 a A.20 | El módulo dueño (P12); qué pasa si no corre (P17); el mecanismo de las alertas (P11) |
 | Conciliación | Pago y pedido; nunca la franja | D.6, D.7 y D.10; A.17 | El módulo dueño (como P12); el mecanismo de las alertas (P11) |
 | Cambio de opción de pago (PR 2) | Pago y un pago nuevo | D.6 y D.7 | El flujo completo (P13) |
@@ -479,6 +517,8 @@ Las reglas D.6 a D.9 se aplican a todos. Lo que falta definir de cada proceso es
 - El pedido no tiene reglas de transición (sección C).
 - `StartPaymentService.start` marca `FAILED` ante cualquier excepción de la pasarela, incluidos los tiempos agotados. Con P6 eso es correcto (D.3); falta guardar el motivo (P5).
   - No pone dinero en riesgo: la URL de pago solo llega al cliente después de `attachCheckout`, así que nadie puede pagar un intento que no tiene referencia.
+- La espera por una conexión a la base es la de HikariCP por defecto (30 s), y no hay un tiempo máximo de espera de bloqueos (`lock_timeout`). Los dos pasan de los límites del aviso (D.4, P16).
+- `MercadoPagoGateway` usa un solo cliente HTTP con 5 s de conexión y 15 s de respuesta. La consulta del aviso necesita 3 s y 8 s (D.4).
 - Si ya hay un pago `PENDING` sin cobro, `StartPaymentService.start` responde que el cobro se está creando, sin plazo. Falta cerrar el intento a medio crear pasado el plazo de gracia (D.3).
 - **Ningún componente cambia hoy el estado de un pedido de forma indirecta.**
   - El único que escribe el estado es `CreateOrderService`, al crear el pedido.
@@ -506,6 +546,10 @@ Las reglas D.6 a D.9 se aplican a todos. Lo que falta definir de cada proceso es
 - La conciliación no pisa lo que ya resolvió un aviso (A.17).
 - Si la pasarela no responde al crear el cobro, o falla el guardado de `attachCheckout`, el cliente no recibe la `checkout_url`, y la URL no aparece en los logs ni en el mensaje de error (D.3).
 - Un intento `PENDING` sin referencia, pasado el plazo de gracia, se cierra como `FAILED` al iniciar otro pago y en el job (D.3).
+- El aviso responde 503 sin cambiar nada si la pasarela no responde, si no hay conexión a la base a tiempo o si el bloqueo tarda más de su límite (D.4).
+- El servicio de procesamiento del aviso se prueba sin HTTP, con "pasarela + referencia del cobro" (D.4).
+- Un aviso con una referencia desconocida responde 200, no consulta a la pasarela y no crea ningún pago (D.4).
+- Un aviso con la firma inválida, o sin firma, responde 401 y no consulta a la pasarela; sin clave configurada se rechazan todos (D.4).
 
 ### G. Cuestiones pendientes
 
@@ -589,11 +633,10 @@ Salvo las marcadas como resueltas, ninguna de estas cuestiones está decidida. L
     - cualquier detalle de `processing` que no esté en A.2;
     - valores de transacción distintos de `failed`, `processed` y `processing` (hoy, no reconocidos: A.19).
 - **P15. Resuelta el 2026-11-14:** una aprobación confirma el pedido aunque `hold_expires_at` haya pasado, mientras la franja siga asignada (criterio común de D.10). Coincide con la fila de aprobación de A.13.
-- **P16. Las respuestas HTTP del aviso y los tiempos máximos.**
-  - *Falta:*
-    - la respuesta ante una referencia desconocida;
-    - los tiempos máximos con Mercado Pago, de espera de una conexión y de espera de un bloqueo, frente a los 22 segundos que da Mercado Pago.
-  - *Condiciona:* la fila del aviso en E. Puede decidirse en el diseño del PR 2, fuera de este ADR.
+- **P16. Resuelta el 2026-11-15:** las respuestas HTTP del aviso y los tiempos máximos, en D.4.
+  - Parte 1: se procesa dentro de los 22 segundos, con tiempos máximos por paso, y la recepción va separada del procesamiento para poder pasar a "responder primero y procesar después".
+  - Parte 2: ante una referencia desconocida se responde 200, se registra y nunca se crea un pago.
+  - Parte 3: ante una firma inválida o ausente se responde 401, sin procesar nada; sin límite de antigüedad por ahora (V8).
 - **P17. Si el job no corre.**
   - *Falta:* qué se hace si el job deja de correr. El tope de 51 minutos es una fecha, no una acción: la franja solo se libera cuando el job corre.
   - *Condiciona:* el alcance del job (E).
@@ -663,6 +706,7 @@ Salvo las marcadas como resueltas, ninguna de estas cuestiones está decidida. L
 - **V4 (para la mejora futura de P6; no bloquea).** Repetir la creación de un cobro con la misma llave de idempotencia: ¿devuelve la misma order? Solo hace falta para la mejora futura de P6.
 - **V6 (propuesta, no bloqueante).** Cancelar una order en `waiting_retry`: qué estado queda y qué ve el cliente en la pestaña abierta.
 - **V7 (propuesta, no bloqueante).** El `expiration_time` mínimo que acepta Mercado Pago.
+- **V8 (pendiente, se hace al implementar el PR 2).** El formato exacto de la firma de los avisos de Orders: cómo se arma el texto que se firma (con `x-request-id`, el id del recurso y `ts`), y si `ts` cambia en cada reintento. La página de avisos lo explica en una pestaña ("Sin SDKs") que no se pudo leer. Se comprueba con un aviso real del sandbox. Con el resultado se revisa si conviene limitar la antigüedad del aviso (D.4).
 
 ## Relación con otros ADR (reconciliación pendiente)
 Este borrador no modifica los ADR anteriores. Cuando se apruebe, cada uno recibirá una línea de estado que remita al 0016, y los puntos de abajo quedarán reconciliados según las decisiones pendientes.
@@ -702,7 +746,7 @@ Este borrador no modifica los ADR anteriores. Cuando se apruebe, cada uno recibi
 
 ## Fuentes
 - Mercado Pago, "Estado de la order" (Checkout Pro vía Orders API), consultada el 2026-11-12: https://www.mercadopago.com.co/developers/es/docs/checkout-pro-orders/payment-management/status/order-status
-- Mercado Pago, "Webhooks" (avisos de Orders), consultada el 2026-11-12: https://www.mercadopago.com.co/developers/es/docs/checkout-pro-orders/resources/notifications/webhooks
+- Mercado Pago, "Webhooks" (avisos de Orders), consultada el 2026-11-12 y el 2026-11-15 (respuesta 200 o 201 en 22 segundos; reintentos cada 15 minutos): https://www.mercadopago.com.co/developers/es/docs/checkout-pro-orders/resources/notifications/webhooks
 - Pruebas en el sandbox del 2026-11-12: un pago aprobado quedó `processed / accredited`; un cobro sin pagar dejó de abrirse a los 15 minutos y la API informó `canceled / expired` unos 2,5 minutos después.
 - Mercado Pago, "Estado de la order" (Checkout API vía Orders), solo como referencia de otra integración: https://www.mercadopago.com.co/developers/es/docs/checkout-api-orders/payment-management/status/order-status
 - Mercado Pago, referencia "Cancelar order": https://www.mercadopago.com.co/developers/es/reference/orders/online-payments/cancel-order/post
