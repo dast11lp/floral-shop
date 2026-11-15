@@ -697,12 +697,13 @@ Salvo las marcadas como resueltas, ninguna de estas cuestiones está decidida. L
 - **V1. Incertidumbre documentada, no bloqueante (cerrada de forma provisional el 2026-11-14).** Pagar con un rechazo (OTHE) y después con una aprobación (APRO) en el mismo checkout. ¿`failed` es definitivo? ¿Cómo se comporta el reintento?
   - **Situación:** no se ha confirmado si `failed` es un estado terminal en Checkout Pro vía Orders. No bloquea la implementación: se maneja con las reglas operativas provisionales A.18 a A.21, y la consulta a Mercado Pago es P20.
   - **Se revisa si:** Mercado Pago responde P20; aparece en producción una aprobación sobre un intento cerrado; o llega un par de estado y detalle no visto antes.
+  - *Las orders se nombran "Order 1" a "Order 4": sus ids reales del sandbox no se escriben en el repositorio (ADR 0002).*
   - **Observación del sandbox, 2026-11-13 (checkout de 15 minutos).** Dos pagos con la Mastercard de prueba, como invitado:
 
     | Order | Titular | Pago enviado | Estado inicial | Estado posterior | Detalle de la transacción | Último cambio |
     |---|---|---|---|---|---|---|
-    | `ORDTST01M79NVMV7X6ED677M2VN8616T` | OTHE | ≈ 05:25 UTC | `processing / in_process` | `failed / failed` | `rejected_by_issuer` | 14:06:15 UTC |
-    | `ORDTST01M79P9YCENCJ1G0QV3V2Z9YGT` | FUND | ≈ 05:33 UTC | `processing / in_process` | `failed / failed` | `insufficient_amount` | 14:05:55 UTC |
+    | Order 1 | OTHE | ≈ 05:25 UTC | `processing / in_process` | `failed / failed` | `rejected_by_issuer` | 14:06:15 UTC |
+    | Order 2 | FUND | ≈ 05:33 UTC | `processing / in_process` | `failed / failed` | `insufficient_amount` | 14:05:55 UTC |
 
     - La página de pago no mostró un rechazo, sino "Estamos procesando tu pago".
     - Las dos orders seguían `processing / in_process` en las consultas de las 05:26, 05:28, 05:33 y 06:09 UTC.
@@ -714,8 +715,8 @@ Salvo las marcadas como resueltas, ninguna de estas cuestiones está decidida. L
 
     | Order | Prueba | Resultado |
     |---|---|---|
-    | `ORDTST01M7B38CPVKE371VAW6Y5DY2N0` | OTHE y después APRO en el mismo checkout | `action_required / waiting_retry` (transacción `failed / rejected_by_issuer`) y, a los 70 segundos, `processed / accredited` con dos transacciones |
-    | `ORDTST01M7B2VKCZ39CBQ8JFZQJ07NCN` | OTHE, sin tocar después | `waiting_retry` desde las 18:33:38 del 2026-11-13; **`failed / expired`** a las 18:34:09 del 2026-11-14, 2 min 41 s después del vencimiento. Ninguna transacción nueva (consultado a las 21:45 del 2026-11-14) |
+    | Order 3 | OTHE y después APRO en el mismo checkout | `action_required / waiting_retry` (transacción `failed / rejected_by_issuer`) y, a los 70 segundos, `processed / accredited` con dos transacciones |
+    | Order 4 | OTHE, sin tocar después | `waiting_retry` desde las 18:33:38 del 2026-11-13; **`failed / expired`** a las 18:34:09 del 2026-11-14, 2 min 41 s después del vencimiento. Ninguna transacción nueva (consultado a las 21:45 del 2026-11-14) |
 
   - **Lo que demuestran las dos observaciones:**
     - la transición `processing → failed` existe, aunque no aparece en el ciclo documentado;
@@ -750,6 +751,7 @@ Este borrador no modifica los ADR anteriores. Cuando se apruebe, cada uno recibi
 | 0003, estados | Falta `REFUNDED`. `FAILED` queda con un solo sentido, no se pudo crear el cobro, más un motivo (P5). No hace falta un estado para el resultado desconocido (P6, D.3) | A.4, P5, P6 |
 | 0003, bosquejo del puerto (`fetchStatus` devuelve `PaymentStatus`) | Devolvería nuestro estado. La traducción no es uno a uno (D.1), depende de los dos niveles y de las transacciones (A.18, A.19, A.22) | — |
 | 0003, ciclo de estados (`PENDING`, `PAID`, `FAILED`, `EXPIRED`, `CANCELLED`) | Un intento cerrado puede pasar a `PAID` con una aprobación verificada (A.21) | A.21 |
+| 0009, precisiones del módulo `payment` ("un pago en un estado final no cambia nunca") | **Reconciliado el 2026-11-15** con una precisión en el 0009: las excepciones son `PAID → REFUNDED` (A.4) y la aprobación verificada de un intento cerrado (A.21). La lista vive en `domain`; cuándo se aplica, en `application` | A.4, A.21 |
 | 0012, punto 1.6 ("se deshace todo: se libera el cupo y se cancela el pedido") | Choca con C2, que no cancela el pedido, y con A.8, que permite reintentar sobre el mismo pedido | A.2, A.8, A.12 |
 | 0012, punto 9 | Hay que documentar C2, los dos vencimientos y lo que hace el job al vencer la retención. "`EXPIRED` cuando el proveedor confirma que ya no se puede pagar": `failed / expired` se interpreta como esa confirmación por una regla operativa, no documental | A.2, A.12 a A.15, A.18, P20 |
 | 0012, punto 10 | La regla central de los avisos está en D.4; hay que documentar `PENDING_PAYMENT_NO_SLOT`. Se extiende a las aprobaciones de intentos cerrados (A.21); `PAID_WITHOUT_SLOT` sigue significando que el cupo ya se había liberado (D.10) | A.2, A.3, A.21, D.4, D.10 |
