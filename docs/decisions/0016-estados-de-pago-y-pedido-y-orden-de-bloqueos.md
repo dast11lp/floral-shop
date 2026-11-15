@@ -15,7 +15,7 @@ Antes de construir el aviso de Mercado Pago (PR 2 de pagos) se revisó cómo cam
 - **Regla de arquitectura:** cómo debe comportarse el sistema para cumplir las decisiones. Está aprobada como concepto; que el código la cumpla se comprueba al implementar.
 - **Detalle de implementación:** orientativo. Puede cambiar sin tocar las decisiones ni las reglas.
 - **Pendiente (Pn):** falta una definición. La parte del documento que depende de ella no es definitiva. Las alternativas se listan sin elegir. Si hay una recomendación técnica, se indica como **recomendación sin aprobar**, que no es una decisión.
-- **Comprobación (Vn):** algo que solo se sabe probando en el sandbox de Mercado Pago. Cada una indica si ya tiene resultado.
+- **Comprobación (Vn):** algo que solo se sabe probando en el sandbox de Mercado Pago. Cada una indica si ya tiene resultado. Las migraciones de la base de datos se escriben siempre "migración Vn", para no confundirlas con las comprobaciones.
 - **Regla operativa provisional:** una regla adoptada con la evidencia disponible, sin garantía documental del proveedor. Se indica como tal y dice qué la haría revisar.
 
 ## Definiciones
@@ -106,15 +106,15 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
    - Un intento que termina en `FAILED`, `EXPIRED` o `CANCELLED` se conserva como historial y no se reutiliza: no se le asocia otro cobro ni vuelve a `PENDING`.
      - **Única excepción (A.21, 2026-11-14):** si Mercado Pago confirma después una aprobación de ese intento, pasa a `PAID`, porque el dinero llegó.
    - **Un intento termina cuando la pasarela cierra la unidad de cobro de ese intento** (en Mercado Pago, la order), **no cuando se rechaza una transacción** (2026-11-14). Qué cuenta como cierre lo decide el adaptador de cada pasarela (A.17, A.18).
-   - **Los reintentos que ofrece el propio checkout** (otra tarjeta u otro medio dentro de la misma order) **pertenecen al mismo intento** (2026-11-14). No crean un pago nuevo, no cuentan para el tope de A.9 y no extienden la retención (A.11). Mientras la retención siga vigente, el cliente vuelve a ese mismo checkout con el enlace guardado (A.23). Visto en Mercado Pago (V1); para Wompi, P19.
+   - **Los reintentos que ofrece el propio checkout** (por ejemplo, otra tarjeta dentro de la misma order; el checkout solo muestra el medio elegido, así que pasar a otro medio es un cambio de opción, P13) **pertenecen al mismo intento** (2026-11-14). No crean un pago nuevo, no cuentan para el tope de A.9 y no extienden la retención (A.11). Mientras la retención siga vigente, el cliente vuelve a ese mismo checkout con el enlace guardado (A.23). Visto en Mercado Pago (V1); para Wompi, P19.
    - Mientras el pedido siga elegible para pagar, se puede crear otro intento asociado al mismo pedido, sin crear un pedido nuevo. El carrito sigue en el `localStorage` del navegador.
    - Nunca hay dos pagos `PENDING` a la vez para un mismo pedido.
-   - Cambiar de opción de pago puede implicar cancelar el intento anterior y crear otro, también sin crear un pedido nuevo. El flujo concreto está pendiente (P13).
+   - Cambiar de opción de pago puede implicar cancelar el intento anterior y crear otro, también sin crear un pedido nuevo. Llega en el PR 2b, con el cierre del cobro anterior verificado antes de crear el nuevo (P13).
 9. **Límite de intentos (aprobado el 2026-11-13).**
    - **No se crea un intento nuevo si la retención del pedido ya venció.** El tiempo es el límite principal.
    - **Máximo 5 intentos por pedido.**
      - Solo cuentan los intentos que llegaron a crear el cobro en Mercado Pago (los que tienen referencia). Un intento que falló antes de crear el cobro no cuenta.
-     - El tope solo se revisa al crear un intento nuevo, nunca mientras hay uno pendiente. Un intento cuya creación no se confirmó (`FAILED` sin referencia, D.3) no consume el tope.
+     - El tope solo se revisa al crear un intento nuevo, nunca mientras hay uno pendiente. Un intento cuya creación no se confirmó (`FAILED` sin referencia, D.3) no consume el tope. Un intento cerrado por cambiar de opción sí lo consume (P13).
      - El valor 5 es de arranque, sin datos que lo respalden. Se guarda como ajuste en la base de datos (igual que los 15 y 51 minutos), para cambiarlo sin tocar el código, y se ajusta con datos reales.
    - El límite es **por pedido, no por cliente**. Si un pedido agota sus intentos, el cliente puede crear un pedido nuevo con su carrito.
 10. **La franja tras un intento sin pago (P2, aprobada el 2026-11-13).**
@@ -202,14 +202,14 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
     - El mecanismo concreto de la alerta, y cómo se evita duplicarla, está pendiente (P11).
     - **No aplica mientras dura la espera de A.19** (`waiting_retry`), que tiene su propio plazo y su propia alerta.
 16. **Pedido sin franja cuyo pago termina sin aprobarse (P8, aprobado el 2026-11-13).**
-    - Si el pedido está `PENDING_PAYMENT_NO_SLOT` y el pago que quedó pendiente tras C2 termina en un estado definitivo sin aprobación, **el pedido pasa a `CANCELLED`**.
+    - Si el pedido está `PENDING_PAYMENT_NO_SLOT` y el pago que quedó pendiente (tras C2, A.19 o A.20) termina en un estado definitivo sin aprobación, **el pedido pasa a `CANCELLED`**.
     - El pago pasa al estado interno que corresponda al resultado definitivo **reconocido** de Mercado Pago:
       - `canceled / canceled` → `CANCELLED`;
       - `canceled / expired` → `EXPIRED`;
       - `failed / expired`, **con las condiciones de A.18** → `EXPIRED` (regla operativa provisional, 2026-11-14).
     - **`failed / failed`, y `failed` con otro detalle, no cancelan el pedido** mientras V1 siga abierta (A.20). El pedido sigue `PENDING_PAYMENT_NO_SLOT` y la conciliación lo sigue revisando (A.17).
     - **Solo se cancela con un estado definitivo verificado, o adoptado de forma explícita como regla operativa provisional** e identificado como tal en este documento. Hoy son los dos `canceled` de arriba (V2 y la prueba de vencimiento en el sandbox) y, como regla provisional, `failed / expired` (A.18). La lista no se amplía sin una de esas dos condiciones.
-    - **La franja no se toca:** C2 ya la liberó.
+    - **La franja no se toca:** ya se liberó al pasar el pedido a `PENDING_PAYMENT_NO_SLOT`.
     - **No se permiten intentos nuevos** sobre ese pedido, porque su retención ya venció (A.9). Si el cliente quiere comprar igual, crea un pedido nuevo con el carrito que conserva el navegador.
     - **Quién lo resuelve:** el aviso de Mercado Pago puede iniciar la resolución, pero siempre se consulta el estado real a Mercado Pago (D.2) y se actualiza con el pedido bloqueado, en el orden pedido → pago (D.7). El job de A.13 **no** cubre este caso, porque solo busca pedidos `PENDING_PAYMENT`. También lo revisa la conciliación de A.17.
     - La notificación al cliente está pendiente (P11).
@@ -315,13 +315,14 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
     | Situación | Mensaje orientativo |
     |---|---|
     | Aprobado (`CONFIRMED`) | "¡Listo! Tu pago se aprobó y tu pedido está confirmado para [franja]." |
-    | Rechazo con la retención vigente (`waiting_retry`) | "Tu pago fue rechazado. Puedes intentarlo con otro medio antes de las HH:MM." Botón **Volver a pagar** al mismo checkout |
+    | Rechazo con la retención vigente (`waiting_retry`) | "Tu pago fue rechazado. Puedes intentarlo de nuevo, por ejemplo con otra tarjeta, antes de las HH:MM." Botón **Volver a pagar** al mismo checkout. HH:MM es el vencimiento del **cobro** (F), no el de la retención: después, el enlace ya no sirve |
     | El cobro venció con la retención vigente (intento `EXPIRED`) | "El enlace de pago venció. Puedes intentarlo de nuevo antes de las HH:MM." |
     | Pedido cancelado sin pago (`canceled`, `canceled / expired` o `failed / expired`) | "No se aprobó ningún pago y liberamos el horario que tenías reservado. Si quieres, haz un pedido nuevo. Si ves un cobro aprobado en tu banco, escríbenos y lo revisamos." |
     | C2 (`processing`), y A.19 con una transacción en proceso | "Tu pago está en revisión. Liberamos tu horario; si se aprueba, la florista te contactará para coordinar la entrega." |
     | A.20 (`failed` sin cierre confirmado) y A.19 con todas las transacciones rechazadas | "Los intentos de pago registrados fueron rechazados y el tiempo de reserva terminó, por lo que liberamos tu horario. La plataforma de pago aún no ha confirmado el cierre de tu intento de pago anterior. Antes de realizar otro pago, comunícate con nosotros. Si ves una aprobación, avísanos para revisarla." |
     | Error al iniciar el pago (`FAILED`, sin referencia) | "No pudimos iniciar el pago. Intenta de nuevo." |
-    | Resultado desconocido | "Estamos confirmando el estado de tu pago. Te avisaremos por correo." |
+    | El pedido llegó al tope de intentos (A.9) | "Llegaste al máximo de intentos de pago para este pedido. Si quieres, haz un pedido nuevo." |
+    | Pago pendiente de confirmación (el pago sigue `PENDING` y todavía no se aplica ninguna regla de la tabla: por ejemplo, el cliente vuelve del checkout antes de que llegue el aviso) | "Estamos confirmando el estado de tu pago. Te avisaremos por correo." |
     | `PAID_WITHOUT_SLOT` | "Recibimos tu pago. La florista te contactará para coordinar la entrega." |
     | Aprobación sobre un pedido `CANCELLED`, o pago duplicado | "Recibimos un pago adicional. La florista te contactará para resolverlo." |
 
@@ -338,7 +339,7 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
 | `PENDING → PAID` | Mercado Pago confirma la aprobación al consultarle (`processed / accredited`) | El pago está `PENDING`; el estado se consulta a la pasarela, nunca se toma del aviso | No (solo puede pasar a `REFUNDED`) | Aprobada |
 | `PENDING → EXPIRED` | Mercado Pago confirma que ya no se puede pagar: `canceled / expired`, o `failed / expired` con las condiciones de A.18 | El pago está `PENDING` (ADR 0012, punto 9) | Solo a `PAID` (A.21) | Aprobada; `failed / expired` es provisional (A.18) |
 | `PENDING → FAILED` | Falla al crear el cobro en la pasarela (`markFailed`), incluida la creación sin confirmar y el intento a medio crear (D.3). **`failed / failed` de Mercado Pago no lleva aquí** (A.20) | El pago está `PENDING` (actualización condicional, D.8) | Solo a `PAID`, si tiene referencia (A.21) | Aprobada (P5 y P6). El motivo se guarda aparte: "rechazada por la pasarela" o "creación sin confirmar" |
-| `PENDING → CANCELLED` | Estado previsto en el ADR 0003 | — | Solo a `PAID` (A.21) | **Condicionada por P13 y P14**: cuándo se usa (cambio de opción, `canceled` que no es vencimiento) |
+| `PENDING → CANCELLED` | Mercado Pago confirma `canceled / canceled` (por ejemplo, tras la cancelación del job en A.13 o del cambio de opción en P13) | El pago está `PENDING` (actualización condicional, D.8) | Solo a `PAID` (A.21) | Aprobada (A.13, A.16, D.4 y P13). Un `canceled` con otro detalle es no reconocido (P14) |
 | `EXPIRED`, `CANCELLED` o `FAILED` → `PAID` | Mercado Pago confirma `processed / accredited` para un intento cerrado | Consulta verificada (D.2); pedido y pago bloqueados (D.7); actualización condicional (D.8); `FAILED` solo con referencia | No (solo a `REFUNDED`) | **Aprobada (A.21), excepción a A.8** |
 | `PAID → REFUNDED` | Mercado Pago informa un reembolso total (`refunded`) | El pago está `PAID` | No | Aprobada (A.4) |
 
@@ -378,7 +379,7 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
      - Si la respuesta de creación se pierde antes de entregar la `checkout_url` al comprador, y esta no queda expuesta por otro medio, la order creada no tiene una vía de pago accesible para él. El intento interno puede cerrarse como `FAILED`, con motivo "creación sin confirmar", y permitir un nuevo intento. La order anterior queda sujeta a su vencimiento configurado.
      - Esta regla no aplica a integraciones que cobran al crear la operación. Por ejemplo, una operación directa con tarjeta mediante Checkout API o una transacción directa de Wompi. En esos escenarios, una creación sin confirmar debe conciliarse con la llave de idempotencia o la referencia antes de crear otro intento. La integración correspondiente necesitará su propia decisión.
      - **Para que esta regla siga valiendo, la `checkout_url` solo se entrega al comprador después de guardarla con el intento (`attachCheckout`), y no se escribe en logs ni en mensajes de error.** Si un cambio futuro la expusiera antes, esta regla deja de aplicar y habría que conciliar antes de reintentar.
-   - **No existe un estado `UNKNOWN`.** La máquina de estados y el índice de un solo pago `PENDING` (V8) no cambian.
+   - **No existe un estado `UNKNOWN`.** La máquina de estados y el índice de un solo pago `PENDING` (migración V8) no cambian.
    - Esos intentos no cuentan para el tope de A.9, porque no tienen referencia.
    - Si Mercado Pago creó la order "fantasma", sus avisos llegan con un id que no conocemos (P16). Nunca crean un pago.
 4. **Avisos idempotentes: la regla central del aviso (P4, aprobada el 2026-11-15).** Los avisos de la pasarela pueden repetirse o llegar desordenados. Procesar un aviso repetido no repite sus efectos: ni el cambio de estado, ni la liberación de la franja, ni el aviso a la florista o al cliente. La misma regla la usa la conciliación (A.17).
@@ -394,15 +395,15 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
         - En ninguno hay dinero en juego: nadie puede pagar una order cuyo enlace no entregamos. Responder con un error solo haría que la pasarela lo reenviara sin final, sin un pago que actualizar.
         - Vale por la misma razón que D.3: crear el cobro no cobra. Si una pasarela cobra al crear la operación, esta regla se revisa con su propia decisión.
      3. Consultar el estado real a la pasarela, fuera de toda transacción (D.2 y D.6). Si no responde, no se cambia nada y se contesta con un error para que la pasarela reintente (D.3).
-     4. El adaptador traduce lo consultado a uno de cinco resultados:
-        - **aprobado:** la order en `processed / accredited`;
-        - **cerrado:** `canceled`, o `failed / expired` con las condiciones de A.18;
-        - **reembolsado;**
-        - **sin cambio:** `created`, `processing`, `waiting_retry`, o `failed` sin cierre confirmado (A.20);
-        - **no reconocido**, incluido `action_required / waiting_capture` (A.14).
+     4. El adaptador traduce lo consultado a uno de cinco resultados, siempre con el par exacto de estado y detalle:
+        - **aprobado:** `processed / accredited`;
+        - **cerrado:** `canceled / canceled`, `canceled / expired`, o `failed / expired` con las condiciones de A.18;
+        - **reembolsado:** `refunded / refunded`;
+        - **sin cambio:** `created / created`, `processing / in_process`, `processing / pending_review_manual` (A.2), `action_required / waiting_retry` (A.19), o `failed` sin cierre confirmado (A.20);
+        - **no reconocido:** cualquier otro par, incluidos `action_required / waiting_capture` (A.14), un `canceled` o un `processing` con otro detalle (A.2, P14) y `processed / partially_refunded` (P14).
      5. En una transacción, bloquear el pedido y después el pago (D.7), releer los dos y aplicar la tabla de abajo, con actualizaciones condicionales (D.8).
      6. Los efectos hacia afuera (avisos al cliente o a la florista) solo salen si **en esta transacción** hubo un cambio de estado. Mientras no exista su mecanismo (P11), se registran en el log.
-     7. Contestar 200 después de guardar; un error si la transacción falló. Los códigos exactos y los tiempos máximos están en P16.
+     7. Contestar 200 después de guardar; 503 si la transacción falló o se llegó a un tiempo máximo (ver "Cómo se procesa y en cuánto tiempo", más abajo).
 
    - **Tabla de decisión:**
 
@@ -417,7 +418,8 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
      | `EXPIRED`, `CANCELLED` o `FAILED` | Cualquier otro | Nada |
      | `PAID` | Reembolsado | `REFUNDED`; el pedido no cambia (A.4) |
      | `PAID` | Aprobado | Nada: es un aviso repetido |
-     | `PAID` | Cualquier otro (por ejemplo, `partially_refunded` o un contracargo) | No cambia nada; error operativo y alerta (P14) |
+     | `PAID` | Sin cambio o no reconocido (por ejemplo, `processed / partially_refunded` o un contracargo) | No cambia nada; error operativo y alerta si es no reconocido (P14) |
+     | `PAID` | Cerrado | No cambia nada; error operativo y alerta (una order aprobada no debería pasar a cerrada) |
      | `REFUNDED` | Cualquiera | Nada |
 
    - **El aviso nunca libera una franja.** Liberar es solo del job (A.13 y D.9). Así, un aviso repetido no puede liberarla dos veces.
@@ -491,13 +493,13 @@ Las reglas D.6 a D.9 se aplican a todos. Lo que falta definir de cada proceso es
 | Aviso de Mercado Pago | Pago y pedido; nunca la franja (D.4) | D.2; la regla central de D.4; D.5 a D.7; criterio común de D.10; A.21 y A.22 | — |
 | Job de vencimiento (PR 3) | Pago, pedido y franja | D.6, D.7 y D.9; C2 para `processing / in_process` y `processing / pending_review_manual`; A.13 a A.15; A.18 a A.20 | El módulo dueño (P12); qué pasa si no corre (P17); el mecanismo de las alertas (P11) |
 | Conciliación | Pago y pedido; nunca la franja | D.6, D.7 y D.10; A.17 | El módulo dueño (como P12); el mecanismo de las alertas (P11) |
-| Cambio de opción de pago (PR 2) | Pago y un pago nuevo | D.6 y D.7 | El flujo completo (P13) |
+| Cambio de opción de pago (PR 2b, después del PR 2; hasta entonces, 409) | Pago y un pago nuevo | D.6 y D.7; cierre verificado del cobro anterior antes de crear el nuevo; reutiliza la consulta de D.4, el punto de decisión de D.10 y la cancelación de A.13 (P13, partes 1 y 2); cerrar el anterior y guardar el nuevo, en una sola transacción; el intento cerrado cuenta para el tope de A.9 (P13, partes 1 a 3) | — |
 
 ### F. Detalles de implementación (orientativos; se verifican al implementar)
 
 **Cambios de datos previstos** (cada uno es una migración nueva; ninguna se ejecuta con este ADR):
-- `PENDING_PAYMENT_NO_SLOT` en la restricción `ck_order_status` (V6).
-- `REFUNDED` en la restricción `ck_payment_status` (V8).
+- `PENDING_PAYMENT_NO_SLOT` en la restricción `ck_order_status` (creada en la migración V6).
+- `REFUNDED` en la restricción `ck_payment_status` (creada en la migración V8).
 - Un campo en `payment` para el último estado del proveedor (D.1). Nombre y forma, por definir al implementar. El ejemplo aprobado (`in_process`) es un **detalle**, no un estado: si el campo solo guardara el `status`, no lo conservaría.
 - Un campo en el pedido con el **instante en que entró en `PENDING_PAYMENT_NO_SLOT`**. Se fija una sola vez, en esa transición y en la misma transacción, y no se reinicia. La alerta de 24 horas de A.17 se cuenta desde ahí.
 - Un campo en el pago con el **motivo**, distinto del estado del proveedor (D.1): por qué sigue `PENDING` (C2, A.19, A.20) o por qué quedó `FAILED` (P5). Lo usan los mensajes de A.23 y la operación.
@@ -558,7 +560,7 @@ Salvo las marcadas como resueltas, ninguna de estas cuestiones está decidida. L
 - **P1. Resuelta el 2026-11-13:** varios intentos por pedido, con límite (A.8 y A.9).
   - *Por qué la retención no se extiende sin fin* (comprobado en el código el 2026-11-12):
     - `hold_limit_at` se fija al crear el pedido, y la entidad lo marca `updatable = false`;
-    - la base exige `hold_expires_at <= hold_limit_at` (`ck_order_hold`, V9);
+    - la base exige `hold_expires_at <= hold_limit_at` (`ck_order_hold`, migración V9);
     - la consulta `updateHold` vuelve a comprobar el tope.
 
     La **fecha** no pasa de los 51 minutos. La **liberación** depende de que corra el job (P17).
@@ -612,9 +614,41 @@ Salvo las marcadas como resueltas, ninguna de estas cuestiones está decidida. L
   - *Alternativas:*
     - el job vive en pagos y llama a pedidos;
     - el job vive en pedidos y consulta al proveedor por un puerto que implementa pagos.
-- **P13. El cambio de opción de pago.**
-  - *Falta:* el flujo cuando ya hay un pago pendiente. Incluye si se cancela el cobro en Mercado Pago (V2) y qué responde si el pago está en revisión.
-  - *Condiciona:* la fila del cambio de opción (E) y el uso de `PENDING → CANCELLED` (B).
+- **P13. Resuelta el 2026-11-15: el cambio de opción de pago** (cambiar de medio o de pasarela con un pago `PENDING`), en tres partes.
+  - *Por qué hace falta:* el checkout de Mercado Pago solo muestra el medio que el cliente eligió (`not_allowed_types` excluye los demás). "Pagar con otro medio" dentro del checkout solo permite otra tarjeta, no pasar de tarjeta a PSE.
+  - *Resuelto (parte 1, 2026-11-15): se implementa en un PR propio, el **PR 2b**, después de integrar el PR 2.*
+    - **Mientras tanto se mantiene el 409** actual ("ya tienes un pago en curso").
+    - **Nunca hay dos cobros abiertos para un mismo pedido.** El cobro nuevo solo se crea después de **verificar que el anterior ya no se puede pagar**:
+      - si el cobro anterior ya está cerrado (por ejemplo, venció), no hace falta cancelarlo;
+      - si hay que cancelarlo, no basta con pedirlo: se vuelve a consultar y solo vale `canceled / canceled`, igual que en A.13;
+      - si la consulta muestra que ya se pagó, no se crea nada y se aplica la aprobación (D.10);
+      - si la pasarela no responde, o la respuesta es ambigua, no se crea nada.
+    - **El PR 2b reutiliza la lógica del PR 2; no crea un segundo mecanismo:**
+      - la consulta del estado y su traducción son las del adaptador del aviso (D.4);
+      - aplicar el resultado pasa por el mismo punto de decisión de D.10 (que ya incluye el cambio de opción entre sus caminos);
+      - la cancelación es la misma del job (A.13), con la misma llave de idempotencia por pago.
+  - *Resuelto (parte 2, 2026-11-15): qué se hace según el estado del cobro anterior.* Si es la misma opción (el cliente recargó la página), se devuelve el mismo cobro, como hoy. Si es otra opción:
+
+    | El cobro anterior está… | Qué se hace | Respuesta al cliente |
+    |---|---|---|
+    | Sin referencia, dentro del plazo de gracia (D.3) | Nada | 409: "Tu pago se está iniciando; espera un momento" |
+    | Sin referencia, con el plazo de gracia vencido | Se cierra como `FAILED`, "creación sin confirmar" (D.3), y se crea el nuevo | Va al pago nuevo |
+    | `created / created` | Se cancela (A.13), se vuelve a consultar y, solo con `canceled / canceled`, se crea el nuevo | Va al pago nuevo |
+    | `action_required / waiting_retry` | Igual que `created`. Si la pasarela no lo deja cancelar, o no confirma `canceled / canceled`, no se crea nada (V6) | Si se pudo, va al pago nuevo. Si no, 409: "Tu pago anterior sigue abierto; podrás cambiar de medio cuando venza, a las HH:MM" (vencimiento del cobro) |
+    | `processing / in_process` o `processing / pending_review_manual` | Nada: no se puede cancelar y puede aprobarse | 409: "Tu pago está en revisión; espera el resultado" |
+    | Aprobado (`processed / accredited`) | Se aplica la aprobación (D.10). No se crea nada | "Tu pago ya se aprobó" |
+    | Cerrado (D.4: `canceled / canceled`, `canceled / expired` o `failed / expired` con las condiciones de A.18) | Se registra el cierre (D.4) y se crea el nuevo | Va al pago nuevo |
+    | `failed` sin cierre confirmado (A.20), no reconocido, respuesta ambigua o sin respuesta | Nada | 409 o 503: "No pudimos cambiar el medio de pago ahora; intenta en un momento" |
+
+    - **Para crear el nuevo**, la retención tiene que seguir vigente y el pedido no puede haber llegado al tope de intentos (A.9), revisados con el pedido bloqueado. Si no se cumple, no se hace el cambio.
+    - **Cerrar el anterior y guardar el nuevo intento van en la misma transacción**, con el pedido bloqueado y después el pago (D.7), con actualización condicional sobre el anterior (D.8). Así nada se cuela entre los dos pasos.
+    - **Las llamadas a la pasarela** (consultar, cancelar y crear el cobro nuevo) van fuera de la transacción (D.6). Crear el cobro nuevo sigue los pasos del inicio de un pago (D.3).
+    - **Sin probar:** si se puede cancelar una order en `waiting_retry` (V6). La tabla es segura igual, porque solo se crea el nuevo con `canceled / canceled` confirmado. Se prueba al construir el PR 2b.
+  - *Resuelto (parte 3, 2026-11-15): el intento cerrado por cambiar de opción **cuenta** para el tope de 5 (A.9)*, porque llegó a crear un cobro.
+    - El tope limita cuántos cobros abre un pedido, y cada cambio de opción abre uno. Si no contara, como los reintentos dentro del checkout tampoco cuentan, alguien podría abrir cobros sin límite durante los 51 minutos, por ejemplo para probar tarjetas robadas.
+    - Si el pedido llega al tope, el cambio no se hace y el cliente ve "Llegaste al máximo de intentos de pago para este pedido" (A.23). Puede crear un pedido nuevo con su carrito (A.9).
+    - Si 5 resulta poco en la práctica, se cambia el ajuste en la base de datos (A.9).
+  - *Queda por actualizar:* `docs/plan.md` dice que el cambio de opción llega con el PR 2; el ADR 0014 (precisión del 2026-11-12) también, y se reconcilia en la segunda etapa.
 - **P14. La tabla completa de traducción desde Mercado Pago.**
   - *Ya cubierto por decisiones aprobadas:*
     - `processed / accredited` → `PAID`;
@@ -718,7 +752,7 @@ Este borrador no modifica los ADR anteriores. Cuando se apruebe, cada uno recibi
 | 0003, ciclo de estados (`PENDING`, `PAID`, `FAILED`, `EXPIRED`, `CANCELLED`) | Un intento cerrado puede pasar a `PAID` con una aprobación verificada (A.21) | A.21 |
 | 0012, punto 1.6 ("se deshace todo: se libera el cupo y se cancela el pedido") | Choca con C2, que no cancela el pedido, y con A.8, que permite reintentar sobre el mismo pedido | A.2, A.8, A.12 |
 | 0012, punto 9 | Hay que documentar C2, los dos vencimientos y lo que hace el job al vencer la retención. "`EXPIRED` cuando el proveedor confirma que ya no se puede pagar": `failed / expired` se interpreta como esa confirmación por una regla operativa, no documental | A.2, A.12 a A.15, A.18, P20 |
-| 0012, punto 10 | La regla central de los avisos está en D.4; hay que documentar `PENDING_PAYMENT_NO_SLOT`. Se extiende a las aprobaciones de intentos cerrados (A.21); `PAID_WITHOUT_SLOT` sigue significando que el cupo ya se había liberado (D.10) | A.2, A.3, A.21, D.10, P4 |
+| 0012, punto 10 | La regla central de los avisos está en D.4; hay que documentar `PENDING_PAYMENT_NO_SLOT`. Se extiende a las aprobaciones de intentos cerrados (A.21); `PAID_WITHOUT_SLOT` sigue significando que el cupo ya se había liberado (D.10) | A.2, A.3, A.21, D.4, D.10 |
 | 0012, punto 11 (avisos al cliente) | El mecanismo no existe en los PR de pagos | P11 |
 | 0013, punto 5 y consecuencias ("se libera el cupo apenas el proveedor rechaza o vence") | Deja de ser cierto: tras un rechazo, la franja sigue reservada hasta que vence la retención (A.8 y A.10). Además, un rechazo de una transacción ni siquiera cierra el intento (A.8, A.19, A.20) | A.8, A.10, A.19, A.20 |
 | 0013, punto 5 y fuentes (`in_process` "hasta 2 días hábiles"; un pendiente "se cancela a los 30 días") | Son datos de Payments API, no de Checkout Pro vía Orders. No se usan como garantía (A.17, P20) | A.17, P20 |
@@ -728,7 +762,7 @@ Este borrador no modifica los ADR anteriores. Cuando se apruebe, cada uno recibi
 | 0014, punto 4 ("dos operaciones"; "los PR de pagos no necesitan la bandeja de salida"; "sin ciclos") | Pedidos necesita más operaciones para pagos: confirmar, pasar a sin franja, `PAID_WITHOUT_SLOT`, cancelar y registrar un pago sin transición (D.10); los avisos; el dueño del job | D.10, P11, P12 |
 | 0014, punto 5 ("si no está pendiente, se ignora") | Lo reemplaza D.4: no se ignoran los reembolsos ni las aprobaciones de intentos cerrados (A.21) | A.4, A.21, D.4 |
 | 0014, precisión del 2026-11-12, paso 3 ("marcar el intento `FAILED` si algo falló") | Se mantiene, también ante un tiempo agotado (P6, D.3); falta guardar el motivo (P5). Un `FAILED` con referencia puede aprobarse después (A.21) | D.3, A.21, P5, P6 |
-| 0014, precisión del 2026-11-12 ("cambiar de opción con un pago en curso responde 409… esperar a que venza") | Con `waiting_retry`, el cliente vuelve al mismo checkout (A.8, A.23). El flujo completo sigue en P13 | A.8, A.23, P13 |
+| 0014, precisión del 2026-11-12 ("cambiar de opción con un pago en curso responde 409… esperar a que venza"; "eso llega con el PR 2") | El 409 se mantiene hasta el PR 2b, no el PR 2 (P13). Con `waiting_retry`, el cliente vuelve al mismo checkout, pero solo puede usar otra tarjeta, no otro medio (A.8, A.23) | A.8, A.23, P13 |
 
 ## Consecuencias
 - **A favor:**
