@@ -1,6 +1,6 @@
 # Pendientes y decisiones por revisar
 
-Última actualización: 2026-11-12 (PR 1b de pagos: inicio del pago con Mercado Pago).
+Última actualización: 2026-11-15 (ADR 0016: estados de pago y pedido, aviso, job y cambio de opción).
 
 Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una decisión de diseño, se escribe además un ADR.
 
@@ -24,17 +24,20 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | 25 | Sedes en otras ciudades | Misma tienda y misma cuenta de cobro, con otra persona que arma y entrega en otra ciudad (ADR 0012, punto 12). Cada sede tendría sus zonas, franjas, márgenes y quizá sus tiempos. No se construye todavía; zonas, franjas y márgenes ya son datos, así que agregarlo es indicar a qué sede pertenecen | Cuando haya una segunda sede |
 | 28 | Bandeja de salida de eventos | Los efectos hacia afuera (correo, aviso a la florista, PDF) salen por eventos guardados en una bandeja de salida (ADR 0014, punto 4). Opciones: Spring Modulith (verificar compatibilidad con Spring Boot 4.1), tabla y job propios, o solo después de guardar con un botón para reenviar | Al construir el correo |
 | 29 | Dominio de la tienda | El correo de producción necesita un dominio propio con SPF, DKIM y DMARC (ADR 0014, punto 6). Elegirlo con la florista | Antes de producción |
+| 31 | Pendientes del ADR 0016 que no bloquean el PR 2 | P9 (reembolso visto con el pago pendiente), P10 (gestión de la florista sobre pedidos pagados sin franja), P11 (mecanismo de avisos y alertas), P12 (módulo dueño del job), P14 (resto de la traducción de estados), P17 (si el job no corre), P19 (reintentos de Wompi) y P20 (consulta a Mercado Pago sobre `failed`). El detalle está en la sección G del ADR | P11 y P12 antes del PR 3; P19 con Wompi; el resto, cuando toque |
+| 32 | Mejoras futuras de pagos | Dos mejoras documentadas en el ADR 0016, para cuando el sistema esté terminado: recuperar el enlace de pago repitiendo la creación con la misma llave de idempotencia en lugar de mostrar un error (P6; necesita V4), y pasar el aviso a "responder primero y procesar después" con una tabla de avisos recibidos (D.4, opción B) | Cuando el sistema esté terminado, o si en producción los avisos se acercan a los 22 segundos |
+| 33 | Reconciliar los ADR 0003, 0012, 0013 y 0014 con el 0016 | Los choques están listados en la sección "Relación con otros ADR" del 0016 (por ejemplo, el 0014 dice que el cambio de opción llega con el PR 2 y que un aviso de un pago no pendiente se ignora) | Cuando el ADR 0016 se apruebe |
 
 
 ## Tareas pendientes
 
 | # | Tarea | Detalle |
 |---|---|---|
-| 9 | Guía de repaso para principiantes | Desactualizada: ArchUnit pasó a la fase 2 y faltan los ADR 0009 a 0014 (reglas en application, paquetes, transacciones, flujo de compra, pedidos, y pagos y correo) |
+| 9 | Guía de repaso para principiantes | Desactualizada: ArchUnit pasó a la fase 2 y faltan los ADR 0009 a 0016 (reglas en application, paquetes, transacciones, flujo de compra, pedidos, pagos y correo, frontend con Next.js, y estados de pago y pedido) |
 | 10 | Repaso de Flyway | Quedó pendiente de la fase 1 |
 | 11 | `docker build` en el CI | Hoy un Dockerfile roto no lo detecta nadie |
 | 14 | Spring Security | En la fase 4, `/api/v1/health` debe quedar público |
-| 27 | El cupo apartado todavía no vence | Desde el PR #38, un pedido pendiente de pago retiene su cupo sin vencimiento. Desde el PR 1b el pedido ya guarda hasta cuándo retiene su cupo (`hold_expires_at`: 15 minutos al crearse, 36 al iniciar el pago, con tope de 51; ADR 0013, precisión del 2026-11-12), pero nadie lo libera todavía. Lo hace el job del tercer PR de pagos (ADR 0014), usando ese vencimiento. Como el vencimiento es del pedido, el job cubre también los pedidos que nunca inician un pago. Mientras tanto, en desarrollo, los pedidos de prueba dejan cupos ocupados; se limpian recreando la base | Con los pagos (fase 3) |
+| 27 | El cupo apartado todavía no vence | Desde el PR #38, un pedido pendiente de pago retiene su cupo sin vencimiento. Desde el PR 1b el pedido ya guarda hasta cuándo retiene su cupo (`hold_expires_at`: 15 minutos al crearse, 36 al iniciar el pago, con tope de 51; ADR 0013, precisión del 2026-11-12), pero nadie lo libera todavía. Lo hace el job del tercer PR de pagos (ADR 0014), usando ese vencimiento, con las reglas del ADR 0016 (A.13 a A.20). Como el vencimiento es del pedido, el job cubre también los pedidos que nunca inician un pago. Mientras tanto, en desarrollo, los pedidos de prueba dejan cupos ocupados; se limpian recreando la base | Con los pagos (fase 3) |
 | 30 | Explicarle a la florista por qué Gmail no sirve en producción | Para la demostración, los correos salen de un Gmail personal (ADR 0014, punto 6). En producción no: el remitente sería un Gmail personal, tiene límites y no está pensado para una tienda. Preparar la explicación cuando toque |
 
 
@@ -47,6 +50,8 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 - Cómo se servirán las fotos, y las condiciones de su cuenta de Nequi o banco.
 - Límites gratuitos de Brevo y Resend en sus páginas oficiales, y que Gmail siga ofreciendo contraseñas de aplicación (ADR 0014).
 - Que el vencimiento de 15 minutos de PSE aplica también a Checkout Pro, y los 21 minutos máximos de procesamiento de PSE (ADR 0013, fuentes no oficiales de ACH).
+- Las comprobaciones del sandbox del ADR 0016 (sección H): V8 (formato de la firma de los avisos) y V3 (nombre del tema de los avisos), al construir el PR 2; V6 (cancelar una order en `waiting_retry`), al construir el PR 2b; y V1a, V2b, V4 y V7, que no bloquean.
+- Si `failed` es un estado terminal en Checkout Pro vía Orders (ADR 0016, V1 y P20). Hoy se maneja con reglas provisionales.
 
 ## Resuelto
 
@@ -63,3 +68,4 @@ Cuando algo se resuelve, se mueve a "Resuelto" con la fecha y el PR. Si era una 
 | Transacción de pedido y reserva (antes pendiente 6): una sola transacción, declarada en `infra/config` de pedidos | ADR 0013, punto 1 (2026-11-11) |
 | Claves foráneas entre módulos (antes pendiente 17): el pedido guarda ids y una copia de los datos, sin claves foráneas, con una prueba sobre `information_schema` | ADR 0013, punto 2 (2026-11-11) |
 | Dueño de `shop_settings` (antes pendiente 26): se separa en una tabla de ajustes por módulo | ADR 0013, punto 3 (2026-11-11) |
+| Estados del pago y del pedido, orden de bloqueos, regla del aviso y sus tiempos, resultado desconocido al crear el cobro, job al vencer la retención, conciliación y cambio de opción de pago (P1 a P8, P13, P15, P16 y P18) | ADR 0016, borrador en revisión (2026-11-15, PR #45) |
