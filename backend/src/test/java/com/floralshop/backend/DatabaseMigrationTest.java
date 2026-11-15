@@ -76,12 +76,16 @@ class DatabaseMigrationTest {
 
     @Test
     void noForeignKeyCrossesModules() {
+        // Se lee pg_constraint, que guarda la tabla de origen y la de destino de cada clave foránea por su oid.
+        // information_schema obliga a cruzar por el nombre de la restricción, y PostgreSQL permite el mismo
+        // nombre en tablas distintas: dos claves con el mismo nombre se mezclarían.
         List<Map<String, Object>> foreignKeys = jdbc.queryForList("""
-                select tc.table_name as from_table, ccu.table_name as to_table
-                from information_schema.table_constraints tc
-                join information_schema.constraint_column_usage ccu
-                  on ccu.constraint_name = tc.constraint_name and ccu.table_schema = tc.table_schema
-                where tc.constraint_type = 'FOREIGN KEY' and tc.table_schema = 'public'
+                select src.relname as from_table, dst.relname as to_table
+                from pg_constraint c
+                join pg_class src on src.oid = c.conrelid
+                join pg_class dst on dst.oid = c.confrelid
+                join pg_namespace n on n.oid = src.relnamespace
+                where c.contype = 'f' and n.nspname = 'public'
                 """);
 
         assertThat(foreignKeys).isNotEmpty(); // las hay dentro de cada módulo
