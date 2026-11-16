@@ -1,0 +1,37 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-16T06:30:00Z"},
+  "title": "Propuesta de diseño de la tienda de flores",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 390, "h": 2260, "title": "Celular · Inicio", "is_interactive": true},
+    "M-Catalogo.dc.html": {"x": 470, "y": 0, "w": 390, "h": 1700, "title": "Celular · Catálogo", "is_interactive": true},
+    "M-Producto.dc.html": {"x": 940, "y": 0, "w": 390, "h": 1840, "title": "Celular · Producto", "is_interactive": true},
+    "M-Carrito.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 1000, "title": "Celular · Carrito", "is_interactive": true},
+    "M-Checkout.dc.html": {"x": 1880, "y": 0, "w": 390, "h": 2040, "title": "Celular · Checkout", "is_interactive": true},
+    "M-Resultado.dc.html": {"x": 2350, "y": 0, "w": 390, "h": 1240, "title": "Celular · Pago aprobado", "is_interactive": true},
+    "D-Inicio.dc.html": {"x": 0, "y": 2680, "w": 1360, "h": 2280, "title": "Computador · Inicio", "expand": "fill"},
+    "D-Catalogo.dc.html": {"x": 1440, "y": 2680, "w": 1360, "h": 2480, "title": "Computador · Catálogo", "expand": "fill"},
+    "D-Producto.dc.html": {"x": 2880, "y": 2680, "w": 1360, "h": 2260, "title": "Computador · Producto", "expand": "fill"},
+    "Paletas.dc.html": {"x": 0, "y": 5580, "w": 1360, "h": 640, "title": "Cuatro paletas para elegir"}
+  },
+  "order": [
+    "Main.dc.html",
+    "M-Catalogo.dc.html",
+    "M-Producto.dc.html",
+    "M-Carrito.dc.html",
+    "M-Checkout.dc.html",
+    "M-Resultado.dc.html",
+    "D-Inicio.dc.html",
+    "D-Catalogo.dc.html",
+    "D-Producto.dc.html",
+    "Paletas.dc.html"
+  ],
+  "notes": {
+    "t-celular": {"x": 0, "y": -300, "text": "Celular", "kind": "title1", "maxW": 2740},
+    "t-computador": {"x": 0, "y": 2380, "text": "Computador", "kind": "title1", "maxW": 4240},
+    "t-paletas": {"x": 0, "y": 5280, "text": "Paletas", "kind": "title1", "maxW": 1360}
+  },
+  "designSystems": []
+}

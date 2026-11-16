@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Catálogo en computador</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F1D1B}a:hover{color:#6B6763}
+</style>
+</helmet>
+<div style="background: #FFFFFF; font-family: 'Jost', system-ui, sans-serif; color: #1F1D1B">
+
+<div style="background: #F4F3F1; text-align: center; font-size: 13px; padding: 10px 16px; color: #6B6763">Entregas a domicilio · Tú eliges el día y la franja</div>
+
+<header style="max-width: 1200px; margin: 0 auto; padding: 20px 24px 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+<span style="flex: 1 1 120px; font-size: 14px; color: #6B6763">[TELÉFONO DE LA TIENDA]</span>
+<a href="D-Inicio.dc.html" style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 42px; font-weight: 600; text-decoration: none; letter-spacing: 0.5px">floristería</a>
+<div style="flex: 1 1 120px; display: flex; justify-content: flex-end">
+<a href="#carrito" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; font-size: 15px"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Carrito (2)</a>
+</div>
+</div>
+<nav aria-label="Principal" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 36px; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase">
+<a href="D-Inicio.dc.html" style="min-height: 48px; display: flex; align-items: center; text-decoration: none">Inicio</a>
+<a href="D-Catalogo.dc.html" style="min-height: 48px; display: flex; align-items: center; text-decoration: none; border-bottom: 2px solid {{accent}}">Catálogo</a>
+<a href="#ocasiones" style="min-height: 48px; display: flex; align-items: center; text-decoration: none">Ocasiones</a>
+<a href="#zonas" style="min-height: 48px; display: flex; align-items: center; text-decoration: none">Zonas de entrega</a>
+</nav>
+</header>
+
+<section style="background: #F4F3F1; padding: 52px 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+<h1 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 52px; line-height: 1.05">Catálogo</h1>
+<span style="font-size: 15px; color: #6B6763"><a href="D-Inicio.dc.html" style="color: #6B6763">Inicio</a> / Catálogo</span>
+</section>
+
+<section style="max-width: 1200px; margin: 0 auto; padding: 56px 24px 0; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 40px 56px; align-items: flex-start">
+
+<aside style="flex: 1 1 200px; max-width: 240px; display: flex; flex-direction: column; gap: 28px">
+<nav aria-label="Categorías" style="display: flex; flex-direction: column">
+<h2 style="margin: 0 0 8px; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 26px">Categorías</h2>
+<sc-for list="{{categories}}" as="c" hint-placeholder-count="5">
+<button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="{{c.style}}">{{c.name}}</button>
+</sc-for>
+</nav>
+<div style="padding-top: 24px; border-top: 1px solid #E9E6E2; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 15px; font-weight: 500">Entrega a domicilio</span>
+<span style="font-size: 15px; line-height: 1.5; color: #6B6763">Al finalizar el pedido eliges tu zona, el día y la franja.</span>
+</div>
+</aside>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 36px">
+<span style="font-size: 15px; color: #6B6763">Viendo 9 de 12 arreglos</span>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px 28px">
+<sc-for list="{{products}}" as="p" hint-placeholder-count="9">
+<a href="D-Producto.dc.html" style="display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: #1F1D1B; text-align: center; align-items: center">
+<div style="width: 100%; aspect-ratio: 4 / 5; background: #F4F3F1; display: flex; align-items: center; justify-content: center; margin-bottom: 8px"><svg aria-hidden="true" viewBox="0 0 120 150" style="width: 48%; height: auto; color: #BDB7B0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="60" cy="38" r="16"/><circle cx="60" cy="38" r="5"/><circle cx="38" cy="54" r="13"/><circle cx="38" cy="54" r="4"/><circle cx="82" cy="54" r="13"/><circle cx="82" cy="54" r="4"/><circle cx="50" cy="72" r="10"/><circle cx="71" cy="73" r="10"/><path d="M24 72c-8-2-12-10-10-18 8 2 12 10 10 18zM96 72c8-2 12-10 10-18-8 2-12 10-10 18z"/><path d="M52 82l6 22M60 54v50M70 83l-8 21M41 67l16 37M79 67l-16 37"/><path d="M47 104h26l8 38H39z"/><path d="M50 114h20"/></svg></div>
+<span style="font-size: 17px">{{p.name}}</span>
+<span style="font-size: 16px; color: {{accent}}">Desde {{p.price}}</span>
+<span style="font-size: 14px; color: #6B6763">Listo en {{p.prep}}</span>
+</a>
+</sc-for>
+</div>
+<button style="align-self: center; height: 50px; padding: 0 36px; background: #1F1D1B; border: 1px solid #1F1D1B; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 500; letter-spacing: 0.5px">Cargar más</button>
+</div>
+
+</section>
+
+<footer style="max-width: 1200px; margin: 72px auto 0; padding: 40px 24px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 32px; border-top: 1px solid #E9E6E2">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 30px; font-weight: 600">floristería</span>
+<span style="font-size: 15px; line-height: 1.5; color: #6B6763">Arreglos florales hechos por encargo, con entrega a domicilio.</span>
+</div>
+<div style="display: flex; flex-direction: column; font-size: 15px">
+<span style="font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: #6B6763; margin-bottom: 6px">Tienda</span>
+<a href="D-Catalogo.dc.html" style="min-height: 36px; display: flex; align-items: center">Catálogo</a>
+<a href="#zonas" style="min-height: 36px; display: flex; align-items: center">Zonas de entrega</a>
+<a href="#pagos" style="min-height: 36px; display: flex; align-items: center">Medios de pago</a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 15px">
+<span style="font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: #6B6763">Contacto</span>
+<span>[TELÉFONO DE LA TIENDA]</span>
+<span>[CORREO DE LA TIENDA]</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 15px">
+<span style="font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: #6B6763">Pagos</span>
+<span>Tarjeta, PSE y Nequi</span>
+<span style="color: #6B6763">Con Mercado Pago</span>
+</div>
+</div>
+<span style="padding-top: 20px; border-top: 1px solid #E9E6E2; font-size: 13px; color: #6B6763">© 2026 [NOMBRE DE LA TIENDA]</span>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#7A5C9E","options":["#7A5C9E","#8A6D1B","#A84860","#4F6F57"]},"$preview":{"width":1360,"height":2480}}'>
+class Component extends DCLogic {
+renderVals() {
+const accent = this.props.accent ?? '#7A5C9E';
+const picked = (this.state && this.state.picked) || 'Todos';
+const base = 'min-height: 44px; padding: 0; background: none; border: none; font-family: inherit; font-size: 16px; text-align: left; ';
+const names = ['Todos', 'Cumpleaños', 'Aniversario', 'Amor', 'Condolencias'];
+return {
+accent,
+categories: names.map((name) => ({
+name,
+pressed: name === picked ? 'true' : 'false',
+pick: () => this.setState({ picked: name }),
+style: base + (name === picked ? 'color: #1F1D1B; font-weight: 500; text-decoration: underline; text-underline-offset: 6px' : 'color: #6B6763')
+})),
+products: [
+{ name: 'Ramo Primavera', price: '$85.000', prep: '4 horas' },
+{ name: 'Rosas en caja', price: '$120.000', prep: '6 horas' },
+{ name: 'Girasoles y lirios', price: '$95.000', prep: '4 horas' },
+{ name: 'Ramo de boda', price: '$280.000', prep: '2 días' },
+{ name: 'Tulipanes', price: '$110.000', prep: '5 horas' },
+{ name: 'Centro de mesa', price: '$140.000', prep: '8 horas' },
+{ name: 'Orquídea en matera', price: '$150.000', prep: '3 horas' },
+{ name: 'Ramo de lirios', price: '$90.000', prep: '4 horas' },
+{ name: 'Corona de condolencias', price: '$220.000', prep: '1 día' }
+]
+};
+}
+}
+</script>
+</body>
+</html>
