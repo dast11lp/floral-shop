@@ -75,8 +75,9 @@ class PaymentTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    // Las salidas de un pago pendiente (ADR 0016, sección B). El reembolso no es una de ellas.
     @ParameterizedTest
-    @EnumSource(value = PaymentStatus.class, names = "PENDING", mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(value = PaymentStatus.class, names = {"PAID", "FAILED", "EXPIRED", "CANCELLED"})
     void transitionReturnsNewPaymentWithSameData(PaymentStatus next) {
         Payment original = pending();
 
@@ -109,6 +110,41 @@ class PaymentTest {
         Payment closed = payment(finalStatus, "85000");
 
         assertThatThrownBy(() -> closed.transitionTo(PaymentStatus.PENDING))
+                .isInstanceOf(InvalidPaymentTransitionException.class);
+    }
+
+    // A.21: si la pasarela confirma después la aprobación de un intento cerrado, pasa a PAID con todos sus datos.
+    @ParameterizedTest
+    @EnumSource(value = PaymentStatus.class, names = {"FAILED", "EXPIRED", "CANCELLED"})
+    void aClosedAttemptWithCheckoutCanBecomePaid(PaymentStatus closed) {
+        Payment attempt = payment(closed, "85000");
+
+        Payment paid = attempt.transitionTo(PaymentStatus.PAID);
+
+        assertThat(paid.status()).isEqualTo(PaymentStatus.PAID);
+        assertThat(paid).usingRecursiveComparison().ignoringFields("status").isEqualTo(attempt);
+    }
+
+    // A.21 y D.3: un FAILED sin referencia nunca creó el cobro, así que nadie pudo pagarlo.
+    @Test
+    void aFailedAttemptWithoutCheckoutCannotBecomePaid() {
+        Payment neverCreated = new Payment(1L, 10L, "mercadopago", PaymentMethod.CARD, PaymentStatus.FAILED,
+                new BigDecimal("85000"), null, null);
+
+        assertThatThrownBy(() -> neverCreated.transitionTo(PaymentStatus.PAID))
+                .isInstanceOf(InvalidPaymentTransitionException.class)
+                .hasMessageContaining("no tiene cobro");
+    }
+
+    // A.4: un pago aprobado se puede reembolsar, y un reembolsado ya no cambia.
+    @Test
+    void aPaidPaymentCanBeRefundedOnlyOnce() {
+        Payment refunded = pending().transitionTo(PaymentStatus.PAID).transitionTo(PaymentStatus.REFUNDED);
+
+        assertThat(refunded.status()).isEqualTo(PaymentStatus.REFUNDED);
+        assertThatThrownBy(() -> refunded.transitionTo(PaymentStatus.REFUNDED))
+                .isInstanceOf(InvalidPaymentTransitionException.class);
+        assertThatThrownBy(() -> refunded.transitionTo(PaymentStatus.PAID))
                 .isInstanceOf(InvalidPaymentTransitionException.class);
     }
 

@@ -26,11 +26,15 @@ public record Payment(Long id, Long orderId, String provider, PaymentMethod meth
         }
     }
 
-    // Estricto: pasar al mismo estado, o salir de uno final, es un error.
+    // Estricto: solo los cambios de PaymentStatus (ADR 0016, sección B); pasar al mismo estado es un error.
     // "Ya estaba pagado" (confirmar dos veces) lo decide el caso de uso, no este modelo.
     public Payment transitionTo(PaymentStatus next) {
         if (!status.canTransitionTo(next)) {
             throw new InvalidPaymentTransitionException(status, next);
+        }
+        // Un FAILED sin referencia nunca llegó a crear el cobro: nadie pudo pagarlo (ADR 0016, A.21 y D.3).
+        if (status == PaymentStatus.FAILED && next == PaymentStatus.PAID && providerReference == null) {
+            throw new InvalidPaymentTransitionException(status, next, "el intento no tiene cobro en la pasarela");
         }
         return new Payment(id, orderId, provider, method, next, amount, providerReference, checkoutUrl);
     }

@@ -8,4 +8,8 @@ public class InvalidPaymentTransitionException extends RuntimeException {
     public InvalidPaymentTransitionException(PaymentStatus from, PaymentStatus to) {
         super("Un pago " + from + " no puede pasar a " + to);
     }
+
+    public InvalidPaymentTransitionException(PaymentStatus from, PaymentStatus to, String why) {
+        super("Un pago " + from + " no puede pasar a " + to + ": " + why);
+    }
 }

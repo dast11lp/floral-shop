@@ -4,5 +4,5 @@ package com.floralshop.backend.ordering.infra.adapter.out.persistence;
 // renombrar un estado en el dominio no debe cambiar en silencio lo que hay guardado.
 // El mapper traduce entre los dos, y el CHECK de la tabla acepta solo estos valores.
 enum OrderStatusColumn {
-    PENDING_PAYMENT, CONFIRMED, CANCELLED, PAID_WITHOUT_SLOT
+    PENDING_PAYMENT, PENDING_PAYMENT_NO_SLOT, CONFIRMED, CANCELLED, PAID_WITHOUT_SLOT
 }
