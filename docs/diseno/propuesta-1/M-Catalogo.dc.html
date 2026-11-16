@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Catálogo en celular</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F1D1B}a:hover{color:#6B6763}
+</style>
+</helmet>
+<div style="width: 390px; height: 1700px; box-sizing: border-box; background: #FFFFFF; font-family: 'Jost', system-ui, sans-serif; color: #1F1D1B; display: flex; flex-direction: column">
+
+<div style="background: #F4F3F1; text-align: center; font-size: 13px; padding: 10px 16px; color: #6B6763">Entregas a domicilio · Tú eliges el día y la franja</div>
+
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 8px 8px; border-bottom: 1px solid #E9E6E2">
+<button aria-label="Abrir menú" style="width: 48px; height: 48px; background: none; border: none; padding: 0; display: flex; align-items: center; justify-content: center; color: #1F1D1B"><svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+<a href="Main.dc.html" style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 600; text-decoration: none; letter-spacing: 0.5px">floristería</a>
+<a href="M-Carrito.dc.html" aria-label="Ver carrito, 2 productos" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; position: relative; color: #1F1D1B"><svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span style="position: absolute; top: 6px; right: 4px; min-width: 18px; height: 18px; border-radius: 9px; background: {{accent}}; color: #FFFFFF; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center">2</span></a>
+</header>
+
+<section style="padding: 28px 20px 12px; display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center">
+<h1 style="margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: 36px; line-height: 1.1">Catálogo</h1>
+<span style="font-size: 15px; color: #6B6763">Todos los arreglos se arman por encargo</span>
+</section>
+
+<nav aria-label="Categorías" style="display: flex; gap: 8px; padding: 8px 20px 20px; overflow-x: auto">
+<sc-for list="{{categories}}" as="c" hint-placeholder-count="5">
+<button onClick="{{c.pick}}" style="{{c.style}}">{{c.name}}</button>
+</sc-for>
+</nav>
+
+<section style="padding: 0 20px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px">
+<sc-for list="{{products}}" as="p" hint-placeholder-count="6">
+<a href="M-Producto.dc.html" style="display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: #1F1D1B">
+<div style="aspect-ratio: 4 / 5; background: #F4F3F1; display: flex; align-items: center; justify-content: center; margin-bottom: 6px"><svg aria-hidden="true" viewBox="0 0 120 150" style="width: 50%; height: auto; color: #BDB7B0" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="60" cy="38" r="16"/><circle cx="60" cy="38" r="5"/><circle cx="38" cy="54" r="13"/><circle cx="38" cy="54" r="4"/><circle cx="82" cy="54" r="13"/><circle cx="82" cy="54" r="4"/><circle cx="50" cy="72" r="10"/><circle cx="71" cy="73" r="10"/><path d="M24 72c-8-2-12-10-10-18 8 2 12 10 10 18zM96 72c8-2 12-10 10-18-8 2-12 10-10 18z"/><path d="M52 82l6 22M60 54v50M70 83l-8 21M41 67l16 37M79 67l-16 37"/><path d="M47 104h26l8 38H39z"/><path d="M50 114h20"/></svg></div>
+<span style="font-size: 16px">{{p.name}}</span>
+<span style="font-size: 15px; color: {{accent}}">Desde {{p.price}}</span>
+<span style="font-size: 13px; color: #6B6763">Listo en {{p.prep}}</span>
+</a>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 12px">
+<span style="font-size: 13px; color: #6B6763">Viendo 6 de 12 arreglos</span>
+<button style="height: 48px; padding: 0 32px; background: #FFFFFF; border: 1px solid #1F1D1B; color: #1F1D1B; font-family: inherit; font-size: 15px; font-weight: 500; letter-spacing: 0.5px">Cargar más</button>
+</div>
+</section>
+
+<footer style="margin-top: auto; padding: 32px 20px 28px; display: flex; flex-direction: column; gap: 18px; border-top: 1px solid #E9E6E2">
+<span style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-weight: 600">floristería</span>
+<div style="display: flex; flex-direction: column; gap: 4px; font-size: 15px; color: #6B6763">
+<span>[TELÉFONO DE LA TIENDA]</span>
+<span>[CORREO DE LA TIENDA]</span>
+</div>
+<span style="font-size: 13px; color: #6B6763">Pagos con tarjeta, PSE y Nequi.</span>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#7A5C9E","options":["#7A5C9E","#8A6D1B","#A84860","#4F6F57"]},"$preview":{"width":390,"height":1700}}'>
+class Component extends DCLogic {
+renderVals() {
+const accent = this.props.accent ?? '#7A5C9E';
+const picked = (this.state && this.state.picked) || 'Todos';
+const base = 'flex: 0 0 auto; height: 44px; padding: 0 18px; font-family: inherit; font-size: 15px; ';
+const names = ['Todos', 'Cumpleaños', 'Aniversario', 'Amor', 'Condolencias'];
+return {
+accent,
+categories: names.map((name) => ({
+name,
+pick: () => this.setState({ picked: name }),
+style: base + (name === picked
+? 'background: #1F1D1B; color: #FFFFFF; border: 1px solid #1F1D1B'
+: 'background: #FFFFFF; color: #1F1D1B; border: 1px solid #D9D5D0')
+})),
+products: [
+{ name: 'Ramo Primavera', price: '$85.000', prep: '4 horas' },
+{ name: 'Rosas en caja', price: '$120.000', prep: '6 horas' },
+{ name: 'Girasoles y lirios', price: '$95.000', prep: '4 horas' },
+{ name: 'Ramo de boda', price: '$280.000', prep: '2 días' },
+{ name: 'Tulipanes', price: '$110.000', prep: '5 horas' },
+{ name: 'Centro de mesa', price: '$140.000', prep: '8 horas' }
+]
+};
+}
+}
+</script>
+</body>
+</html>
