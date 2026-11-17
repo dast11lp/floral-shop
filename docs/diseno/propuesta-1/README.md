@@ -3,7 +3,7 @@
 Copia de registro de la primera propuesta visual de la tienda. **No es código del proyecto** y no se usa para construir el frontend: es material de referencia.
 
 ## Estado
-Sirve como demostración, pero **hay que rehacerla** (pendiente 40 de `docs/pendientes.md`): se busca un tono más juvenil y menos cuadrado, con otra tipografía y más color. La paleta no está elegida.
+**Reemplazada por la propuesta 2** (`docs/diseno/propuesta-2`, ADR 0019). Se rehízo porque se buscaba un tono más juvenil y menos cuadrado, con otra tipografía y más color (pendiente 40 de `docs/pendientes.md`). Se guarda solo como historia.
 
 ## Qué hay
 | Archivo | Pantalla |
