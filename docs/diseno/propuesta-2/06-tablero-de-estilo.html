@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero de estilo</title>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2E2433}
+.sec{padding:72px max(24px, calc(50% - 600px)) 0;display:flex;flex-direction:column;gap:28px}
+.h2{margin:0;font-family:'Gloock',Georgia,serif;font-weight:400;font-size:40px;line-height:1.05}
+.lead{margin:0;font-size:16px;line-height:1.6;color:#62566A;max-width:760px}
+.k{font-size:12px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:#7A5C9E}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;color:#62566A}
+.row{display:grid;grid-template-columns:220px 1fr 160px;gap:24px;align-items:baseline;padding:18px 0;border-top:1px solid #E2D4E5}
+.rule{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.55}
+.rule b{font-weight:600}
+.ok{flex:none;width:22px;height:22px;border-radius:11px;background:#E8F3EC;color:#1E7A4C;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.no{flex:none;width:22px;height:22px;border-radius:11px;background:#FBE9EC;color:#A3324A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+</style>
+<style>
+body{margin:0}
+</style>
+</head>
+<body>
+<div style="width: 100%; min-height: 4300px; box-sizing: border-box; background: #FFFFFF; font-family: 'Manrope', system-ui, sans-serif; color: #2E2433; display: flex; flex-direction: column; padding-bottom: 96px">
+
+<section style="background: #F6EEF7; padding: 64px max(24px, calc(50% - 600px)) 56px; display: flex; flex-direction: column; gap: 14px">
+<span class="k">Etapa 4 · ADR 0019 y docs/diseno/guia-de-estilo.md</span>
+<h1 style="margin: 0; font-family: 'Gloock', Georgia, serif; font-weight: 400; font-size: 64px; line-height: 1">Tablero de estilo</h1>
+<p class="lead">Las reglas visuales de la tienda, sacadas del inicio que aprobaste. Cada pantalla nueva se arma con estas piezas. Lo que cambia por temporada (ADR 0018) son los colores de acento y los fondos; las letras y las formas son fijas.</p>
+<div style="margin-top: 6px; max-width: 760px; background: #FFFFFF; border-radius: 22px; padding: 18px 22px; display: flex; gap: 14px; align-items: flex-start">
+<span style="flex: none; width: 28px; height: 28px; border-radius: 14px; background: #7A5C9E; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 600">✎</span>
+<span style="font-size: 15px; line-height: 1.55"><b style="font-weight: 600">Es una base, ajustable por un diseñador.</b> Los ajustes finos (un tono, un tamaño, un espacio, las esquinas, un degradado) se hacen en la guía sin ADR nuevo, si pasan la prueba de contraste. Los cambios de fondo (otra letra, otra dirección) necesitan un ADR que reemplace al 0019.</span>
+</div>
+</section>
+
+<section class="sec">
+<span class="k">1 · Letras</span>
+<h2 class="h2">Dos familias, nada más</h2>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px">
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 10px">
+<span class="mono">Gloock · títulos, nombres de producto, números</span>
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 88px; line-height: 1">Aa</span>
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 22px">Regala emociones con valentía</span>
+<span style="font-size: 14px; color: #62566A; line-height: 1.5">Serifa de alto contraste, gratuita (licencia OFL). Solo en peso normal: nunca en negrita ni en cursiva falsa.</span>
+</div>
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 10px">
+<span class="mono">Manrope · textos, botones, precios, menús</span>
+<span style="font-size: 88px; line-height: 1; font-weight: 500">Aa</span>
+<span style="font-size: 18px">Flores frescas, armadas por encargo para el día que tú eliges.</span>
+<span style="font-size: 14px; color: #62566A; line-height: 1.5">Sin serifa, gratuita (licencia OFL). Pesos 400 (texto), 500 (botones y menús) y 600 (énfasis).</span>
+</div>
+</div>
+<div>
+<div class="row" style="border-top: none"><span class="k" style="color: #62566A">Uso</span><span class="k" style="color: #62566A">Muestra</span><span class="k" style="color: #62566A">Escritorio / celular</span></div>
+<div class="row"><span class="mono">Portada</span><span style="font-family: 'Gloock', Georgia, serif; font-size: 56px; line-height: 1.02">Regala emociones<span style="display: block; color: #5E4580">con valentía</span></span><span class="mono">72 / 42 px · siempre en 2 renglones</span></div>
+<div class="row"><span class="mono">Título de sección</span><span style="font-family: 'Gloock', Georgia, serif; font-size: 40px">Lo más vendido</span><span class="mono">40 / 28 px</span></div>
+<div class="row"><span class="mono">Nombre de producto</span><span style="font-family: 'Gloock', Georgia, serif; font-size: 22px">Peonías en florero</span><span class="mono">22 / 17 px</span></div>
+<div class="row"><span class="mono">Texto</span><span style="font-size: 16px; line-height: 1.55; color: #62566A">Solo ves las franjas en las que alcanzamos a entregarlo.</span><span class="mono">16 / 15 px · interlineado 1,5</span></div>
+<div class="row"><span class="mono">Botón y menú</span><span style="font-size: 15px; font-weight: 500">Ver el catálogo</span><span class="mono">16 / 15 px · peso 500</span></div>
+<div class="row"><span class="mono">Precio y notas</span><span style="font-size: 13px; color: #4A3F50">Desde $180.000</span><span class="mono">15 / 13 px</span></div>
+<div class="row"><span class="mono">Etiqueta pequeña</span><span class="k">Etapa 4</span><span class="mono">12 px · mayúsculas · espaciado 1,4</span></div>
+</div>
+</section>
+
+<section class="sec">
+<span class="k">2 · Colores del tema claro</span>
+<h2 class="h2">Tinta, malva y dos pasteles</h2>
+<p class="lead">Los contrastes están calculados con la fórmula de WCAG. El mínimo para texto normal es 4,5 a 1, y 3 a 1 para íconos y texto grande.</p>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px">
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #2E2433; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #FFFFFF">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">Tinta</span>
+<span class="mono">#2E2433 · --tinta</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Títulos, textos principales e íconos.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Sobre blanco: 14,8 a 1</span>
+</div>
+</div>
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #62566A; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #FFFFFF">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">Tinta suave</span>
+<span class="mono">#62566A · --tinta-suave</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Textos secundarios y descripciones.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Blanco: 6,9 · sobre lila: 6,1</span>
+</div>
+</div>
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #4A3F50; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #FFFFFF">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">Tinta de tarjeta</span>
+<span class="mono">#4A3F50 · --tinta-tarjeta</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Precios sobre el degradado de las tarjetas.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Sobre rosa: 9,2 a 1</span>
+</div>
+</div>
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #7A5C9E; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #FFFFFF">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">Malva</span>
+<span class="mono">#7A5C9E · --acento</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Botón principal, enlaces, números y detalles.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Blanco encima: 5,4 · sobre lila: 4,8</span>
+</div>
+</div>
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #5E4580; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #FFFFFF">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">Malva profundo</span>
+<span class="mono">#5E4580 · --acento-profundo</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Solo "con valentía" y textos de acento sobre fotos.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Sobre blanco: 7,9 a 1</span>
+</div>
+</div>
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #FCF4F2; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #2E2433">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">Rosa empolvado</span>
+<span class="mono">#FCF4F2 · --pastel-rosa</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Fondo de tarjetas y bloques.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Solo fondo</span>
+</div>
+</div>
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #F6EEF7; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #2E2433">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">Lila</span>
+<span class="mono">#F6EEF7 · --pastel-lila</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Fondo de tarjetas, franjas y botones suaves.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Solo fondo</span>
+</div>
+</div>
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #E4D8E8; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #2E2433">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">Borde</span>
+<span class="mono">#E4D8E8 · --borde</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Borde de píldoras y líneas divisorias.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Decorativo</span>
+</div>
+</div>
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #FFFFFF; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #2E2433">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">Blanco</span>
+<span class="mono">#FFFFFF · --fondo</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Fondo de la página.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Base</span>
+</div>
+</div>
+
+<div style="border: 1px solid #E2D4E5; border-radius: 22px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 110px; background: #1E7A4C; display: flex; align-items: flex-end; padding: 14px; box-sizing: border-box"><span style="font-family: 'Gloock', Georgia, serif; font-size: 26px; color: #FFFFFF">Aa</span></div>
+<div style="padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 600">WhatsApp</span>
+<span class="mono">#1E7A4C · --whatsapp</span>
+<span style="font-size: 13px; line-height: 1.45; color: #62566A">Solo el ícono de WhatsApp.</span>
+<span style="font-size: 13px; font-weight: 600; color: #1E7A4C">Sobre blanco: 5,3 a 1</span>
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="sec">
+<span class="k">3 · Formas y espacios</span>
+<h2 class="h2">Redondo, pero no infantil</h2>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="height: 150px; border-radius: 22px; background: #FCF4F2"></div>
+<span style="font-size: 15px; font-weight: 600">Esquinas de 22 px</span>
+<span style="font-size: 14px; line-height: 1.5; color: #62566A">Tarjetas, fotos, collage y franjas con fondo. Una sola medida en toda la tienda.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="height: 150px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #FFFFFF; border: 1px dashed #E2D4E5; border-radius: 22px">
+<span style="display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 23px; border: 1px solid #E4D8E8; font-size: 15px; font-weight: 500">Cumpleaños</span>
+<span style="display: inline-flex; align-items: center; height: 48px; padding: 0 28px; border-radius: 24px; background: #7A5C9E; color: #FFFFFF; font-size: 15px; font-weight: 500">Ver el catálogo</span>
+</div>
+<span style="font-size: 15px; font-weight: 600">Píldoras completas</span>
+<span style="font-size: 14px; line-height: 1.5; color: #62566A">Botones, ocasiones y etiquetas: bordes totalmente redondos.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="height: 150px; border-radius: 22px; background: #F6EEF7; display: flex; align-items: flex-end; gap: 10px; padding: 18px; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div style="width: 4px; height: 4px; background: #7A5C9E; border-radius: 3px"></div><span class="mono" style="font-size: 11px">4</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div style="width: 8px; height: 8px; background: #7A5C9E; border-radius: 3px"></div><span class="mono" style="font-size: 11px">8</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div style="width: 12px; height: 12px; background: #7A5C9E; border-radius: 3px"></div><span class="mono" style="font-size: 11px">12</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div style="width: 16px; height: 16px; background: #7A5C9E; border-radius: 3px"></div><span class="mono" style="font-size: 11px">16</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div style="width: 24px; height: 24px; background: #7A5C9E; border-radius: 3px"></div><span class="mono" style="font-size: 11px">24</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div style="width: 32px; height: 32px; background: #7A5C9E; border-radius: 3px"></div><span class="mono" style="font-size: 11px">32</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div style="width: 48px; height: 48px; background: #7A5C9E; border-radius: 3px"></div><span class="mono" style="font-size: 11px">48</span></div>
+</div>
+<span style="font-size: 15px; font-weight: 600">Espacios de 4 en 4</span>
+<span style="font-size: 14px; line-height: 1.5; color: #62566A">Contenido a 1200 px máximo. Márgenes de 16 px en celular y 24 px o más en escritorio. Todo lo que se toca mide al menos 44 px.</span>
+</div>
+</div>
+</section>
+
+<section class="sec">
+<span class="k">4 · Degradados</span>
+<h2 class="h2">Solo para fundir fotos</h2>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="position: relative; height: 220px; border-radius: 22px; overflow: hidden"><img src="https://images.unsplash.com/photo-1640901646021-74984db23c54?w=2400&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Peonías rosadas muy de cerca" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover"><div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.9) 70%, #FFFFFF 100%)"></div></div>
+<span style="font-size: 15px; font-weight: 600">Foto que se funde en blanco</span>
+<span style="font-size: 14px; line-height: 1.5; color: #62566A">Portada y banners. El texto va donde el fondo ya es casi blanco.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="position: relative; height: 220px; border-radius: 22px; overflow: hidden"><img src="https://images.unsplash.com/photo-1575178114667-c8a832c61f45?w=1200&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Peonías rosadas en un florero de vidrio" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover"><div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(252,244,242,0) 0%, rgba(252,244,242,0.06) 14%, rgba(252,244,242,0.2) 28%, rgba(252,244,242,0.42) 42%, rgba(252,244,242,0.68) 56%, rgba(252,244,242,0.88) 70%, rgba(252,244,242,0.97) 84%, rgb(252,244,242) 100%)"></div></div>
+<span style="font-size: 15px; font-weight: 600">Foto que se funde en pastel</span>
+<span style="font-size: 14px; line-height: 1.5; color: #62566A">Tarjetas de producto. Degradado largo y suave (8 pasos), en rosa o lila según la tarjeta.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div class="rule"><span class="no">✕</span><span><b>Nunca en botones.</b> El botón principal es malva plano.</span></div>
+<div class="rule"><span class="no">✕</span><span><b>Nada de vidrio fuerte</b> (desenfoque marcado y bordes brillantes): se ve "hecho con IA".</span></div>
+<div class="rule"><span class="no">✕</span><span><b>Nada de arcoíris:</b> solo tonos vecinos.</span></div>
+<div class="rule"><span class="ok">✓</span><span><b>El contraste se mide en el punto más débil</b> del degradado, no en el promedio.</span></div>
+</div>
+</div>
+</section>
+
+<section class="sec">
+<span class="k">5 · Botones, enlaces y tarjetas</span>
+<h2 class="h2">Una acción principal por zona</h2>
+<div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: center">
+<span style="display: inline-flex; align-items: center; height: 52px; padding: 0 36px; border-radius: 26px; background: #7A5C9E; color: #FFFFFF; font-size: 16px; font-weight: 500">Ver el catálogo</span>
+<span style="font-size: 15px; font-weight: 600; color: #7A5C9E">Ver todo el catálogo →</span>
+<span style="display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 23px; border: 1px solid #E4D8E8; font-size: 15px; font-weight: 500">Aniversario</span>
+</div>
+<div class="rule"><span class="ok">✓</span><span><b>Botón principal:</b> malva plano, texto blanco, 48–52 px de alto. Uno solo por zona.</span></div>
+<div class="rule"><span class="ok">✓</span><span><b>Enlace:</b> malva en negrita con flecha, para "ver más".</span></div>
+<div class="rule"><span class="ok">✓</span><span><b>Píldora con borde:</b> para filtros y ocasiones, nunca para la acción principal.</span></div>
+<div class="rule"><span class="no">✕</span><span><b>Sin botones fantasma</b> (solo borde) ni enlaces sueltos para la acción principal: la gente duda de si se pueden tocar.</span></div>
+<div class="rule"><span class="no">✕</span><span><b>Sin "+" ni "Agregar" en las tarjetas:</b> cada arreglo pide tamaño, día y franja, así que la tarjeta entera lleva al producto.</span></div>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px">
+<div style="position: relative; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden">
+<img src="https://images.unsplash.com/photo-1632751162552-621f05655f91?w=1200&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Lisiantos fucsia, morados y blancos en un florero" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 80px 16px 16px; background: linear-gradient(180deg, rgba(246,238,247,0) 0%, rgba(246,238,247,0.06) 14%, rgba(246,238,247,0.2) 28%, rgba(246,238,247,0.42) 42%, rgba(246,238,247,0.68) 56%, rgba(246,238,247,0.88) 70%, rgba(246,238,247,0.97) 84%, rgb(246,238,247) 100%); display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Gloock', Georgia, serif; font-size: 19px">Lisiantos mixtos</span><span style="font-size: 13px; color: #4A3F50">Desde $150.000</span></span>
+</div>
+<div style="position: relative; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; background: #F6EEF7">
+<img src="https://images.unsplash.com/photo-1608153916588-d13a7ab3b258?w=1400&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Flores blancas pequeñas en un frasco de vidrio" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 14px; bottom: 14px; display: inline-flex; align-items: center; height: 40px; padding: 0 18px; border-radius: 20px; background: #FFFFFF; font-family: 'Gloock', Georgia, serif; font-size: 17px">En florero</span>
+</div>
+<span class="mono">Tarjeta de producto: foto completa 3:4, degradado, nombre en Gloock y precio.</span>
+<span class="mono">Tarjeta de categoría: foto y etiqueta blanca en Gloock.</span>
+</div>
+</div>
+</section>
+
+<section class="sec">
+<span class="k">6 · Fotos</span>
+<h2 class="h2">Las fotos son las protagonistas</h2>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="height: 240px; border-radius: 22px; overflow: hidden; outline: 3px solid #1E7A4C; outline-offset: -3px"><img src="https://images.unsplash.com/photo-1640901646021-74984db23c54?w=2400&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Peonías rosadas nítidas" style="display: block; width: 100%; height: 100%; object-fit: cover"></div>
+<div class="rule"><span class="ok">✓</span><span><b>Nítida, sin grano ni filtros,</b> con luz natural y tonos rosa, blanco o lila.</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="height: 240px; border-radius: 22px; overflow: hidden; outline: 3px solid #A3324A; outline-offset: -3px"><img src="https://images.unsplash.com/photo-1582794543462-0d7922e50cf5?w=700&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Pétalos de clavel con grano y poca resolución" style="display: block; width: 100%; height: 100%; object-fit: cover"></div>
+<div class="rule"><span class="no">✕</span><span><b>Con grano, filtro o pequeña:</b> aunque sea linda, en pantalla grande se ve de mala calidad.</span></div>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+<div class="rule"><span class="ok">✓</span><span><b>Producto sobre fondo neutro</b> (blanco o gris claro), para que encaje con cualquier tema de temporada (ADR 0018).</span></div>
+<div class="rule"><span class="ok">✓</span><span><b>Tamaño mínimo: el doble de lo que se muestra.</b> Portada de 2400 px de ancho o más; tarjetas de 1000 px o más.</span></div>
+<div class="rule"><span class="ok">✓</span><span><b>Mismo encuadre en todo el catálogo:</b> vertical 3:4 y el arreglo centrado, con aire alrededor.</span></div>
+</div>
+</section>
+
+<section class="sec">
+<span class="k">7 · Íconos y temas</span>
+<h2 class="h2">Detalles que no cambian</h2>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; gap: 24px; align-items: center; color: #2E2433">
+<svg aria-hidden="true" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 8h16M4 16h11"/></svg>
+<svg aria-hidden="true" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+<svg aria-hidden="true" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#1E7A4C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.4-4A8 8 0 1 1 8 18.6z"/><path d="M9 10c0 3 2 5 5 5"/></svg>
+</div>
+<div class="rule"><span class="ok">✓</span><span><b>Íconos de línea</b> de 1,5 px, a 24 px, en color tinta. WhatsApp en verde y discreto, en un círculo blanco.</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div class="rule"><span class="ok">✓</span><span><b>Cambia con cada tema:</b> malva, malva profundo, los dos pasteles, los bordes y los banners.</span></div>
+<div class="rule"><span class="ok">✓</span><span><b>Fijo en todos los temas:</b> Gloock y Manrope, tamaños, esquinas de 22 px, píldoras, espacios y reglas de fotos.</span></div>
+<div class="rule"><span class="ok">✓</span><span><b>Cada tema pasa la prueba de contraste</b> antes de publicarse (ADR 0018).</span></div>
+</div>
+</div>
+</section>
+
+</div>
+</body>
+</html>
