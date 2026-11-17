@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catálogo · escritorio</title>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2E2433}a:hover{color:#62566A}
+.zoom img{transition:transform .5s ease}
+.zoom:hover img{transform:scale(1.03)}
+@media (prefers-reduced-motion: reduce){.zoom img{transition:none}.zoom:hover img{transform:none}}
+.nav a{text-decoration:none;font-size:15px;font-weight:500;min-height:44px;display:flex;align-items:center}
+.nav a:hover{color:#7A5C9E}
+.wrap{padding-left:max(24px, calc(50% - 600px));padding-right:max(24px, calc(50% - 600px))}
+.chips{scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.k{font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#62566A}
+</style>
+<style>
+body{margin:0}
+</style>
+</head>
+<body>
+<div style="width: 100%; min-height: 1700px; box-sizing: border-box; background: #FFFFFF; font-family: 'Manrope', system-ui, sans-serif; color: #2E2433; display: flex; flex-direction: column; position: relative">
+<header class="wrap" style="height: 84px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2; background: #FFFFFF">
+<a href="05-inicio-escritorio.html" style="font-family: 'Gloock', Georgia, serif; font-size: 32px; text-decoration: none; width: 220px">Valentía</a>
+<nav class="nav" aria-label="Principal" style="display: flex; gap: 36px">
+<a href="08-catalogo-escritorio.html" aria-current="page" style="color: #7A5C9E; font-weight: 600; gap: 6px">Catálogo</a>
+<a href="14-menu-escritorio.html" style="gap: 6px">Ocasiones <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></a>
+<a href="#zonas" style="gap: 6px">Zonas de entrega</a>
+<a href="#como" style="gap: 6px">Cómo funciona</a>
+</nav>
+<div style="width: 220px; display: flex; justify-content: flex-end"><a href="#carrito" aria-label="Ver carrito, 2 productos" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; position: relative; color: #2E2433"><svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span style="position: absolute; top: 7px; right: 5px; min-width: 18px; height: 18px; border-radius: 9px; background: #7A5C9E; color: #FFFFFF; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center">2</span></a></div>
+</header>
+<section class="wrap" style="padding-top: 40px; display: flex; flex-direction: column; gap: 10px">
+<h1 style="margin: 0; font-family: 'Gloock', Georgia, serif; font-weight: 400; font-size: 56px; line-height: 1">Catálogo</h1>
+<span style="font-size: 17px; line-height: 1.5; color: #62566A">Todos nuestros arreglos, frescos y armados por encargo para el día que eliges.</span>
+</section>
+<div class="wrap" style="padding-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px">
+<nav aria-label="Filtrar por tipo" style="display: flex; gap: 10px"><a href="#catalogo" aria-pressed="false" style="flex: none; display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 23px; border: 1px solid #E4D8E8; text-decoration: none; font-size: 15px; font-weight: 500">Ramos</a><a href="#catalogo" aria-pressed="false" style="flex: none; display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 23px; border: 1px solid #E4D8E8; text-decoration: none; font-size: 15px; font-weight: 500">En florero</a><a href="#catalogo" aria-pressed="false" style="flex: none; display: inline-flex; align-items: center; height: 46px; padding: 0 22px; border-radius: 23px; border: 1px solid #E4D8E8; text-decoration: none; font-size: 15px; font-weight: 500">Cajas</a></nav>
+<span style="font-size: 14px; color: #62566A">24 arreglos</span>
+</div>
+<section class="wrap" style="padding-top: 24px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px">
+<a href="#producto" class="zoom" style="position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; text-decoration: none; color: #2E2433">
+<img src="https://images.unsplash.com/photo-1575178114667-c8a832c61f45?w=1200&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Peonías rosadas en un florero de vidrio" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 96px 20px 20px; background: linear-gradient(180deg, rgba(252,244,242,0) 0%, rgba(252,244,242,0.06) 14%, rgba(252,244,242,0.2) 28%, rgba(252,244,242,0.42) 42%, rgba(252,244,242,0.68) 56%, rgba(252,244,242,0.88) 70%, rgba(252,244,242,0.97) 84%, rgb(252,244,242) 100%); display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 22px; line-height: 1.15">Peonías en florero</span>
+<span style="font-size: 15px; color: #4A3F50">Desde $180.000</span>
+</span>
+</a>
+<a href="#producto" class="zoom" style="position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; text-decoration: none; color: #2E2433">
+<img src="https://images.unsplash.com/photo-1632751162552-621f05655f91?w=1200&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Lisiantos fucsia, morados y blancos en un florero" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 96px 20px 20px; background: linear-gradient(180deg, rgba(246,238,247,0) 0%, rgba(246,238,247,0.06) 14%, rgba(246,238,247,0.2) 28%, rgba(246,238,247,0.42) 42%, rgba(246,238,247,0.68) 56%, rgba(246,238,247,0.88) 70%, rgba(246,238,247,0.97) 84%, rgb(246,238,247) 100%); display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 22px; line-height: 1.15">Lisiantos mixtos</span>
+<span style="font-size: 15px; color: #4A3F50">Desde $150.000</span>
+</span>
+</a>
+<a href="#producto" class="zoom" style="position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; text-decoration: none; color: #2E2433">
+<img src="https://images.unsplash.com/photo-1618239265038-9e4c865fbd10?w=1200&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Lisiantos blancos sobre fondo blanco" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 96px 20px 20px; background: linear-gradient(180deg, rgba(246,238,247,0) 0%, rgba(246,238,247,0.06) 14%, rgba(246,238,247,0.2) 28%, rgba(246,238,247,0.42) 42%, rgba(246,238,247,0.68) 56%, rgba(246,238,247,0.88) 70%, rgba(246,238,247,0.97) 84%, rgb(246,238,247) 100%); display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 22px; line-height: 1.15">Lisiantos blancos</span>
+<span style="font-size: 15px; color: #4A3F50">Desde $140.000</span>
+</span>
+</a>
+<a href="#producto" class="zoom" style="position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; text-decoration: none; color: #2E2433">
+<img src="https://images.unsplash.com/photo-1615050461998-b2e2c93d98f3?w=1200&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Una mano sostiene un ramo de flores moradas y blancas" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 96px 20px 20px; background: linear-gradient(180deg, rgba(252,244,242,0) 0%, rgba(252,244,242,0.06) 14%, rgba(252,244,242,0.2) 28%, rgba(252,244,242,0.42) 42%, rgba(252,244,242,0.68) 56%, rgba(252,244,242,0.88) 70%, rgba(252,244,242,0.97) 84%, rgb(252,244,242) 100%); display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 22px; line-height: 1.15">Ramo de campo</span>
+<span style="font-size: 15px; color: #4A3F50">Desde $120.000</span>
+</span>
+</a>
+<a href="#producto" class="zoom" style="position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; text-decoration: none; color: #2E2433">
+<img src="https://images.unsplash.com/photo-1617176756216-62e387dfe686?w=2000&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Tulipanes rosados envueltos en papel junto a una vela" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 96px 20px 20px; background: linear-gradient(180deg, rgba(252,244,242,0) 0%, rgba(252,244,242,0.06) 14%, rgba(252,244,242,0.2) 28%, rgba(252,244,242,0.42) 42%, rgba(252,244,242,0.68) 56%, rgba(252,244,242,0.88) 70%, rgba(252,244,242,0.97) 84%, rgb(252,244,242) 100%); display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 22px; line-height: 1.15">Tulipanes rosados</span>
+<span style="font-size: 15px; color: #4A3F50">Desde $150.000</span>
+</span>
+</a>
+<a href="#producto" class="zoom" style="position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; text-decoration: none; color: #2E2433">
+<img src="https://images.unsplash.com/photo-1780498802979-3d75e2b87ff2?w=1600&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Ramo de peonías rosadas con luz suave" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 96px 20px 20px; background: linear-gradient(180deg, rgba(246,238,247,0) 0%, rgba(246,238,247,0.06) 14%, rgba(246,238,247,0.2) 28%, rgba(246,238,247,0.42) 42%, rgba(246,238,247,0.68) 56%, rgba(246,238,247,0.88) 70%, rgba(246,238,247,0.97) 84%, rgb(246,238,247) 100%); display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 22px; line-height: 1.15">Peonías suaves</span>
+<span style="font-size: 15px; color: #4A3F50">Desde $170.000</span>
+</span>
+</a>
+<a href="#producto" class="zoom" style="position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; text-decoration: none; color: #2E2433">
+<img src="https://images.unsplash.com/photo-1608153916588-d13a7ab3b258?w=1400&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Flores blancas pequeñas en un frasco de vidrio" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 96px 20px 20px; background: linear-gradient(180deg, rgba(246,238,247,0) 0%, rgba(246,238,247,0.06) 14%, rgba(246,238,247,0.2) 28%, rgba(246,238,247,0.42) 42%, rgba(246,238,247,0.68) 56%, rgba(246,238,247,0.88) 70%, rgba(246,238,247,0.97) 84%, rgb(246,238,247) 100%); display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 22px; line-height: 1.15">Nube blanca</span>
+<span style="font-size: 15px; color: #4A3F50">Desde $110.000</span>
+</span>
+</a>
+<a href="#producto" class="zoom" style="position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; text-decoration: none; color: #2E2433">
+<img src="https://images.unsplash.com/photo-1579664872746-55e2a805d705?w=1400&amp;q=80&amp;fm=jpg&amp;fit=max" alt="Tres peonías rosadas sobre fondo blanco" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover">
+<span style="position: absolute; left: 0; right: 0; bottom: 0; padding: 96px 20px 20px; background: linear-gradient(180deg, rgba(252,244,242,0) 0%, rgba(252,244,242,0.06) 14%, rgba(252,244,242,0.2) 28%, rgba(252,244,242,0.42) 42%, rgba(252,244,242,0.68) 56%, rgba(252,244,242,0.88) 70%, rgba(252,244,242,0.97) 84%, rgb(252,244,242) 100%); display: flex; flex-direction: column; gap: 2px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 22px; line-height: 1.15">Tres peonías</span>
+<span style="font-size: 15px; color: #4A3F50">Desde $160.000</span>
+</span>
+</a>
+</section>
+<section class="wrap" style="padding-top: 48px; display: flex; flex-direction: column; align-items: center; gap: 14px">
+<span style="font-size: 14px; color: #62566A">Ves 8 de 24 arreglos</span>
+<div aria-hidden="true" style="width: 200px; height: 3px; border-radius: 2px; background: #F6EEF7; overflow: hidden"><div style="width: 33%; height: 100%; background: #7A5C9E"></div></div>
+<a href="#mas" style="display: inline-flex; align-items: center; height: 52px; padding: 0 36px; border-radius: 26px; background: #7A5C9E; color: #FFFFFF; text-decoration: none; font-size: 16px; font-weight: 500">Ver más arreglos</a>
+</section>
+<div class="wrap" style="padding-top: 72px">
+<section style="padding: 36px 40px; border-radius: 22px; background: #F6EEF7; display: flex; align-items: center; justify-content: space-between; gap: 32px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 30px; line-height: 1.1">¿Buscas algo especial?</span>
+<span style="font-size: 16px; line-height: 1.5; color: #62566A">Para bodas, eventos o un arreglo a tu medida, escríbenos por WhatsApp.</span>
+</div>
+<a href="#whatsapp" style="flex: none; font-size: 15px; font-weight: 600; color: #7A5C9E; min-height: 44px; display: flex; align-items: center">Escribir por WhatsApp →</a>
+</section>
+</div>
+<footer class="wrap" style="margin-top: auto; padding-top: 56px; padding-bottom: 48px; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 10px"><span style="font-family: 'Gloock', Georgia, serif; font-size: 30px">Valentía</span><span style="font-size: 15px; line-height: 1.5; color: #62566A">Flores frescas, armadas por encargo.</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 15px; color: #62566A"><span class="k" style="color: #2E2433">Contacto</span><span>[TELÉFONO DE LA TIENDA]</span><span>[CORREO DE LA TIENDA]</span></div>
+<div class="nav" style="display: flex; flex-direction: column"><span class="k" style="color: #2E2433; margin-bottom: 2px">Tienda</span><a href="08-catalogo-escritorio.html" style="min-height: 36px">Catálogo</a><a href="12-ocasiones-escritorio.html" style="min-height: 36px">Ocasiones</a><a href="#zonas" style="min-height: 36px">Zonas de entrega</a></div>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 15px; color: #62566A"><span class="k" style="color: #2E2433">Pagos</span><span>Tarjeta, PSE y Nequi</span></div>
+</footer>
+<a href="#whatsapp" aria-label="Escríbenos por WhatsApp" style="position: absolute; right: 32px; top: 640px; width: 56px; height: 56px; border-radius: 28px; background: #FFFFFF; box-shadow: 0 2px 12px rgba(46,36,51,0.18); display: flex; align-items: center; justify-content: center; color: #1E7A4C; z-index: 3"><svg aria-hidden="true" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.4-4A8 8 0 1 1 8 18.6z"/><path d="M9 10c0 3 2 5 5 5"/></svg></a>
+</div>
+</body>
+</html>
