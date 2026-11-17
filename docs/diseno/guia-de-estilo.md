@@ -20,7 +20,7 @@ Esta guía describe el **tema claro**, el de todo el año. Los temas de temporad
 
 | Uso | Familia | Escritorio | Celular | Notas |
 |---|---|---|---|---|
-| Título de portada | Gloock | 72 px | 42 px | Interlineado 1,02 a 1,06. Siempre en dos renglones: "Regala emociones" / "con valentía" |
+| Título de portada | Gloock | 72 px | 42 px | Interlineado 1,02 a 1,06. En escritorio, siempre en dos renglones: "Regala emociones" / "con valentía". En celular se acomoda al ancho |
 | Título de sección | Gloock | 40 px | 28 px | |
 | Número de paso | Gloock | 48 px | 32 px | En malva |
 | Nombre de producto | Gloock | 22 px | 17 px | |
@@ -104,3 +104,4 @@ Prohibido, por el ADR 0019:
 | Fecha | Cambio | Quién |
 |---|---|---|
 | 2026-11-17 | Primera versión, a partir del inicio aprobado en celular y escritorio | Equipo del proyecto |
+| 2026-11-17 | Corrección: los dos renglones fijos del título de portada son solo para escritorio; en celular se acomoda al ancho | Equipo del proyecto |

@@ -41,7 +41,7 @@ El ADR 0018 dejó pendiente "la paleta exacta del tema claro". Este ADR la fija,
 
 - No se usan otras familias. Cormorant Garamond, la de la primera propuesta, queda descartada.
 - Gloock va solo en peso normal: nunca en negrita ni en cursiva.
-- El título de la portada va siempre en dos renglones: "Regala emociones" y debajo "con valentía".
+- En escritorio, el título de la portada va siempre en dos renglones, por ancha que sea la pantalla: "Regala emociones" y debajo "con valentía". En celular se acomoda al ancho.
 
 **3. Paleta del tema claro.**
 
