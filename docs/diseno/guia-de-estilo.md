@@ -21,7 +21,10 @@ Esta guía describe el **tema claro**, el de todo el año. Los temas de temporad
 | Uso | Familia | Escritorio | Celular | Notas |
 |---|---|---|---|---|
 | Título de portada | Gloock | 72 px | 42 px | Interlineado 1,02 a 1,06. En escritorio, siempre en dos renglones: "Regala emociones" / "con valentía". En celular se acomoda al ancho |
-| Título de sección | Gloock | 40 px | 28 px | |
+| Título de página (Catálogo, Ocasiones) | Gloock | 56 px | 36 px | |
+| Título del encabezado de una ocasión | Gloock | 52 px | 32 px | Por ejemplo "Flores para cumpleaños" |
+| Título de sección | Gloock | 40 px (34 en el índice de ocasiones) | 28 px (26 en el índice) | |
+| Ruta ("Ocasiones / Cumpleaños") | Manrope 400 | 14 px | 13 px | Color tinta suave; el primer tramo es enlace |
 | Número de paso | Gloock | 48 px | 32 px | En malva |
 | Nombre de producto | Gloock | 22 px | 17 px | |
 | Etiqueta de categoría | Gloock | 22 / 18 px | 18 / 16 px | Grande / pequeña del collage |
@@ -83,7 +86,12 @@ Prohibido, por el ADR 0019:
 |---|---|
 | Botón principal | Fondo malva plano, texto blanco en Manrope 500, píldora. Uno por zona |
 | Enlace "ver más" | Malva, Manrope 600, con flecha (→) |
-| Píldora de ocasión o filtro | Borde de 1 px color borde, fondo blanco, Manrope 500 |
+| Píldora de filtro (tipo) | Borde de 1 px color borde, fondo blanco, Manrope 500. **Elegida:** rellena en color tinta, texto blanco y una "×" para quitarla. Sin píldora "Todos": sin filtro elegido se ve todo. Con un filtro elegido aparece el enlace "Quitar filtros" |
+| Encabezado de una ocasión | Foto a la izquierda (5/12 en escritorio; arriba, 170 px, en celular) y panel rosa empolvado con el título y una o dos líneas. Esquinas de 22 px. Bajito, unos 300 px en escritorio, para que los productos se vean en la primera pantalla. Nunca carrusel ni con cara de anuncio |
+| Foto de ocasión (índice, menú y "Otras ocasiones") | Foto con una etiqueta blanca en Gloock y un círculo malva con flecha, abajo a la izquierda; en el índice, además, una frase corta. En el menú de celular, miniatura redonda de 40 a 44 px |
+| Destacado de temporada | Como el encabezado de una ocasión, con "Temporada · ahora" en malva y un botón principal ("Ver flores para mamá") |
+| Fecha del calendario | Tarjeta con borde: mes abreviado en Gloock malva, nombre y cuándo cae. **La activa:** fondo malva, texto blanco y "Disponible ahora →". En celular, filas en lugar de tarjetas |
+| Barra de avance de "Ver más" | 3 px de alto, fondo lila y avance en malva, sobre el botón, con el texto "Ves 8 de 24 arreglos" |
 | Tarjeta de producto | Foto que llena la tarjeta en 3:4, degradado abajo, nombre en Gloock y "Desde $precio". Sin botón: toda la tarjeta es el enlace |
 | Tarjeta de categoría | Foto con una etiqueta blanca en Gloock abajo a la izquierda. La grande lleva además un círculo malva con flecha |
 | Pasos de "Así funciona" | Franja lila de borde a borde. Número grande en Gloock malva, título en Manrope 600 y una línea divisoria. En escritorio, los tres pasos van uno al lado del otro |
@@ -105,3 +113,4 @@ Prohibido, por el ADR 0019:
 |---|---|---|
 | 2026-11-17 | Primera versión, a partir del inicio aprobado en celular y escritorio | Equipo del proyecto |
 | 2026-11-17 | Corrección: los dos renglones fijos del título de portada son solo para escritorio; en celular se acomoda al ancho | Equipo del proyecto |
+| 2026-11-17 | Piezas nuevas del catálogo y de las ocasiones: título de página, ruta, píldora de filtro elegida, encabezado de ocasión, foto de ocasión, destacado de temporada, fecha del calendario y barra de avance | Equipo del proyecto |
