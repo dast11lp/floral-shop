@@ -27,7 +27,7 @@ Esta guía describe el **tema claro**, el de todo el año. Los temas de temporad
 | Ruta ("Ocasiones / Cumpleaños") | Manrope 400 | 14 px | 13 px | Color tinta suave; el primer tramo es enlace |
 | Número de paso | Gloock | 48 px | 32 px | En malva |
 | Nombre de producto | Gloock | 22 px | 17 px | |
-| Etiqueta de categoría | Gloock | 22 / 18 px | 18 / 16 px | Grande / pequeña del collage |
+| Etiqueta del collage del inicio | Gloock | 22 / 20 px | 18 / 16 px | Grande / pequeña |
 | Texto | Manrope 400 | 16 px | 15 px | Interlineado 1,5 |
 | Subtítulo de portada | Manrope 400 | 18 px | 15 px | |
 | Botón y menú | Manrope 500 | 16 px | 15 px | |
@@ -93,7 +93,7 @@ Prohibido, por el ADR 0019:
 | Fecha del calendario | Tarjeta con borde: mes abreviado en Gloock malva, nombre y cuándo cae. **La activa:** fondo malva, texto blanco y "Disponible ahora →". En celular, filas en lugar de tarjetas |
 | Barra de avance de "Ver más" | 3 px de alto, fondo lila y avance en malva, sobre el botón, con el texto "Ves 8 de 24 arreglos" |
 | Tarjeta de producto | Foto que llena la tarjeta en 3:4, degradado abajo, nombre en Gloock y "Desde $precio". Sin botón: toda la tarjeta es el enlace |
-| Tarjeta de categoría | Foto con una etiqueta blanca en Gloock abajo a la izquierda. La grande lleva además un círculo malva con flecha |
+| Collage del inicio ("Momentos y sentimientos") | Una foto grande y dos pequeñas, con la misma pieza que la foto de ocasión: etiqueta blanca en Gloock y círculo malva con flecha, **en las tres** |
 | Pasos de "Así funciona" | Franja lila de borde a borde. Número grande en Gloock malva, título en Manrope 600 y una línea divisoria. En escritorio, los tres pasos van uno al lado del otro |
 
 ## 6. Fotos
@@ -114,3 +114,4 @@ Prohibido, por el ADR 0019:
 | 2026-11-17 | Primera versión, a partir del inicio aprobado en celular y escritorio | Equipo del proyecto |
 | 2026-11-17 | Corrección: los dos renglones fijos del título de portada son solo para escritorio; en celular se acomoda al ancho | Equipo del proyecto |
 | 2026-11-17 | Piezas nuevas del catálogo y de las ocasiones: título de página, ruta, píldora de filtro elegida, encabezado de ocasión, foto de ocasión, destacado de temporada, fecha del calendario y barra de avance | Equipo del proyecto |
+| 2026-11-17 | Inicio ajustado: el collage pasa a ser de ocasiones ("Momentos y sentimientos") y todas sus fotos llevan flecha; la etiqueta pequeña sube a 20 px en escritorio | Equipo del proyecto |

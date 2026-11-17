@@ -16,15 +16,15 @@ Se necesita internet para dos cosas: las letras (Google Fonts) y las fotos (Unsp
 | `01-direccion-a-limpia.html` | Dirección A, limpia. Inicio en celular | Descartada |
 | `02-direccion-b-suave.html` | Dirección B, suave. Inicio en celular | Base de la mezcla final |
 | `03-direccion-c-elegante.html` | Dirección C, elegante. Inicio en celular | Se tomaron la foto grande arriba y los pasos |
-| `04-inicio-celular.html` | Inicio final en celular | **Aprobado** |
-| `05-inicio-escritorio.html` | Inicio final en escritorio | **Aprobado** |
+| `04-inicio-celular.html` | Inicio final en celular, ajustado a la organización: tipos, Destacados y "Momentos y sentimientos" | **Aprobado** |
+| `05-inicio-escritorio.html` | Inicio final en escritorio, con el mismo ajuste | **Aprobado** |
 | `06-tablero-de-estilo.html` | Tablero de estilo: letras, colores, formas, degradados, botones, fotos e íconos | **Aprobado**, ajustable por un diseñador (ADR 0019, punto 8) |
 | `07-catalogo-celular.html` / `08-catalogo-escritorio.html` | Catálogo: todos los arreglos, filtro por tipo | **Aprobado** |
 | `09-ocasion-celular.html` / `10-ocasion-escritorio.html` | Una ocasión (ejemplo: Cumpleaños), con su encabezado | **Aprobado** |
-| `11-ocasiones-celular.html` / `12-ocasiones-escritorio.html` | Índice de ocasiones: temporada, Momentos, Para decir y calendario de fechas especiales | **Aprobado** |
+| `11-ocasiones-celular.html` / `12-ocasiones-escritorio.html` | Índice de ocasiones: temporada, Momentos, Sentimientos y calendario de fechas especiales | **Aprobado** |
 | `13-menu-celular.html` / `14-menu-escritorio.html` | Menú abierto, con las ocasiones en dos grupos | **Aprobado** |
 
-La organización de estas vistas (menú, reglas y pendientes) está explicada en `docs/diseno/organizacion-de-la-tienda.md`. El inicio de escritorio (`05`) ya tiene el menú nuevo, pero el resto del inicio todavía no se ajustó a esa organización (pendiente 46).
+La organización de estas vistas (menú, reglas y pendientes) está explicada en `docs/diseno/organizacion-de-la-tienda.md`. El inicio (`04` y `05`) ya sigue esa organización.
 
 Las tres direcciones (01 a 03) se guardan como historia: muestran de dónde salió la mezcla final. Están tal como se compararon, incluidos sus defectos. Por ejemplo, en la C la última ocasión queda cortada.
 
