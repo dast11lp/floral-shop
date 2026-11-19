@@ -13,7 +13,7 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 - **Lo que viene marcado por defecto** se lee como una recomendación.
 - **En los mercados en línea,** el día apartado vence, y cambiar el carrito lo puede romper. Por eso aquí nada se aparta antes de pagar.
 
-**Cómo se llegó:** se dibujaron varias rondas en el lienzo de diseño, comparando textos y casos (carrito vacío, carrito con productos, el ramo que mueve el día y el último paso). Lo acordado está en el pendiente 47 y en los tableros "versión acordada" y "Días" del lienzo.
+**Cómo se llegó:** se dibujaron varias rondas en el lienzo de diseño, comparando textos y casos (carrito vacío, carrito con productos, el ramo que mueve el día y el último paso). La página del producto y los estados del recuadro de entrega se aprobaron el 2026-11-18: están en `docs/diseno/propuesta-2`, maquetas 15 a 22. El último paso no está aprobado: se diseña con el checkout.
 
 ### Cómo leer este documento
 - **Decisión:** lo acordado el 2026-11-18, una decisión por vez.
@@ -24,7 +24,7 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 ## Decisión
 
 **1. El flujo de compra cambia así** (reemplaza el punto 1 del 0012):
-1. En el producto, el cliente ve **qué día le llegaría**. Puede elegir su zona ahí mismo, pero **no está obligado**.
+1. En el producto, el cliente ve **qué día le llegaría**. Puede elegir su zona ahí mismo, pero **no está obligado**. Sigue viendo también cuánto tarda en armarse (la línea del reloj, como en el 0012).
 2. Si elige su zona, ve los días y puede marcar uno. Si ya lleva productos, ve cómo queda el día de todo el carrito con este ramo.
 3. Arma el carrito. La zona y el día se recuerdan.
 4. En el último paso, la zona y el día **llegan puestos** y **se pueden cambiar**. Ahí escribe su dirección, elige la hora y paga.
@@ -72,7 +72,8 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
   - un cupo se ve lleno mientras otra persona paga y se libera si no termina (51 minutos como máximo, ADR 0013);
   - la florista cierra una franja o cambia el cupo o el tope de días.
 - **La fecha se guarda exacta** (2026-11-18), nunca como "mañana". Al volver, si ya pasó o no sirve, se marca el primer día que sí sirve.
-- **Se vuelve a consultar:** al volver a la pestaña; antes de agregar al carrito (el botón "Agregar y pasar al viernes 20" tiene que ser cierto); al entrar al último paso; y cuando se cruza la hora de corte del día que se muestra, que el navegador calcula con lo que ya recibió, sin preguntar a cada rato.
+- **Se vuelve a consultar:** al cambiar de tamaño (variante); al volver a la pestaña; antes de agregar al carrito (el botón "Agregar y pasar al viernes 20" tiene que ser cierto); al entrar al último paso; y cuando se cruza la hora de corte del día que se muestra, que el navegador calcula con lo que ya recibió, sin preguntar a cada rato.
+- **Al cambiar de tamaño:** la foto principal, el precio y la línea del reloj cambian sin consultar, porque ya vienen con el producto. El recuadro de entrega sí se consulta de nuevo: cada variante tarda distinto (`craftingHours`) y ocupa distintos cupos en la franja (`slot_units`), así que pueden cambiar el día más pronto y los días con lugar.
 - **Si cambia, se avisa con la misma forma de siempre:** "Ya no alcanzamos para el miércoles 18. Lo más pronto ahora es el jueves 19." Sin errores ni textos nuevos.
 - Esto ya pasaba con el 0012 entre ver las franjas y pagar; con este ADR la ventana es más larga, por eso se escribe la regla.
 
@@ -83,7 +84,7 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 - **No se deja abierto** (pedidos a un año): cambian los precios y las flores de temporada, ella puede no trabajar ese día, y el dinero queda guardado mucho tiempo si toca devolverlo.
 
 **9. Cambios en el backend.** Casi todo ya existe:
-- `POST /api/v1/delivery-options` ya calcula los días con la zona y las líneas, sin guardar ni apartar nada. El frontend lo llama de nuevo cuando cambia la zona o el carrito.
+- `POST /api/v1/delivery-options` ya calcula los días con la zona y las líneas, sin guardar ni apartar nada. El frontend lo llama de nuevo cuando cambia la zona, el tamaño o el carrito.
 - Para "Sin él, sería…", el frontend lo llama dos veces: con el carrito y con el carrito más este ramo.
 - **Lo nuevo:**
   - Aceptar la consulta **sin zona** (`zoneId` opcional) y calcular con la zona de mayor margen de viaje. Cambian la petición, el servicio que calcula la fecha y sus pruebas.
@@ -101,11 +102,11 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 - **Las fotos cambian con el tamaño** (pendiente 42): cada variante necesita su foto principal.
 
 ## Pendiente
+- **La línea del reloj** ("En tamaño Pequeño, lo armamos en 4 horas. Si llevas varios productos, los tiempos se suman.") **se mantiene** junto al recuadro de entrega (decidido el 2026-11-18). No cuesta una consulta más: las horas de armado ya vienen con el producto. Cuando todo el sistema esté construido, se evalúa si sobra al lado del día de entrega (pendiente 50).
 - **Pulir los textos** con la pantalla completa. La idea está acordada; las palabras exactas pueden cambiar.
 - **El tope de días** (30 de arranque): confirmarlo con la florista (pendiente 48).
 - **La plantilla semanal de franjas** (pendiente 49): con 30 días hacia adelante, crear las franjas una por una no escala.
 - **Versión de escritorio** del recuadro de entrega y del calendario.
-- **Colores del aviso en la guía de estilo:** el texto `#9A4F5E` (contraste 5,3:1 sobre el rosa empolvado) y el borde `#EBD3D0` se usaron en las maquetas, pero no están en `docs/diseno/guia-de-estilo.md`. Sumarlos al aprobar este ADR.
 - **Mensaje de la tarjeta:** no existe en el sistema. Se ve con el carrito.
 
 ## Consecuencias
@@ -129,4 +130,4 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 | 0013 | Sin cambios: el cupo se aparta al pagar, con los mismos tiempos |
 | 0016 | No agrega bloqueos ni cambia el orden pedido → pago → franja. El producto y el último paso solo leen, y en PostgreSQL una lectura no espera a un bloqueo; apartar la franja sigue igual |
 | 0017 | El recuadro de entrega se llena en el navegador, aunque la página del producto se genere en el servidor; la zona y el día se guardan con el carrito |
-| 0019 | Usa su identidad (colores, píldoras, recuadros de 22 px). El fondo del aviso es el rosa empolvado de la guía; el texto y el borde del aviso son nuevos (Pendiente) |
+| 0019 | Usa su identidad (colores, píldoras, recuadros de 22 px). El aviso usa el rosa empolvado y dos colores nuevos, aviso y borde de aviso, sumados a la guía de estilo el 2026-11-18 |

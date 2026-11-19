@@ -51,6 +51,8 @@ Contraste calculado con la fórmula de WCAG 2.1. El mínimo es 4,5 a 1 para text
 | Línea | `--linea` | `#E2D4E5` | Líneas divisorias | Decorativo |
 | Blanco | `--fondo` | `#FFFFFF` | Fondo de la página | Base |
 | WhatsApp | `--whatsapp` | `#1E7A4C` | Solo el ícono de WhatsApp | 5,3 sobre blanco |
+| Aviso | `--aviso` | `#9A4F5E` | Texto del aviso suave del recuadro de entrega ("Sin él, sería el jueves 19.") | 5,3 sobre rosa empolvado; 5,7 sobre blanco |
+| Borde de aviso | `--borde-aviso` | `#EBD3D0` | Borde del recuadro de entrega cuando avisa | Decorativo |
 
 ## 3. Formas y espacios
 
@@ -94,6 +96,13 @@ Prohibido, por el ADR 0019:
 | Barra de avance de "Ver más" | 3 px de alto, fondo lila y avance en malva, sobre el botón, con el texto "Ves 8 de 24 arreglos" |
 | Tarjeta de producto | Foto que llena la tarjeta en 3:4, degradado abajo, nombre en Gloock y "Desde $precio". Sin botón: toda la tarjeta es el enlace |
 | Collage del inicio ("Momentos y sentimientos") | Una foto grande y dos pequeñas, con la misma pieza que la foto de ocasión: etiqueta blanca en Gloock y círculo malva con flecha, **en las tres** |
+| Píldora de tamaño | Como la de filtro, más alta (58 a 60 px), con el nombre en Manrope 600 y el precio debajo en 12 a 13 px. La elegida, rellena en tinta. Al cambiarla cambian el precio, la foto principal y la línea del reloj (ADR 0020) |
+| Línea del reloj | Ícono de reloj malva y una línea: lo que tarda en Manrope 600 y la explicación en tinta suave ("En tamaño Pequeño, lo armamos en 4 horas. Si llevas varios productos, los tiempos se suman.") |
+| Recuadro de entrega | Fondo lila, esquinas de 22 px. Arriba, camión malva con "Entrega en Chapinero" en tinta suave y "Cambia tu zona" en malva a la derecha; sin zona, el botón blanco "Elige tu zona". Una sola frase en 17 a 18 px con el día en negrita. Va encima del botón principal (ADR 0020) |
+| Recuadro de entrega con aviso | El mismo recuadro con fondo rosa empolvado, borde de aviso y, debajo de la frase, el aviso en 13 px ("Sin él, sería el jueves 19."). Solo cuando el ramo mueve el día |
+| Día de la fila | Píldora de 62 × 58 px con el día corto arriba (12 px) y el número abajo (16 px). **Elegido:** relleno tinta. **Cerrado o sin cupo:** borde punteado, texto apagado `#A99DB0` y tachado. La fila se desvanece a la derecha para mostrar que se desliza |
+| Botón "Más" | Al final de la fila, fijo: ícono de calendario y "Más" en malva, fondo blanco. **Con una fecha lejana elegida:** relleno tinta con el día ("Jue 3 dic"). **Abierto:** fondo lila y borde malva de 2 px |
+| Calendario | Celular: hoja que sube desde abajo sobre un velo tinta al 45 %. Escritorio: ventanita blanca de 380 px junto a "Más", con borde y sombra suave. Título "Elige el día" en Gloock, el límite en una línea, mes con flechas, días de 40 a 44 px: elegido en tinta, cerrados o sin cupo tachados, después del límite muy claros (`#D3C9D8`; como están deshabilitados, WCAG no les exige contraste); debajo, "Los días tachados están cerrados o sin cupo." y el botón principal "Elegir el jueves 3 de diciembre" |
 | Pasos de "Así funciona" | Franja lila de borde a borde. Número grande en Gloock malva, título en Manrope 600 y una línea divisoria. En escritorio, los tres pasos van uno al lado del otro |
 
 ## 6. Fotos
@@ -115,3 +124,4 @@ Prohibido, por el ADR 0019:
 | 2026-11-17 | Corrección: los dos renglones fijos del título de portada son solo para escritorio; en celular se acomoda al ancho | Equipo del proyecto |
 | 2026-11-17 | Piezas nuevas del catálogo y de las ocasiones: título de página, ruta, píldora de filtro elegida, encabezado de ocasión, foto de ocasión, destacado de temporada, fecha del calendario y barra de avance | Equipo del proyecto |
 | 2026-11-17 | Inicio ajustado: el collage pasa a ser de ocasiones ("Momentos y sentimientos") y todas sus fotos llevan flecha; la etiqueta pequeña sube a 20 px en escritorio | Equipo del proyecto |
+| 2026-11-18 | Página del producto aprobada (ADR 0020): colores de aviso y piezas nuevas (píldora de tamaño, línea del reloj, recuadro de entrega, día de la fila, botón "Más" y calendario) | Equipo del proyecto |

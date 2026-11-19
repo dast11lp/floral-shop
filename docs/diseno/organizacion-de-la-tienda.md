@@ -54,4 +54,4 @@ Catálogo · Ocasiones ▾ · [fecha especial, solo en temporada] · Zonas de en
 ## Pendiente
 - **Lo que necesita el backend:** está en `docs/pendientes.md` (pendientes 39 y 42 a 45).
 - **Confirmar con la florista** qué ocasiones, motivos y fechas especiales usa de verdad, y cómo ordena sus productos.
-- **Pantallas que faltan:** producto, carrito, checkout y resultado del pago.
+- **Pantallas que faltan:** carrito, checkout y resultado del pago. El producto se aprobó el 2026-11-18 (ADR 0020; maquetas 15 a 22 de `propuesta-2`).

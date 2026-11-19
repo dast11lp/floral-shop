@@ -23,8 +23,17 @@ Se necesita internet para dos cosas: las letras (Google Fonts) y las fotos (Unsp
 | `09-ocasion-celular.html` / `10-ocasion-escritorio.html` | Una ocasión (ejemplo: Cumpleaños), con su encabezado | **Aprobado** |
 | `11-ocasiones-celular.html` / `12-ocasiones-escritorio.html` | Índice de ocasiones: temporada, Momentos, Sentimientos y calendario de fechas especiales | **Aprobado** |
 | `13-menu-celular.html` / `14-menu-escritorio.html` | Menú abierto, con las ocasiones en dos grupos | **Aprobado** |
+| `15-producto-celular.html` / `16-producto-escritorio.html` | Página del producto completa, con la entrega del ADR 0020 (carrito vacío y zona elegida) | **Aprobado** (2026-11-18) |
+| `17-producto-calendario-escritorio.html` | Escritorio: "Más" abre el calendario en una ventanita junto a la fila de días | **Aprobado** (2026-11-18) |
+| `18-entrega-sin-zona-celular.html` | Recuadro de entrega sin zona: "Este ramo llegaría desde mañana" | **Aprobado** (2026-11-18); los textos se pulen al construir (ADR 0020) |
+| `19-entrega-con-carrito-celular.html` | Con productos en el carrito, el ramo no mueve el día: una sola frase | **Aprobado** (2026-11-18) |
+| `20-entrega-mueve-el-dia-celular.html` | El ramo mueve el día: aviso en rosa, "Sin él, sería…" y "Agregar y pasar al viernes 20" | **Aprobado** (2026-11-18) |
+| `21-entrega-calendario-celular.html` | Celular: "Más" abre el calendario desde abajo | **Aprobado** (2026-11-18) |
+| `22-entrega-fecha-lejana-celular.html` | Eligió una fecha lejana: queda marcada en el botón del final de la fila | **Aprobado** (2026-11-18) |
 
 La organización de estas vistas (menú, reglas y pendientes) está explicada en `docs/diseno/organizacion-de-la-tienda.md`. El inicio (`04` y `05`) ya sigue esa organización.
+
+Las reglas del producto y de su recuadro de entrega (qué se dice en cada caso, cuándo se vuelve a consultar, el calendario y el tope de días) están en el ADR 0020. Las maquetas 18 a 22 muestran solo la parte de arriba del producto, con cada estado del recuadro. Las fechas, zonas y precios son de ejemplo. La foto principal cambia con el tamaño (pendiente 42); en una maqueta quieta no se ve.
 
 Las tres direcciones (01 a 03) se guardan como historia: muestran de dónde salió la mezcla final. Están tal como se compararon, incluidos sus defectos. Por ejemplo, en la C la última ocasión queda cortada.
 
