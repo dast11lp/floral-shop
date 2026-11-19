@@ -30,10 +30,22 @@ Se necesita internet para dos cosas: las letras (Google Fonts) y las fotos (Unsp
 | `20-entrega-mueve-el-dia-celular.html` | El ramo mueve el día: aviso en rosa, "Sin él, sería…" y "Agregar y pasar al viernes 20" | **Aprobado** (2026-11-18) |
 | `21-entrega-calendario-celular.html` | Celular: "Más" abre el calendario desde abajo | **Aprobado** (2026-11-18) |
 | `22-entrega-fecha-lejana-celular.html` | Eligió una fecha lejana: queda marcada en el botón del final de la fila | **Aprobado** (2026-11-18) |
+| `23-carrito-al-agregar-celular.html` | Al agregar: la persona se queda en el producto, el botón dice "Agregado ✓" y aparece un aviso pequeño con "Ver carrito" y "Seguir mirando" | **Aprobado** (2026-11-19) |
+| `24-carrito-celular.html` | Carrito con zona: entrega, productos con − cantidad +, aviso de regalo, resumen y barra del total fija abajo | **Aprobado** (2026-11-19) |
+| `25-carrito-sin-zona-celular.html` | Carrito sin zona: "Según tu zona" y "Total sin envío" | **Aprobado** (2026-11-19) |
+| `26-carrito-deshacer-celular.html` | Quitó un producto: aviso "Deshacer" encima de la barra fija | **Aprobado** (2026-11-19) |
+| `27-carrito-algo-cambio-celular.html` | Algo cambió desde que se guardó: precio nuevo, cantidad ajustada al máximo, tamaño que ya no está y día que se movió | **Aprobado** (2026-11-19) |
+| `28-carrito-vacio-celular.html` | Carrito vacío, con "Ver el catálogo" y Destacados | **Aprobado** (2026-11-19) |
+| `29-carrito-escritorio.html` | Carrito en escritorio: productos a la izquierda y tarjeta quieta a la derecha | **Aprobado** (2026-11-19) |
 
 La organización de estas vistas (menú, reglas y pendientes) está explicada en `docs/diseno/organizacion-de-la-tienda.md`. El inicio (`04` y `05`) ya sigue esa organización.
 
 Las reglas del producto y de su recuadro de entrega (qué se dice en cada caso, cuándo se vuelve a consultar, el calendario y el tope de días) están en el ADR 0020. Las maquetas 18 a 22 muestran solo la parte de arriba del producto, con cada estado del recuadro. Las fechas, zonas y precios son de ejemplo. La foto principal cambia con el tamaño (pendiente 42); en una maqueta quieta no se ve.
+
+Las decisiones del carrito están en el pendiente 52. **Lo que se mueve está marcado en el HTML** con un comentario que empieza por `COMPORTAMIENTO:` y un atributo `data-comportamiento`:
+- `fija-abajo`: la barra del total del carrito en celular (`position: sticky; bottom: 0`). El contenido se desliza por debajo. Se ve fija al abrir la maqueta en una ventana del alto de un celular.
+- `fija-arriba`: la tarjeta del resumen en escritorio (`position: sticky; top: 24px`).
+- `aviso-temporal`: los avisos "Agregado" y "Deshacer", que se van solos a los pocos segundos. En la maqueta están quietos; en la tienda van fijos a la pantalla.
 
 Las tres direcciones (01 a 03) se guardan como historia: muestran de dónde salió la mezcla final. Están tal como se compararon, incluidos sus defectos. Por ejemplo, en la C la última ocasión queda cortada.
 
