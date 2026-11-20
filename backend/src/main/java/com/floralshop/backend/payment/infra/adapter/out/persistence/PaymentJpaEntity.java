@@ -1,6 +1,7 @@
 package com.floralshop.backend.payment.infra.adapter.out.persistence;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,7 +13,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 // Refleja la tabla payment, que es de payment. order_id es un dato, sin relación JPA con los pedidos
-// (ADR 0013, punto 2). created_at lo pone la base de datos; resolved_at lo llenará el PR 2.
+// (ADR 0013, punto 2). created_at lo pone la base de datos.
+// status_reason y resolved_at solo los escriben las actualizaciones condicionales de PaymentJpaRepository
+// (ADR 0016, D.8): un pago nuevo nace sin ellos, y la entidad nunca se reescribe entera.
 // Un intento se guarda primero sin cobro (sin referencia ni URL) y se completa después de crearlo en la pasarela.
 @Entity
 @Table(name = "payment")
@@ -44,6 +47,13 @@ public class PaymentJpaEntity {
 
     @Column(name = "checkout_url", length = 500)
     private String checkoutUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status_reason", length = 30)
+    private PaymentStatusReasonColumn statusReason;
+
+    @Column(name = "resolved_at")
+    private Instant resolvedAt;
 
     protected PaymentJpaEntity() {
     }

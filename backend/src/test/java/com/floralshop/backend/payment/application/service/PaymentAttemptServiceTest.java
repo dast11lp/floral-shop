@@ -3,6 +3,7 @@ package com.floralshop.backend.payment.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -31,12 +32,15 @@ import com.floralshop.backend.ordering.domain.model.OrderStatus;
 import com.floralshop.backend.payment.application.port.out.CheckoutSession;
 import com.floralshop.backend.payment.application.port.out.PaymentRepositoryPort;
 import com.floralshop.backend.payment.domain.exception.PaymentAlreadyInProgressException;
+import com.floralshop.backend.payment.domain.exception.PaymentAttemptClosedException;
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethod;
 import com.floralshop.backend.payment.domain.model.PaymentMethodPolicy;
 import com.floralshop.backend.payment.domain.model.PaymentStatus;
+import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 
 // Los pasos de un intento de pago que tocan la base: guardar el intento, anotar el cobro, marcarlo fallido.
+// Anotar y marcar fallido son actualizaciones condicionales (ADR 0016, D.8): solo si el intento sigue pendiente.
 @ExtendWith(MockitoExtension.class)
 class PaymentAttemptServiceTest {
 
@@ -98,8 +102,8 @@ class PaymentAttemptServiceTest {
     }
 
     @Test
-    void attachCheckoutSavesTheReferenceAndTheUrl() {
-        when(payments.save(any())).thenAnswer(call -> call.getArgument(0));
+    void attachCheckoutAnnotatesTheReferenceAndTheUrlWhenTheAttemptIsStillPending() {
+        when(payments.attachCheckoutIfPending(7L, "ORDTST01ABC", "https://mp/pay")).thenReturn(true);
 
         Payment attached = service.attachCheckout(attempt(), new CheckoutSession("ORDTST01ABC", "https://mp/pay"));
 
@@ -107,15 +111,35 @@ class PaymentAttemptServiceTest {
         assertThat(attached.providerReference()).isEqualTo("ORDTST01ABC");
         assertThat(attached.checkoutUrl()).isEqualTo("https://mp/pay");
         assertThat(attached.id()).isEqualTo(7L);
+        // Nunca reescribe la fila entera (ADR 0016, D.8).
+        verify(payments, never()).save(any());
+    }
+
+    // Otro proceso ya cerró el intento: no se entrega el enlace, y el error no lo menciona (D.3).
+    @Test
+    void attachCheckoutFailsWithoutTheUrlWhenAnotherProcessAlreadyClosedTheAttempt() {
+        when(payments.attachCheckoutIfPending(7L, "ORDTST01ABC", "https://mp/pay")).thenReturn(false);
+
+        assertThatThrownBy(() -> service.attachCheckout(attempt(), new CheckoutSession("ORDTST01ABC", "https://mp/pay")))
+                .isInstanceOf(PaymentAttemptClosedException.class)
+                .message().doesNotContain("https://mp/pay");
     }
 
     @Test
-    void markFailedLeavesTheAttemptFailed() {
-        service.markFailed(attempt());
+    void markFailedClosesTheAttemptWithItsReasonAndTheTime() {
+        service.markFailed(attempt(), PaymentStatusReason.CREATION_UNCONFIRMED);
 
-        ArgumentCaptor<Payment> sent = ArgumentCaptor.forClass(Payment.class);
-        verify(payments).save(sent.capture());
-        assertThat(sent.getValue().status()).isEqualTo(PaymentStatus.FAILED);
-        assertThat(sent.getValue().id()).isEqualTo(7L);
+        verify(payments).markFailedIfPending(7L, PaymentStatusReason.CREATION_UNCONFIRMED, NOW);
+        verify(payments, never()).save(any());
+    }
+
+    // Si otro proceso ya lo cerró, no pasa nada: su cierre se respeta y no es un error.
+    @Test
+    void markFailedOnAnAlreadyClosedAttemptChangesNothing() {
+        when(payments.markFailedIfPending(7L, PaymentStatusReason.GATEWAY_REJECTED, NOW)).thenReturn(false);
+
+        service.markFailed(attempt(), PaymentStatusReason.GATEWAY_REJECTED);
+
+        verify(payments).markFailedIfPending(7L, PaymentStatusReason.GATEWAY_REJECTED, NOW);
     }
 }

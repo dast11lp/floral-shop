@@ -29,9 +29,12 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -39,7 +42,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.floralshop.backend.TestcontainersConfiguration;
 import com.floralshop.backend.payment.application.port.out.PaymentRepositoryPort;
@@ -47,6 +52,7 @@ import com.floralshop.backend.payment.domain.exception.PaymentAlreadyInProgressE
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethod;
 import com.floralshop.backend.payment.domain.model.PaymentStatus;
+import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 import com.jayway.jsonpath.JsonPath;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -80,6 +86,9 @@ class StartPaymentApiIntegrationTest {
 
     @Autowired
     PaymentRepositoryPort payments;
+
+    @Autowired
+    TransactionTemplate transactions;
 
     private final LocalDate inFiveDays = LocalDate.now(ZoneId.of("America/Bogota")).plusDays(5);
 
@@ -293,6 +302,125 @@ class StartPaymentApiIntegrationTest {
 
         assertThatThrownBy(() -> payments.save(attempt)).isInstanceOf(PaymentAlreadyInProgressException.class);
         assertThat(paymentCount()).isEqualTo(1);
+    }
+
+    // ADR 0016, D.8 y D.3: mientras se espera a Mercado Pago, otro proceso cierra el intento (aquí, a mano,
+    // como lo hará el job). El guardado tardío del enlace no lo pisa: el pago sigue cerrado y sin referencia,
+    // el cliente recibe 409 sin el enlace, y el enlace no aparece en los logs.
+    @Test
+    @ExtendWith(OutputCaptureExtension.class)
+    void aLateAttachDoesNotOverwriteAnAttemptClosedMeanwhileAndTheClientGetsNoLink(CapturedOutput logs)
+            throws Exception {
+        mercadoPagoAnswers(1500);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        String body;
+        try {
+            Future<MvcResult> request = executor.submit(() -> pay(orderCode, "CARD").andReturn());
+            waitUntil(() -> paymentCount() == 1);
+            jdbc.update("update payment set status = 'EXPIRED', resolved_at = now()");
+
+            MvcResult result = request.get(10, TimeUnit.SECONDS);
+            assertThat(result.getResponse().getStatus()).isEqualTo(409);
+            body = result.getResponse().getContentAsString();
+        } finally {
+            executor.shutdownNow();
+        }
+        assertThat(body).contains("ya se cerró").doesNotContain(CHECKOUT_URL);
+        assertThat(logs.getAll()).doesNotContain(CHECKOUT_URL);
+
+        Map<String, Object> row = jdbc.queryForMap("select status, provider_reference, checkout_url from payment");
+        assertThat(row.get("status")).isEqualTo("EXPIRED");
+        assertThat(row.get("provider_reference")).isNull();
+        assertThat(row.get("checkout_url")).isNull();
+    }
+
+    // ADR 0016, D.8: Mercado Pago falla, pero mientras tanto otro proceso ya cerró el intento con su propio motivo.
+    // El markFailed tardío no lo pisa: quedan el motivo y la hora del primer cierre.
+    @Test
+    void aLateMarkFailedDoesNotOverwriteAnAttemptClosedMeanwhile() throws Exception {
+        mercadoPago.stubFor(WireMock.post("/v1/orders").willReturn(aResponse().withStatus(500).withFixedDelay(1500)));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<Integer> request = executor.submit(() ->
+                    pay(orderCode, "CARD").andReturn().getResponse().getStatus());
+            waitUntil(() -> paymentCount() == 1);
+            jdbc.update("update payment set status = 'EXPIRED', resolved_at = timestamptz '2026-01-01 10:00:00+00'");
+
+            assertThat(request.get(10, TimeUnit.SECONDS)).isEqualTo(502);
+        } finally {
+            executor.shutdownNow();
+        }
+        Map<String, Object> row = jdbc.queryForMap(
+                "select status, status_reason, resolved_at = timestamptz '2026-01-01 10:00:00+00' as same_time "
+                        + "from payment");
+        assertThat(row.get("status")).isEqualTo("EXPIRED");
+        assertThat(row.get("status_reason")).isNull();
+        assertThat(row.get("same_time")).isEqualTo(true);
+    }
+
+    // El caso normal de una falla: el intento queda FAILED, con el motivo y la hora del cierre.
+    @Test
+    void aGatewayFailureSavesTheReasonAndTheTimeOfTheClosing() throws Exception {
+        mercadoPago.stubFor(WireMock.post("/v1/orders").willReturn(aResponse().withStatus(500)));
+
+        pay(orderCode, "CARD").andExpect(status().isBadGateway());
+
+        Map<String, Object> row = jdbc.queryForMap(
+                "select status, status_reason, resolved_at between now() - interval '1 minute' and now() as recent "
+                        + "from payment");
+        assertThat(row.get("status")).isEqualTo("FAILED");
+        assertThat(row.get("status_reason")).isEqualTo("CREATION_UNCONFIRMED");
+        assertThat(row.get("recent")).isEqualTo(true);
+    }
+
+    // Las actualizaciones condicionales, directo contra la base: sobre un pago cerrado no cambian nada.
+    @Test
+    void conditionalUpdatesDoNothingOnAClosedPayment() {
+        Payment saved = payments.save(new Payment(null, orderId(), "mercadopago", PaymentMethod.CARD,
+                PaymentStatus.PENDING, new BigDecimal("145000"), null, null));
+        jdbc.update("update payment set status = 'PAID', provider_reference = 'ORDPAGADO', checkout_url = 'https://pagado'");
+
+        // Cada una en su transacción, como la abre el caso de uso en la aplicación (ADR 0011).
+        Boolean attached = transactions.execute(tx ->
+                payments.attachCheckoutIfPending(saved.id(), "ORDOTRO", "https://otro"));
+        Boolean failed = transactions.execute(tx -> payments.markFailedIfPending(saved.id(),
+                PaymentStatusReason.CREATION_UNCONFIRMED, java.time.Instant.now()));
+        assertThat(attached).isFalse();
+        assertThat(failed).isFalse();
+
+        Map<String, Object> row = jdbc.queryForMap(
+                "select status, provider_reference, checkout_url, status_reason, resolved_at from payment");
+        assertThat(row.get("status")).isEqualTo("PAID");
+        assertThat(row.get("provider_reference")).isEqualTo("ORDPAGADO");
+        assertThat(row.get("checkout_url")).isEqualTo("https://pagado");
+        assertThat(row.get("status_reason")).isNull();
+        assertThat(row.get("resolved_at")).isNull();
+    }
+
+    // Inyección SQL: los valores viajan como parámetros, nunca pegados en el texto de la consulta.
+    // Un enlace con SQL dentro se guarda tal cual, como texto, y no se ejecuta: la tabla sigue entera.
+    @Test
+    void aLinkWithSqlInsideIsSavedAsPlainTextAndRunsNothing() {
+        Payment other = payments.save(new Payment(null, orderId(), "mercadopago", PaymentMethod.CARD,
+                PaymentStatus.PENDING, new BigDecimal("145000"), null, null));
+        jdbc.update("update payment set status = 'EXPIRED'");
+        Payment saved = payments.save(new Payment(null, orderId(), "mercadopago", PaymentMethod.CARD,
+                PaymentStatus.PENDING, new BigDecimal("145000"), null, null));
+        String evilUrl = "https://x'; DELETE FROM payment; --";
+        String evilReference = "ORD' OR '1'='1";
+
+        Boolean attached = transactions.execute(tx ->
+                payments.attachCheckoutIfPending(saved.id(), evilReference, evilUrl));
+
+        assertThat(attached).isTrue();
+        assertThat(paymentCount()).isEqualTo(2);
+        Map<String, Object> row = jdbc.queryForMap(
+                "select provider_reference, checkout_url from payment where id = ?", saved.id());
+        assertThat(row.get("provider_reference")).isEqualTo(evilReference);
+        assertThat(row.get("checkout_url")).isEqualTo(evilUrl);
+        // El OR '1'='1' no alcanzó a otra fila: el pago vencido sigue sin enlace.
+        assertThat(jdbc.queryForObject("select checkout_url from payment where id = ?", String.class, other.id()))
+                .isNull();
     }
 
     private static void waitUntil(Callable<Boolean> condition) throws Exception {

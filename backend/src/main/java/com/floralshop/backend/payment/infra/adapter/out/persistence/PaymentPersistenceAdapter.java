@@ -1,5 +1,6 @@
 package com.floralshop.backend.payment.infra.adapter.out.persistence;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -10,6 +11,7 @@ import com.floralshop.backend.payment.domain.exception.PaymentAlreadyInProgressE
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethod;
 import com.floralshop.backend.payment.domain.model.PaymentStatus;
+import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 
 // Adaptador de salida: guarda y busca pagos con JPA. La transacción la abre el caso de uso (infra/config).
 @Repository
@@ -42,6 +44,17 @@ class PaymentPersistenceAdapter implements PaymentRepositoryPort {
     @Override
     public Optional<Payment> findPendingByOrderId(long orderId) {
         return jpa.findByOrderIdAndStatus(orderId, PaymentStatusColumn.PENDING).map(PaymentPersistenceAdapter::toDomain);
+    }
+
+    @Override
+    public boolean attachCheckoutIfPending(long paymentId, String providerReference, String checkoutUrl) {
+        return jpa.attachCheckoutIf(paymentId, PaymentStatusColumn.PENDING, providerReference, checkoutUrl) == 1;
+    }
+
+    @Override
+    public boolean markFailedIfPending(long paymentId, PaymentStatusReason reason, Instant resolvedAt) {
+        return jpa.closeIf(paymentId, PaymentStatusColumn.PENDING, PaymentStatusColumn.FAILED,
+                PaymentStatusReasonColumn.valueOf(reason.name()), resolvedAt) == 1;
     }
 
     private static PaymentJpaEntity toEntity(Payment p) {

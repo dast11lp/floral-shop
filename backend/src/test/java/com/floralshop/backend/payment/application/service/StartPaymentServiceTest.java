@@ -37,12 +37,14 @@ import com.floralshop.backend.payment.application.port.out.PaymentMethodPolicyRe
 import com.floralshop.backend.payment.application.port.out.PaymentRepositoryPort;
 import com.floralshop.backend.payment.domain.exception.OrderNotPayableException;
 import com.floralshop.backend.payment.domain.exception.PaymentAlreadyInProgressException;
+import com.floralshop.backend.payment.domain.exception.PaymentAttemptClosedException;
 import com.floralshop.backend.payment.domain.exception.PaymentGatewayException;
 import com.floralshop.backend.payment.domain.exception.PaymentOptionNotAvailableException;
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethod;
 import com.floralshop.backend.payment.domain.model.PaymentMethodPolicy;
 import com.floralshop.backend.payment.domain.model.PaymentStatus;
+import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 
 // Iniciar un pago: solo de pedidos pendientes, con una opción disponible, sin dos pagos a la vez,
 // y en tres pasos (guardar el intento, llamar a la pasarela, anotar el cobro o marcar el intento fallido).
@@ -112,7 +114,7 @@ class StartPaymentServiceTest {
         steps.verify(attempts).reserve(any(), any());
         steps.verify(mercadoPago).createCheckout(any());
         steps.verify(attempts).attachCheckout(saved, session);
-        verify(attempts, never()).markFailed(any());
+        verify(attempts, never()).markFailed(any(), any());
     }
 
     @Test
@@ -143,7 +145,7 @@ class StartPaymentServiceTest {
         when(mercadoPago.createCheckout(any())).thenThrow(failure);
 
         assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD)).isSameAs(failure);
-        verify(attempts).markFailed(saved);
+        verify(attempts).markFailed(saved, PaymentStatusReason.CREATION_UNCONFIRMED);
         verify(attempts, never()).attachCheckout(any(), any());
     }
 
@@ -158,7 +160,25 @@ class StartPaymentServiceTest {
 
         assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
                 .isInstanceOf(ArithmeticException.class);
-        verify(attempts).markFailed(saved);
+        verify(attempts).markFailed(saved, PaymentStatusReason.CREATION_UNCONFIRMED);
+    }
+
+    // Si otro proceso cerró el intento mientras se esperaba a la pasarela, el cliente no recibe el enlace
+    // y el intento no se marca fallido: su cierre se respeta (ADR 0016, D.8).
+    @Test
+    void whenTheAttemptWasClosedMeanwhileTheClientGetsNoCheckout() {
+        payableOrderWithCardAvailable();
+        when(payments.findPendingByOrderId(42L)).thenReturn(Optional.empty());
+        Payment saved = attempt(PaymentMethod.CARD);
+        when(attempts.reserve(any(), any())).thenReturn(saved);
+        CheckoutSession session = new CheckoutSession("ORDTST01ABC", "https://mp/pay");
+        when(mercadoPago.createCheckout(any())).thenReturn(session);
+        when(attempts.attachCheckout(saved, session)).thenThrow(new PaymentAttemptClosedException());
+
+        assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
+                .isInstanceOf(PaymentAttemptClosedException.class)
+                .message().doesNotContain("https://mp/pay");
+        verify(attempts, never()).markFailed(any(), any());
     }
 
     @Test

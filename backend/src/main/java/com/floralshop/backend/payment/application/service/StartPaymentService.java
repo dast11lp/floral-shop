@@ -16,6 +16,7 @@ import com.floralshop.backend.payment.domain.exception.PaymentOptionNotAvailable
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethod;
 import com.floralshop.backend.payment.domain.model.PaymentMethodPolicy;
+import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 
 // Iniciar el pago de un pedido. Coordina tres pasos y no abre una transacción propia:
 //   1. guardar el intento y extender la franja del pedido (transacción corta);
@@ -77,11 +78,12 @@ public class StartPaymentService {
         } catch (RuntimeException ex) {
             // Cualquier falla (la pasarela no respondió, rechazó la petición, o un monto con centavos) deja
             // el intento fallido. Si quedara pendiente sin cobro, el pedido no podría volver a intentar.
-            attempts.markFailed(attempt);
+            // Por ahora todo fallo es "creación sin confirmar"; separar el rechazo de la pasarela llega en el paso 5.
+            attempts.markFailed(attempt, PaymentStatusReason.CREATION_UNCONFIRMED);
             throw ex;
         }
 
-        // Paso 3.
+        // Paso 3. Si otro proceso ya cerró el intento, sale PaymentAttemptClosedException, sin el enlace.
         return attempts.attachCheckout(attempt, session);
     }
 }

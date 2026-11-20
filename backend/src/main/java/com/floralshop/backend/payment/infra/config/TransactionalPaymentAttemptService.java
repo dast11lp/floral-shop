@@ -11,6 +11,7 @@ import com.floralshop.backend.payment.application.port.out.PaymentRepositoryPort
 import com.floralshop.backend.payment.application.service.PaymentAttemptService;
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethodPolicy;
+import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 
 // Misma lógica que PaymentAttemptService, con una transacción corta por paso (ADR 0011).
 // En reserve, guardar el intento y extender la franja del pedido van juntos: o los dos, o ninguno.
@@ -35,7 +36,7 @@ class TransactionalPaymentAttemptService extends PaymentAttemptService {
 
     @Override
     @Transactional
-    public void markFailed(Payment attempt) {
-        super.markFailed(attempt);
+    public void markFailed(Payment attempt, PaymentStatusReason reason) {
+        super.markFailed(attempt, reason);
     }
 }

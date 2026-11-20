@@ -7,9 +7,11 @@ import com.floralshop.backend.ordering.application.service.OrderHoldService;
 import com.floralshop.backend.ordering.domain.model.Order;
 import com.floralshop.backend.payment.application.port.out.CheckoutSession;
 import com.floralshop.backend.payment.application.port.out.PaymentRepositoryPort;
+import com.floralshop.backend.payment.domain.exception.PaymentAttemptClosedException;
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethodPolicy;
 import com.floralshop.backend.payment.domain.model.PaymentStatus;
+import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 
 // Los pasos de un intento de pago que tocan la base de datos. Cada método es una transacción corta,
 // declarada en infra/config (ADR 0011). La llamada a la pasarela va entre ellos, fuera de toda transacción
@@ -36,13 +38,20 @@ public class PaymentAttemptService {
         return attempt;
     }
 
-    // Paso 3, si la pasarela creó el cobro: se anotan su id allá y la URL de pago.
+    // Paso 3, si la pasarela creó el cobro: se anotan su id allá y la URL de pago, solo si el intento sigue
+    // pendiente (ADR 0016, D.8). Si otro proceso ya lo cerró mientras se esperaba a la pasarela, no se toca nada
+    // y el cliente no recibe el enlace: nadie puede pagar ese cobro, que vence solo (D.3).
     public Payment attachCheckout(Payment attempt, CheckoutSession session) {
-        return payments.save(attempt.withCheckout(session.providerReference(), session.checkoutUrl()));
+        Payment attached = attempt.withCheckout(session.providerReference(), session.checkoutUrl());
+        if (!payments.attachCheckoutIfPending(attempt.id(), session.providerReference(), session.checkoutUrl())) {
+            throw new PaymentAttemptClosedException();
+        }
+        return attached;
     }
 
     // Paso 3, si la pasarela falló: el intento queda fallido, no a medias, y el pedido puede intentarlo de nuevo.
-    public void markFailed(Payment attempt) {
-        payments.save(attempt.transitionTo(PaymentStatus.FAILED));
+    // Solo si sigue pendiente (D.8): si otro proceso ya lo cerró, su cierre se respeta, con su motivo y su hora.
+    public void markFailed(Payment attempt, PaymentStatusReason reason) {
+        payments.markFailedIfPending(attempt.id(), reason, clock.instant());
     }
 }
