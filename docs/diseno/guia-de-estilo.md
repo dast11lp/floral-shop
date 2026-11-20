@@ -53,12 +53,14 @@ Contraste calculado con la fórmula de WCAG 2.1. El mínimo es 4,5 a 1 para text
 | WhatsApp | `--whatsapp` | `#1E7A4C` | Solo el ícono de WhatsApp | 5,3 sobre blanco |
 | Aviso | `--aviso` | `#9A4F5E` | Texto del aviso suave del recuadro de entrega ("Sin él, sería el jueves 19.") | 5,3 sobre rosa empolvado; 5,7 sobre blanco |
 | Borde de aviso | `--borde-aviso` | `#EBD3D0` | Borde del recuadro de entrega cuando avisa | Decorativo |
+| Panel | `--panel` | `#FBF7FC` | Fondo del panel derecho del último paso en escritorio; lila muy suave, entre el blanco y el lila | Tinta 14,0; tinta suave 6,5; malva 5,1 |
 
 ## 3. Formas y espacios
 
 | Elemento | Valor |
 |---|---|
-| Esquinas de tarjetas, fotos, collage y franjas | 22 px |
+| Esquinas de tarjetas, fotos, collage y bloques dentro del contenido | 22 px |
+| Lo que va de borde a borde de la ventana (la franja de "Así funciona", el panel derecho del último paso) | Esquinas rectas. Regla: lo que toca el borde de la ventana va recto; lo que vive dentro del contenido lleva 22 px |
 | Botones, píldoras y etiquetas | Totalmente redondos (la mitad de su alto) |
 | Escala de espacios | 4, 8, 12, 16, 24, 32, 48, 64, 72, 88 px |
 | Ancho máximo del contenido | 1200 px, centrado |
@@ -109,7 +111,19 @@ Prohibido, por el ADR 0019:
 | Aviso de regalo | Recuadro lila con ícono de regalo malva: "En el siguiente paso dices **quién recibe** y escribes el **mensaje de la tarjeta**." |
 | Resumen del pedido | Filas en tinta suave (Subtotal, "Envío a Chapinero") y el total en Manrope 600, 18 px, con una línea arriba. Sin zona: "Según tu zona · Elige tu zona" y "Total sin envío" |
 | Barra del total (celular) | **Fija abajo** (`position: sticky; bottom: 0`): fondo blanco, línea arriba y sombra suave hacia arriba; a la izquierda "Total" y el valor, a la derecha "Continuar". El contenido se desliza por debajo. Apagada (malva claro `#C9BCCF`) cuando algo impide seguir, con la razón encima en color aviso |
-| Pasos de "Así funciona" | Franja lila de borde a borde. Número grande en Gloock malva, título en Manrope 600 y una línea divisoria. En escritorio, los tres pasos van uno al lado del otro |
+| Indicador de pasos | "Carrito › Entrega › Pago" en 13 px; el paso actual en tinta y Manrope 600, los demás en tinta suave |
+| Campo de texto | Etiqueta pequeña arriba; campo de 50 px en píldora con borde, texto en 15 px; ayuda debajo en 13 px tinta suave ("Aquí te llega la confirmación."). Teléfono con el prefijo "+57" separado por una línea. **Con error:** borde y texto en color aviso |
+| Área de texto | Como el campo, con esquinas de 22 px y alto de 72 a 104 px; contador abajo a la derecha en 12 px ("58 de 250") |
+| Píldoras de selección | Dos píldoras del mismo ancho, de 48 px ("Es un regalo" / "Lo recibo yo"). La elegida, rellena en tinta |
+| Opcional plegado | Botón sin borde: círculo lila de 28 px con "+" malva y el texto en malva Manrope 600 ("Agregar indicaciones para la entrega"), con un ejemplo debajo en 13 px tinta suave. Al tocarlo se abre el campo justo debajo, el cursor entra en él y queda abierto (`aria-expanded`); para quitarlo se borra el texto. **Solo para lo que la mayoría no usa** (Baymard): la nota de entrega siempre; la tarjeta solo con "Lo recibo yo" |
+| Día resumido | Recuadro lila de 56 px: "Día" en 12 px tinta suave y el día en Manrope 600 ("Jueves 19 de noviembre"); a la derecha "Cambiar día" en malva subrayado, que abre la fila de días. Si la persona llega sin día o el día ya no sirve, en su lugar se ve la fila abierta |
+| Hora | Lista, una fila por franja, ordenadas por hora: 56 px de alto, esquinas de 22 px, círculo de selección de 22 px y la franja en 15 px. **Elegida:** borde malva de 2 px, fondo lila y texto en 600. **Sin cupo:** borde punteado, texto apagado y tachado, "Sin cupo" a la derecha. **Sin día elegido:** recuadro punteado con "Elige un día para ver sus horas." La hora nunca viene marcada |
+| Bloque de revisión | Recuadro con borde y esquinas de 22 px: título en Manrope 600 y "Cambiar" en malva a la derecha; las líneas en 14 px. El mensaje de la tarjeta va en un recuadro lila, entre comillas, con la firma debajo ("— Ana") |
+| Opción de pago | Fila con círculo de selección. **Elegida:** borde malva de 2 px, fondo lila, ícono malva, nombre en Manrope 600 y el detalle debajo ("Crédito, débito o prepago"). Las demás, más bajas y con borde |
+| Casilla | Cuadro de 22 px con esquinas de 6 px y el texto a la derecha en 14 px. La autorización de datos es obligatoria y lleva el enlace a la política; si falta, la razón en color aviso. "Novedades de la tienda" dice "(opcional)" |
+| Pantalla "Ya empezaste a pagar este pedido" | Reemplaza por completo a "Revisa y paga" cuando hay un pago en curso: título, una línea en tinta suave, un recuadro con el día, la hora, quien recibe, el total y "Tu día y tu hora siguen apartados mientras pagas.", el botón principal "Terminar el pago en Mercado Pago" y el enlace "Ya pagué: ver mi pedido". Sin "Cambiar" ni "Pagar" (ADR 0021, punto 4) |
+| Panel derecho (escritorio) | Columna derecha del último paso en color panel, de arriba a abajo del formulario y hasta el borde derecho de la ventana, con esquinas rectas. Dentro, sin borde, el resumen **quieto arriba** (`position: sticky; top: 24px`): "Tu pedido", fotos pequeñas, "Llega" y "Para" (se llenan mientras se completa el formulario), el resumen, el botón principal y, centradas en 13 px, "Apartamos tu día y tu hora al pagar." y "¿Dudas? Escríbenos por WhatsApp". El contenido sigue limitado a 1200 px. Probado de 1280 × 720 a 3840 × 2160 |
+| Pasos de "Así funciona" | Franja lila de borde a borde, con esquinas rectas. Número grande en Gloock malva, título en Manrope 600 y una línea divisoria. En escritorio, los tres pasos van uno al lado del otro |
 
 ## 6. Fotos
 - Nítidas, sin grano ni filtros, con luz natural y tonos rosa, blanco o lila.
@@ -132,3 +146,4 @@ Prohibido, por el ADR 0019:
 | 2026-11-17 | Inicio ajustado: el collage pasa a ser de ocasiones ("Momentos y sentimientos") y todas sus fotos llevan flecha; la etiqueta pequeña sube a 20 px en escritorio | Equipo del proyecto |
 | 2026-11-18 | Página del producto aprobada (ADR 0020): colores de aviso y piezas nuevas (píldora de tamaño, línea del reloj, recuadro de entrega, día de la fila, botón "Más" y calendario) | Equipo del proyecto |
 | 2026-11-19 | Carrito aprobado: aviso al agregar, producto en el carrito, aviso "Deshacer", aviso de regalo, resumen y barra del total fija abajo | Equipo del proyecto |
+| 2026-11-19 | Último paso aprobado: color panel, regla de esquinas (lo que va de borde a borde es recto) y piezas nuevas (indicador de pasos, campo, área de texto, píldoras de selección, opcional plegado, día resumido, hora en lista, bloque de revisión, opción de pago, casilla, pantalla "Ya empezaste a pagar este pedido" y panel derecho) | Equipo del proyecto |

@@ -37,13 +37,29 @@ Hay que resolverlo antes de diseñar el carrito y el último paso, porque cambia
 - **Opcional y corta,** unos 200 caracteres fijos, solo para indicaciones: "Torre 2, dejar en portería", "Llamar antes".
 - El detalle de "A tu gusto" (qué flores, qué colores) **no va aquí**: es de un ramo, no del pedido. Se resuelve cuando exista ese producto.
 
-**4. El orden del último paso** (precisa el punto 6 del 0020):
-1. **Para quién:** quien recibe y el mensaje.
-2. **Dónde:** zona, dirección y nota de entrega.
-3. **Cuándo:** día y hora, consultados de nuevo al llegar a esta parte.
-4. **"Continuar al pago":** aquí se crea el pedido y se aparta el cupo.
+**4. El orden del último paso** (precisa el punto 6 del 0020; ajustado el 2026-11-19 al diseñar el último paso):
+- Son **dos pantallas**, con el indicador "Carrito › Entrega › Pago".
+- **Entrega**, en este orden:
+  1. **Tus datos:** quien compra.
+  2. **Para quién:** quien recibe y el mensaje.
+  3. **Dónde:** zona, dirección y nota de entrega.
+  4. **Cuándo:** día y hora, consultados de nuevo al llegar a esta parte. El día llega resumido en una línea con "Cambiar día" y las horas van en lista; si no llega día o ya no sirve, se ve la fila de días abierta (pendiente 52, punto 6).
+  5. **"Continuar al pago":** lleva a la revisión. **No crea nada todavía.**
+- **Lo opcional que la mayoría no usa va plegado** con un botón "+ …" que abre el campo y lo deja abierto (decidido el 2026-11-19, pendiente 52, punto 8): la nota de entrega siempre, y el mensaje con la firma solo con "Lo recibo yo". Con "Es un regalo" el mensaje se ve de entrada, porque la mayoría de quienes regalan escriben uno.
+- **Pago:** revisión de lo elegido (productos, día y hora, quien recibe, total con envío), opciones de pago y "Pagar … en Mercado Pago". Cada bloque tiene "Cambiar", que vuelve a Entrega con todo lo escrito intacto (vive en el navegador). Al entrar se vuelve a consultar el día y la hora.
+- **El pedido se crea al pulsar "Pagar … en Mercado Pago".** En un solo toque se crea el pedido y se aparta el cupo, se inicia el pago y se va a Mercado Pago. Todo eso ya existe en el backend.
 
-Así, entre elegir la hora y apartarla pasan segundos, no los minutos que toma escribir el mensaje. Si la hora se llenó en esos segundos, lo escrito no se pierde: solo se elige otra hora (0020, punto 7).
+Por qué así:
+- **Volver atrás para corregir no afecta al backend.** Si el pedido se creara en "Continuar al pago", corregir exigiría modificar o cancelar un pedido sin pagar (dos operaciones que no existen), o dejaría pedidos de más apartando cupo.
+- **Hay menos cupo apartado sin compra:** quien llega a revisar y se va no aparta nada.
+- **Entre elegir la hora y apartarla pasa solo lo que tarda revisar,** no los minutos de escribir el mensaje. Si la hora se llenó en ese rato, al pulsar "Pagar" se dice "Esa hora se llenó mientras revisabas. Elige otra" y se vuelve a "Cuándo", con todo lo demás intacto (0020, punto 7).
+- **Si iniciar el pago falla** (Mercado Pago no responde), el pedido ya existe y se reintenta desde la misma pantalla: el backend ya permite reintentar un pago fallido.
+- **El camino normal no pasa por aquí:** se pulsa "Pagar", se paga en Mercado Pago y Mercado Pago devuelve a nuestra página de resultado (aprobado, pendiente o rechazado).
+- **Pantalla de rescate "Ya empezaste a pagar este pedido"** (decidida el 2026-11-19): aparece solo si la persona vuelve a nuestra pantalla de pago mientras su pago sigue abierto, por ejemplo con "atrás" desde Mercado Pago, o cerrando esa pestaña y entrando otra vez al carrito para pagar. El navegador recuerda que ese pedido ya tiene un pago empezado.
+  - **Reemplaza por completo** a "Revisa y paga": no tiene "Cambiar" ni "Pagar", porque el pedido ya se creó. Así no se crea un segundo pedido ni se aparta cupo de más (pulsar "Pagar" otra vez respondería 409, "ya hay un pago en curso", ADR 0014).
+  - **Texto:** título "Ya empezaste a pagar este pedido" y, debajo, "Si no lo terminaste, sigue en Mercado Pago. Si ya pagaste, lo confirmamos en unos minutos y te avisamos por correo." El título dice solo lo que sabemos: la persona pudo haber pagado y volver antes de que llegue el aviso de Mercado Pago, así que no se dice "te falta pagar" ni "tu pago está en proceso".
+  - **Muestra** lo apartado (día, hora, quien recibe, total) con "Tu día y tu hora siguen apartados mientras pagas.", el botón "Terminar el pago en Mercado Pago" y el enlace "Ya pagué: ver mi pedido", que lleva a la página de resultado.
+  - **El botón usa la dirección de Mercado Pago que guardó el navegador** al iniciar el pago, así que no hace falta cambiar el backend. Si ya venció (el cobro dura 15 minutos), se dice "El tiempo para pagar venció" y se ofrece empezar de nuevo. Recuperar la dirección desde el backend es la mejora del pendiente 32.
 
 **5. El cupo se sigue apartando al crear el pedido, no antes.**
 - Se evaluó apartarlo al elegir la hora (como Ocado, 60 minutos con cuenta, o los restaurantes en línea, 3 a 5 minutos). **No por ahora:** bloquearía cupo de gente que todavía no ha escrito sus datos, agrandaría el riesgo de apartados sin compra y exigiría un apartado sin pedido (tabla, proceso que lo libere y convertirlo en pedido), que cambia los ADR 0013, 0016 y 0020.

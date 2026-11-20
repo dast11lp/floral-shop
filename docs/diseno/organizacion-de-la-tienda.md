@@ -55,8 +55,9 @@ Catálogo · Ocasiones ▾ · [fecha especial, solo en temporada] · Zonas de en
 - **Lo que necesita el backend:** está en `docs/pendientes.md` (pendientes 39 y 42 a 45).
 - **Confirmar con la florista** qué ocasiones, motivos y fechas especiales usa de verdad, y cómo ordena sus productos.
 - **Pantallas que faltan** (revisado el 2026-11-18; el producto se aprobó ese día, ADR 0020, maquetas 15 a 22 de `propuesta-2`). El detalle y el orden están en el pendiente 52:
-  - **Camino de compra:** último paso (quien compra, quien recibe, mensaje de la tarjeta, dirección, día y hora, opción de pago; ADR 0021; hay un boceto sin aprobar); resultado del pago (aprobado, pendiente y rechazado, ADR 0016). El carrito se aprobó el 2026-11-19 (maquetas 23 a 29).
+  - **Camino de compra:** resultado del pago (aprobado, pendiente y rechazado, ADR 0016). El carrito se aprobó el 2026-11-19 (maquetas 23 a 29), y el último paso el mismo día (quien compra, quien recibe, mensaje, dirección, día y hora, opción de pago; ADR 0021; maquetas 30 a 39, pendiente 52).
   - **Páginas que el menú y el pie ya enlazan:** Zonas de entrega, Cómo funciona y Pagos.
   - **Lo que toda tienda necesita:** página de "no encontrado" (404) y de error; textos legales (pendiente 53); correo de confirmación y comprobante en PDF (ADR 0012, punto 11).
   - **Opcional, por decidir:** consultar el estado de un pedido sin cuenta (pendiente 34).
-  - **No se hacen por ahora:** búsqueda (con un catálogo pequeño alcanzan el menú y los filtros) y cuenta de cliente (se compra como invitado).
+  - **No se hacen por ahora:** búsqueda (con un catálogo pequeño alcanzan el menú y los filtros; queda para el final del proyecto, entre las primeras mejoras, pendiente 62) y cuenta de cliente (se compra como invitado).
+  - **Sin diseñar:** la tableta, entre 768 y 1024 px (pendiente 63).

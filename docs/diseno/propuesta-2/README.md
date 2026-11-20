@@ -37,15 +37,30 @@ Se necesita internet para dos cosas: las letras (Google Fonts) y las fotos (Unsp
 | `27-carrito-algo-cambio-celular.html` | Algo cambió desde que se guardó: precio nuevo, cantidad ajustada al máximo, tamaño que ya no está y día que se movió | **Aprobado** (2026-11-19) |
 | `28-carrito-vacio-celular.html` | Carrito vacío, con "Ver el catálogo" y Destacados | **Aprobado** (2026-11-19) |
 | `29-carrito-escritorio.html` | Carrito en escritorio: productos a la izquierda y tarjeta quieta a la derecha | **Aprobado** (2026-11-19) |
+| `30-entrega-celular.html` | Último paso, pantalla Entrega, regalo: tus datos, para quién (con mensaje y firma), dónde (nota plegada), cuándo (día resumido y horas en lista) y barra fija con "Continuar al pago" | **Aprobado** (2026-11-19) |
+| `31-entrega-lo-recibo-yo-celular.html` | "Lo recibo yo": la tarjeta va plegada ("+ Agregar una tarjeta con mensaje") y la nota de entrega se ve abierta y escrita | **Aprobado** (2026-11-19) |
+| `32-entrega-sin-dia-celular.html` | Llegó sin día (no eligió zona en el producto): fila de días abierta y "Elige un día para ver sus horas." (página bajada hasta "Cuándo") | **Aprobado** (2026-11-19) |
+| `33-entrega-cambio-la-zona-celular.html` | Cambió la zona: el día se movió al viernes 20 y la hora elegida ya no alcanza | **Aprobado** (2026-11-19) |
+| `34-entrega-muchas-horas-celular.html` | Un día con cinco franjas, en lista (página bajada hasta "Cuándo") | **Aprobado** (2026-11-19) |
+| `35-entrega-hora-llena-celular.html` | Volvió de Pago porque la hora se llenó: aviso arriba de "Cuándo" y fila de días abierta, porque el jueves ya no tiene horas | **Aprobado** (2026-11-19) |
+| `36-pago-celular.html` | Pantalla Pago, "Revisa y paga": bloques con "Cambiar", total, cómo pagas, autorizaciones y "Pagar $422.000". El pedido se crea y el cupo se aparta al pulsar "Pagar" | **Aprobado** (2026-11-19) |
+| `37-pago-empezado-celular.html` | "Ya empezaste a pagar este pedido": reemplaza a "Revisa y paga" si la persona vuelve con un pago en curso | **Aprobado** (2026-11-19) |
+| `38-entrega-escritorio.html` / `39-pago-escritorio.html` | Entrega y Pago en escritorio: formulario a la izquierda y panel lila muy suave a la derecha, hasta el borde de la ventana, con el resumen quieto arriba | **Aprobado** (2026-11-19) |
 
 La organización de estas vistas (menú, reglas y pendientes) está explicada en `docs/diseno/organizacion-de-la-tienda.md`. El inicio (`04` y `05`) ya sigue esa organización.
 
 Las reglas del producto y de su recuadro de entrega (qué se dice en cada caso, cuándo se vuelve a consultar, el calendario y el tope de días) están en el ADR 0020. Las maquetas 18 a 22 muestran solo la parte de arriba del producto, con cada estado del recuadro. Las fechas, zonas y precios son de ejemplo. La foto principal cambia con el tamaño (pendiente 42); en una maqueta quieta no se ve.
 
-Las decisiones del carrito están en el pendiente 52. **Lo que se mueve está marcado en el HTML** con un comentario que empieza por `COMPORTAMIENTO:` y un atributo `data-comportamiento`:
+Las decisiones del carrito y del último paso están en el pendiente 52 y en el ADR 0021 (punto 4). **Lo que se mueve está marcado en el HTML** con un comentario que empieza por `COMPORTAMIENTO:` y un atributo `data-comportamiento`:
 - `fija-abajo`: la barra del total del carrito en celular (`position: sticky; bottom: 0`). El contenido se desliza por debajo. Se ve fija al abrir la maqueta en una ventana del alto de un celular.
-- `fija-arriba`: la tarjeta del resumen en escritorio (`position: sticky; top: 24px`).
+- `fija-arriba`: el resumen en escritorio (`position: sticky; top: 24px`), en el carrito y en el último paso.
+- `panel-derecho`: en el último paso en escritorio, la columna derecha de color panel que llega hasta el borde de la ventana. El resumen va quieto dentro de ella.
+- `opcional-plegado`: un campo opcional que solo muestra "+ …"; al tocarlo se abre debajo y queda abierto.
+- `dia-resumido`: el día que llega elegido, en una línea; "Cambiar día" abre la fila de días.
+- `lista-horas`: las horas del día, una fila por franja. Pueden ser 2, 4 o más.
 - `aviso-temporal`: los avisos "Agregado" y "Deshacer", que se van solos a los pocos segundos. En la maqueta están quietos; en la tienda van fijos a la pantalla.
+
+Las maquetas 32, 34 y 35 muestran la página **ya bajada** hasta "Cuándo" (se recorta lo de arriba), como la vería la persona en ese momento. Los datos son de ejemplo. Al reexportar se cambió el marco del celular de `overflow: hidden` a `overflow: clip` en las maquetas anteriores, para que lo fijo funcione igual en todas; el diseño no cambió.
 
 Las tres direcciones (01 a 03) se guardan como historia: muestran de dónde salió la mezcla final. Están tal como se compararon, incluidos sus defectos. Por ejemplo, en la C la última ocasión queda cortada.
 
