@@ -28,7 +28,7 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 2. Si elige su zona, ve los días y puede marcar uno. Si ya lleva productos, ve cómo queda el día de todo el carrito con este ramo.
 3. Arma el carrito. La zona y el día se recuerdan.
 4. En el último paso, la zona y el día **llegan puestos** y **se pueden cambiar**. Ahí escribe su dirección, elige la hora y paga.
-5. Desde ahí, todo sigue igual que en el 0012 (puntos 1.4 a 1.6) y el 0013: el día y la hora se apartan **al crear el pedido**, cuando el cliente pulsa "Continuar al pago", no antes.
+5. Desde ahí, todo sigue igual que en el 0012 (puntos 1.4 a 1.6) y el 0013: el día y la hora se apartan **al crear el pedido**, cuando el cliente pulsa "Pagar … en Mercado Pago" en la pantalla de revisión, no antes (ADR 0021, punto 4).
 
 **2. Elegir la zona y el día en el producto no aparta nada.** Es una consulta. El cupo se aparta al crear el pedido, como hasta ahora (0013). Lo que se ve antes puede quedar viejo; el punto 7 dice cómo se maneja.
 
@@ -46,7 +46,7 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 
 **4. Cómo se dice, según el momento.**
 - **"Llegaría"** mientras solo se mira el ramo: todavía no está en el carrito.
-- **"Puede llegar"** con productos en el carrito y hasta continuar al pago: el día no está apartado.
+- **"Puede llegar"** con productos en el carrito y hasta pagar: el día no está apartado.
 - **"Llega"** solo después de pagar, cuando el pedido está confirmado.
 - **Una sola frase si nada cambia.** Dos textos solo cuando el ramo mueve el día.
 - **No se dice "tu pedido":** se presta a pensar que es solo ese ramo. Se dice "todo" o "este ramo".
@@ -62,7 +62,7 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 - La zona y el día vienen de lo elegido antes, y se pueden cambiar. Cada cambio vuelve a consultar al backend.
 - Si cambiar la zona mueve el día, se dice con la misma forma: "Con Chía, todo puede llegar el **viernes 20**. Con Chapinero, sería el jueves 19."
 - Si el día elegido ya no sirve (se llenó o el carrito cambió), se marca el primer día que sí sirve y se avisa con la misma frase.
-- Debajo del botón: "Apartamos tu día y tu hora al continuar al pago."
+- Debajo del botón de pagar: "Apartamos tu día y tu hora al pagar." (ADR 0021, punto 4).
 
 **7. Lo que se ve puede quedar viejo: se vuelve a consultar y se avisa.** Entre ver el producto y pagar pueden pasar minutos o días (el carrito se queda guardado). En ese tiempo el día que se mostró puede dejar de servir. No se vende un cupo de más, porque al crear el pedido se revisa todo otra vez con la franja bloqueada; el cuidado está en la pantalla.
 - **Por qué cambia,** de lo más común a lo más raro:
