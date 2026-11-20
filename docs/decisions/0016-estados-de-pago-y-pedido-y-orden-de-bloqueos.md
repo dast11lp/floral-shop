@@ -317,7 +317,7 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
     | Aprobado (`CONFIRMED`) | "¡Listo! Tu pago se aprobó y tu pedido está confirmado para [franja]." |
     | Rechazo con la retención vigente (`waiting_retry`) | "Tu pago fue rechazado. Puedes intentarlo de nuevo, por ejemplo con otra tarjeta, antes de las HH:MM." Botón **Volver a pagar** al mismo checkout. HH:MM es el vencimiento del **cobro** (F), no el de la retención: después, el enlace ya no sirve |
     | El cobro venció con la retención vigente (intento `EXPIRED`) | "El enlace de pago venció. Puedes intentarlo de nuevo antes de las HH:MM." |
-    | Pedido cancelado sin pago (`canceled`, `canceled / expired` o `failed / expired`) | "No se aprobó ningún pago y liberamos el horario que tenías reservado. Si quieres, haz un pedido nuevo. Si ves un cobro aprobado en tu banco, escríbenos y lo revisamos." |
+    | Pedido cancelado sin pago (`canceled`, `canceled / expired` o `failed / expired`) | "No se aprobó ningún pago y liberamos el horario que tenías reservado. Elige otro y te guardamos todo lo demás. Si ves un cobro aprobado en tu banco, escríbenos y lo revisamos." Botón **Elegir otro horario** (precisión del 2026-11-20, abajo) |
     | C2 (`processing`), y A.19 con una transacción en proceso | "Tu pago está en revisión. Liberamos tu horario; si se aprueba, la florista te contactará para coordinar la entrega." |
     | A.20 (`failed` sin cierre confirmado) y A.19 con todas las transacciones rechazadas | "Los intentos de pago registrados fueron rechazados y el tiempo de reserva terminó, por lo que liberamos tu horario. La plataforma de pago aún no ha confirmado el cierre de tu intento de pago anterior. Antes de realizar otro pago, comunícate con nosotros. Si ves una aprobación, avísanos para revisarla." |
     | Error al iniciar el pago (`FAILED`, sin referencia) | "No pudimos iniciar el pago. Intenta de nuevo." |
@@ -327,6 +327,7 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
     | Aprobación sobre un pedido `CANCELLED`, o pago duplicado | "Recibimos un pago adicional. La florista te contactará para resolverlo." |
 
     - En A.19 y A.20 **no se invita a crear otro pedido**, porque el intento anterior todavía podría admitir un pago. Sí se invita en A.18, porque se comprobó que el cobro venció.
+    - **"Elegir otro horario" (precisión del 2026-11-20).** Cuando el pedido se cancela sin pago, el cliente lo vive como elegir otra hora, no como empezar de cero. El botón lo lleva al último paso con el carrito intacto y con lo que ya escribió (quién recibe, mensaje de la tarjeta, nota) precargado; solo elige día y hora y paga. **Por dentro es un pedido nuevo**: el cancelado no se reabre, porque `CANCELLED` es final (sección C) y reabrirlo obligaría a cambiar las reglas de estados, el job y el tope de intentos, con el riesgo de que un pago viejo se apruebe tarde y se confunda con el nuevo. Los datos para precargar los devuelve la consulta del pedido (pendiente 34).
     - Los mensajes a la florista corresponden a las alertas de A.14, A.15, A.17, A.19, A.21 y A.22. El mecanismo de envío está pendiente (P11).
 
 ### B. Máquina de estados del pago
