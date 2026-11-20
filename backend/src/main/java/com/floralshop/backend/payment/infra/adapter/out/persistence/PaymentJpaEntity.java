@@ -13,7 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 // Refleja la tabla payment, que es de payment. order_id es un dato, sin relación JPA con los pedidos
-// (ADR 0013, punto 2). created_at lo pone la base de datos.
+// (ADR 0013, punto 2). created_at lo pone la base de datos y aquí solo se lee (plazo de gracia, ADR 0016, D.3).
 // status_reason y resolved_at solo los escriben las actualizaciones condicionales de PaymentJpaRepository
 // (ADR 0016, D.8): un pago nuevo nace sin ellos, y la entidad nunca se reescribe entera.
 // Un intento se guarda primero sin cobro (sin referencia ni URL) y se completa después de crearlo en la pasarela.
@@ -54,6 +54,9 @@ public class PaymentJpaEntity {
 
     @Column(name = "resolved_at")
     private Instant resolvedAt;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private Instant createdAt;
 
     protected PaymentJpaEntity() {
     }

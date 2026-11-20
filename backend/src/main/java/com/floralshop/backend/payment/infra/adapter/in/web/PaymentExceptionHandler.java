@@ -13,13 +13,16 @@ import com.floralshop.backend.ordering.domain.exception.OrderNotFoundException;
 import com.floralshop.backend.payment.domain.exception.OrderNotPayableException;
 import com.floralshop.backend.payment.domain.exception.PaymentAlreadyInProgressException;
 import com.floralshop.backend.payment.domain.exception.PaymentAttemptClosedException;
+import com.floralshop.backend.payment.domain.exception.PaymentAttemptsExhaustedException;
 import com.floralshop.backend.payment.domain.exception.PaymentGatewayException;
 import com.floralshop.backend.payment.domain.exception.PaymentOptionNotAvailableException;
+import com.floralshop.backend.payment.domain.exception.PaymentStartingException;
 
 // Traduce a HTTP las excepciones que pueden salir al iniciar un pago.
 // 404: el pedido no existe.
 // 409: el pedido ya no se puede pagar, ya tiene un pago en curso con otra opción, o otro proceso cerró el
-//      intento mientras se esperaba a la pasarela (sin el enlace de pago).
+//      intento mientras se esperaba a la pasarela (sin el enlace de pago), el cobro se está creando, o se
+//      llegó al tope de intentos. El front lleva al cliente a "Tu pedido", que muestra el estado real.
 // 422: la opción de pago no está disponible.
 // 502: la pasarela falló. El detalle técnico va al log; al cliente, un mensaje genérico.
 @RestControllerAdvice(basePackageClasses = PaymentController.class)
@@ -34,7 +37,8 @@ class PaymentExceptionHandler {
     }
 
     @ExceptionHandler({OrderNotPayableException.class, PaymentAlreadyInProgressException.class,
-            PaymentAttemptClosedException.class})
+            PaymentAttemptClosedException.class, PaymentStartingException.class,
+            PaymentAttemptsExhaustedException.class})
     ProblemDetail handleConflict(RuntimeException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
     }

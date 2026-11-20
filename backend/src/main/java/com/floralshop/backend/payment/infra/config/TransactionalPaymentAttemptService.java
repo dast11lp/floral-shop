@@ -1,31 +1,38 @@
 package com.floralshop.backend.payment.infra.config;
 
 import java.time.Clock;
+import java.time.Duration;
+import java.util.UUID;
 
 import org.springframework.transaction.annotation.Transactional;
 
 import com.floralshop.backend.ordering.application.service.OrderHoldService;
-import com.floralshop.backend.ordering.domain.model.Order;
+import com.floralshop.backend.ordering.application.service.OrderLockService;
 import com.floralshop.backend.payment.application.port.out.CheckoutSession;
 import com.floralshop.backend.payment.application.port.out.PaymentRepositoryPort;
+import com.floralshop.backend.payment.application.port.out.PaymentSettingsRepositoryPort;
 import com.floralshop.backend.payment.application.service.PaymentAttemptService;
+import com.floralshop.backend.payment.application.service.PaymentReservation;
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethodPolicy;
 import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 
 // Misma lógica que PaymentAttemptService, con una transacción corta por paso (ADR 0011).
-// En reserve, guardar el intento y extender la franja del pedido van juntos: o los dos, o ninguno.
+// En reserve, el candado del pedido dura toda la transacción: revisar, cerrar el intento a medio crear,
+// guardar el intento nuevo y extender la franja van juntos, o ninguno. Si una revisión falla, no queda nada.
 // No añade lógica.
 class TransactionalPaymentAttemptService extends PaymentAttemptService {
 
-    TransactionalPaymentAttemptService(PaymentRepositoryPort payments, OrderHoldService holds, Clock clock) {
-        super(payments, holds, clock);
+    TransactionalPaymentAttemptService(PaymentRepositoryPort payments, PaymentSettingsRepositoryPort settings,
+                                       OrderLockService orderLocks, OrderHoldService holds, Clock clock,
+                                       Duration creationGrace) {
+        super(payments, settings, orderLocks, holds, clock, creationGrace);
     }
 
     @Override
     @Transactional
-    public Payment reserve(Order order, PaymentMethodPolicy policy) {
-        return super.reserve(order, policy);
+    public PaymentReservation reserve(UUID orderCode, PaymentMethodPolicy policy) {
+        return super.reserve(orderCode, policy);
     }
 
     @Override

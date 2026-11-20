@@ -17,6 +17,10 @@ springdoc:
 # Pasarelas de pago (ADR 0014, punto 2). Las credenciales vienen de variables de entorno
 # (en local, del .env). Si una falta, sus opciones de pago no se ofrecen.
 payment:
+  attempt:
+    # Cuánto se espera a un intento sin enlace antes de cerrarlo como "a medio crear" (ADR 0016, D.3).
+    # Tiene que ser mayor que la espera máxima con Mercado Pago (5 s + 15 s); si no, la aplicación no arranca.
+    creation-grace: PT1M
   mercadopago:
     access-token: ${MERCADOPAGO_ACCESS_TOKEN:}
     base-url: https://api.mercadopago.com

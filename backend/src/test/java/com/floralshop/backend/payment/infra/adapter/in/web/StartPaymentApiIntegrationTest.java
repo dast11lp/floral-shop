@@ -268,7 +268,9 @@ class StartPaymentApiIntegrationTest {
     }
 
     // Dos peticiones a la vez para el mismo pedido: una crea el cobro y la otra recibe 409.
-    // Mercado Pago se llama una sola vez y queda un solo pago.
+    // Con el candado del pedido (ADR 0016, D.7), la segunda espera a que la primera guarde su intento y lo ve
+    // sin enlace, dentro del plazo de gracia: "tu pago se está iniciando". Mercado Pago se llama una sola vez
+    // y queda un solo pago.
     @Test
     void twoSimultaneousRequestsCreateOnlyOneCheckout() throws Exception {
         mercadoPagoAnswers(1000);
@@ -421,6 +423,124 @@ class StartPaymentApiIntegrationTest {
         // El OR '1'='1' no alcanzó a otra fila: el pago vencido sigue sin enlace.
         assertThat(jdbc.queryForObject("select checkout_url from payment where id = ?", String.class, other.id()))
                 .isNull();
+    }
+
+    // Un pago guardado a mano, como lo dejaría un intento anterior del pedido.
+    private void insertPayment(String status, String reference, String createdAgo) {
+        jdbc.update("insert into payment (order_id, provider, method, status, amount, provider_reference, created_at) "
+                + "values (?, 'mercadopago', 'CARD', ?, 145000, ?, now() - ?::interval)",
+                orderId(), status, reference, createdAgo);
+    }
+
+    // --- Paso 4: las revisiones con el pedido bajo candado (ADR 0016, A.8, A.9, D.3 y D.7) ---
+
+    // La retención venció, aunque el job todavía no haya cancelado el pedido: no se crea ningún cobro.
+    @Test
+    void anOrderWhoseHoldAlreadyExpiredCannotBePaid() throws Exception {
+        jdbc.update("update customer_order set hold_expires_at = now() - interval '1 second'");
+
+        pay(orderCode, "CARD").andExpect(status().isConflict());
+
+        mercadoPago.verify(0, postRequestedFor(urlEqualTo("/v1/orders")));
+        assertThat(paymentCount()).isZero();
+    }
+
+    // Un intento sin enlace de hace 10 segundos: se está creando su cobro. El cliente espera; no se crea otro.
+    @Test
+    void anAttemptWithoutLinkInsideTheGracePeriodMeansThePaymentIsStarting() throws Exception {
+        insertPayment("PENDING", null, "10 seconds");
+
+        pay(orderCode, "CARD")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value(containsString("se está iniciando")));
+
+        mercadoPago.verify(0, postRequestedFor(urlEqualTo("/v1/orders")));
+        assertThat(jdbc.queryForList("select status from payment", String.class)).containsExactly("PENDING");
+    }
+
+    // Un intento sin enlace de hace 2 minutos quedó a medio crear (por ejemplo, el servidor se cayó):
+    // se cierra como FAILED, "creación sin confirmar", y el cliente puede pagar con uno nuevo.
+    @Test
+    void aHalfCreatedAttemptPastTheGracePeriodIsClosedAndTheClientCanPay() throws Exception {
+        insertPayment("PENDING", null, "2 minutes");
+
+        pay(orderCode, "CARD")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.checkoutUrl").value(CHECKOUT_URL));
+
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "select status, status_reason, resolved_at is not null as closed from payment order by id");
+        assertThat(rows).hasSize(2);
+        assertThat(rows.get(0)).containsEntry("status", "FAILED").containsEntry("status_reason", "CREATION_UNCONFIRMED")
+                .containsEntry("closed", true);
+        assertThat(rows.get(1)).containsEntry("status", "PENDING");
+    }
+
+    // El tope cuenta solo los intentos que llegaron a crear el cobro (con referencia), en cualquier estado.
+    @Test
+    void anOrderThatReachedTheMaximumOfAttemptsCannotTryAgain() throws Exception {
+        for (int i = 1; i <= 5; i++) {
+            insertPayment("EXPIRED", "ORDVIEJO" + i, "1 minute");
+        }
+
+        pay(orderCode, "CARD")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value(containsString("máximo de intentos")));
+
+        mercadoPago.verify(0, postRequestedFor(urlEqualTo("/v1/orders")));
+        assertThat(paymentCount()).isEqualTo(5);
+    }
+
+    // Los FAILED sin referencia nunca crearon el cobro: no consumen el tope (A.9).
+    @Test
+    void attemptsThatNeverCreatedTheCheckoutDoNotCountForTheMaximum() throws Exception {
+        for (int i = 1; i <= 4; i++) {
+            insertPayment("EXPIRED", "ORDVIEJO" + i, "1 minute");
+        }
+        for (int i = 1; i <= 3; i++) {
+            insertPayment("FAILED", null, "1 minute");
+        }
+
+        pay(orderCode, "CARD").andExpect(status().isCreated());
+    }
+
+    // El candado (D.7): otro proceso (aquí, como lo hará el job) tiene el pedido bloqueado y lo cancela.
+    // El pago espera su turno, ve el pedido cancelado y no crea ningún cobro.
+    @Test
+    void whileAnotherProcessHoldsTheOrderThePaymentWaitsAndSeesWhatItLeft() throws Exception {
+        CountDownLatch locked = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<?> job = executor.submit(() -> transactions.executeWithoutResult(tx -> {
+                jdbc.queryForList("select id from customer_order where public_code = ?::uuid for update", orderCode);
+                locked.countDown();
+                sleepQuietly(700);
+                jdbc.update("update customer_order set status = 'CANCELLED' where public_code = ?::uuid", orderCode);
+            }));
+            assertThat(locked.await(5, TimeUnit.SECONDS)).isTrue();
+
+            long started = System.nanoTime();
+            Future<Integer> payment = executor.submit(() ->
+                    pay(orderCode, "CARD").andReturn().getResponse().getStatus());
+
+            assertThat(payment.get(10, TimeUnit.SECONDS)).isEqualTo(409);
+            job.get(10, TimeUnit.SECONDS);
+            // Esperó a que el otro soltara el pedido: no decidió con lo que había antes.
+            assertThat(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started)).isGreaterThanOrEqualTo(400);
+        } finally {
+            executor.shutdownNow();
+        }
+        mercadoPago.verify(0, postRequestedFor(urlEqualTo("/v1/orders")));
+        assertThat(paymentCount()).isZero();
+    }
+
+    private static void sleepQuietly(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(ex);
+        }
     }
 
     private static void waitUntil(Callable<Boolean> condition) throws Exception {

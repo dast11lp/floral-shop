@@ -14,6 +14,10 @@ public interface OrderRepositoryPort {
 
     Optional<Order> findByPublicCode(UUID publicCode);
 
+    // El pedido con candado (SELECT ... FOR UPDATE) hasta que termine la transacción de quien lo pide.
+    // Exige una transacción abierta (ADR 0016, D.7).
+    Optional<Order> findByPublicCodeForUpdate(UUID publicCode);
+
     // Mueve el vencimiento de la franja de un pedido pendiente de pago, sin pasar de su tope.
     // Devuelve false si el pedido ya no está pendiente o si la fecha pasa del tope.
     boolean updateHold(long orderId, Instant holdExpiresAt);

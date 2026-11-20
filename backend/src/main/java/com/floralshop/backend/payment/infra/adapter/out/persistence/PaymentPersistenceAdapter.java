@@ -47,6 +47,17 @@ class PaymentPersistenceAdapter implements PaymentRepositoryPort {
     }
 
     @Override
+    public int countAttemptsWithCheckout(long orderId) {
+        return Math.toIntExact(jpa.countWithReference(orderId));
+    }
+
+    @Override
+    public boolean closeHalfCreatedIfOlderThan(long paymentId, Instant createdBefore, Instant resolvedAt) {
+        return jpa.closeWithoutReferenceIfOlderThan(paymentId, PaymentStatusColumn.PENDING, createdBefore,
+                PaymentStatusColumn.FAILED, PaymentStatusReasonColumn.CREATION_UNCONFIRMED, resolvedAt) == 1;
+    }
+
+    @Override
     public boolean attachCheckoutIfPending(long paymentId, String providerReference, String checkoutUrl) {
         return jpa.attachCheckoutIf(paymentId, PaymentStatusColumn.PENDING, providerReference, checkoutUrl) == 1;
     }

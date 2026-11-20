@@ -1,17 +1,11 @@
 package com.floralshop.backend.payment.application.service;
 
-import java.util.Optional;
 import java.util.UUID;
 
-import com.floralshop.backend.ordering.application.service.OrderQueryService;
 import com.floralshop.backend.ordering.domain.model.Order;
-import com.floralshop.backend.ordering.domain.model.OrderStatus;
 import com.floralshop.backend.payment.application.port.out.CheckoutRequest;
 import com.floralshop.backend.payment.application.port.out.CheckoutSession;
 import com.floralshop.backend.payment.application.port.out.PaymentMethodPolicyRepositoryPort;
-import com.floralshop.backend.payment.application.port.out.PaymentRepositoryPort;
-import com.floralshop.backend.payment.domain.exception.OrderNotPayableException;
-import com.floralshop.backend.payment.domain.exception.PaymentAlreadyInProgressException;
 import com.floralshop.backend.payment.domain.exception.PaymentOptionNotAvailableException;
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethod;
@@ -19,54 +13,38 @@ import com.floralshop.backend.payment.domain.model.PaymentMethodPolicy;
 import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 
 // Iniciar el pago de un pedido. Coordina tres pasos y no abre una transacción propia:
-//   1. guardar el intento y extender la franja del pedido (transacción corta);
+//   1. con el pedido bajo candado, revisar que se pueda pagar, guardar el intento y extender la franja
+//      (transacción corta; las revisiones están en PaymentAttemptService.reserve);
 //   2. crear el cobro en la pasarela (fuera de toda transacción, ADR 0014);
 //   3. anotar el cobro, o marcar el intento fallido si la pasarela falló (transacción corta).
 // Java puro, sin anotaciones de Spring.
 public class StartPaymentService {
 
-    private final OrderQueryService orders;
     private final PaymentMethodPolicyRepositoryPort policies;
     private final PaymentGatewayRegistry gateways;
-    private final PaymentRepositoryPort payments;
     private final PaymentAttemptService attempts;
 
-    public StartPaymentService(OrderQueryService orders, PaymentMethodPolicyRepositoryPort policies,
-                               PaymentGatewayRegistry gateways, PaymentRepositoryPort payments,
+    public StartPaymentService(PaymentMethodPolicyRepositoryPort policies, PaymentGatewayRegistry gateways,
                                PaymentAttemptService attempts) {
-        this.orders = orders;
         this.policies = policies;
         this.gateways = gateways;
-        this.payments = payments;
         this.attempts = attempts;
     }
 
     public Payment start(UUID orderCode, String provider, PaymentMethod method) {
-        // Solo se paga un pedido pendiente de pago.
-        Order order = orders.getByPublicCode(orderCode);
-        if (order.status() != OrderStatus.PENDING_PAYMENT) {
-            throw new OrderNotPayableException(orderCode);
-        }
-
         // La opción tiene que estar habilitada y su pasarela tener credenciales (ADR 0014).
+        // Va antes del paso 1 porque sus minutos son los que se extiende la franja.
         PaymentMethodPolicy policy = policies.findEnabled(provider, method)
                 .filter(p -> gateways.isAvailable(p.provider()))
                 .orElseThrow(() -> new PaymentOptionNotAvailableException(provider, method));
 
-        // Si ya hay un pago pendiente con la misma opción y su cobro ya existe (el cliente recargó la página
-        // o pulsó dos veces), se devuelve ese mismo. Si es otra opción, o el cobro todavía se está creando,
-        // el cliente espera: cambiar de opción de forma segura necesita consultar y cancelar el cobro en la
-        // pasarela, y eso llega en el PR 2. La espera está acotada por el tope de la franja del pedido.
-        Optional<Payment> pending = payments.findPendingByOrderId(order.id());
-        if (pending.isPresent()) {
-            if (pending.get().isFor(provider, method) && pending.get().hasCheckout()) {
-                return pending.get();
-            }
-            throw new PaymentAlreadyInProgressException();
+        // Paso 1. Si ya había un pago con su enlace y la misma opción, se devuelve ese, sin crear otro.
+        PaymentReservation reservation = attempts.reserve(orderCode, policy);
+        if (reservation.reused()) {
+            return reservation.payment();
         }
-
-        // Paso 1.
-        Payment attempt = attempts.reserve(order, policy);
+        Order order = reservation.order();
+        Payment attempt = reservation.payment();
 
         // Paso 2. La llave de idempotencia combina el código del pedido (aleatorio) con el id del intento:
         // es única aunque la base de datos se recree y los ids vuelvan a empezar.
