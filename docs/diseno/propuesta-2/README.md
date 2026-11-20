@@ -46,6 +46,11 @@ Se necesita internet para dos cosas: las letras (Google Fonts) y las fotos (Unsp
 | `36-pago-celular.html` | Pantalla Pago, "Revisa y paga": bloques con "Cambiar", total, cómo pagas, autorizaciones y "Pagar $422.000". El pedido se crea y el cupo se aparta al pulsar "Pagar" | **Aprobado** (2026-11-19) |
 | `37-pago-empezado-celular.html` | "Ya empezaste a pagar este pedido": reemplaza a "Revisa y paga" si la persona vuelve con un pago en curso | **Aprobado** (2026-11-19) |
 | `38-entrega-escritorio.html` / `39-pago-escritorio.html` | Entrega y Pago en escritorio: formulario a la izquierda y panel lila muy suave a la derecha, hasta el borde de la ventana, con el resumen quieto arriba | **Aprobado** (2026-11-19) |
+| `40-resultado-confirmando-celular.html` | Página "Tu pedido", confirmando: aro que gira mientras la página pregunta el estado cada 3 segundos durante un minuto | **Provisional** (2026-11-19; se revisa al terminar el proyecto, pendiente 64) |
+| `41-resultado-listo-celular.html` / `45-resultado-listo-escritorio.html` | ¡Listo! Pedido confirmado: cuándo llega, para quién, el mensaje, lo pagado y WhatsApp para cambios. Aquí se vacía el carrito | **Aprobado** (2026-11-19) |
+| `42-resultado-reintentar-celular.html` / `46-resultado-reintentar-escritorio.html` | Pago rechazado con el cupo todavía apartado: "Volver a pagar" antes de la hora en que vence el cobro. Solo su ícono (la tarjeta en rosa) es provisional, pendiente 64 | **Aprobado** (2026-11-19) |
+| `43-resultado-no-aprobado-celular.html` | No se aprobó ningún pago: se liberó el horario y "Hacer el pedido de nuevo" con el carrito guardado | **Aprobado** (2026-11-19) |
+| `44-resultado-en-revision-celular.html` | Pago en revisión, y el mismo diseño para los casos raros del ADR 0016 (A.23): WhatsApp como botón principal; la entrega queda "Por coordinar con la florista" | **Aprobado** (2026-11-19) |
 
 La organización de estas vistas (menú, reglas y pendientes) está explicada en `docs/diseno/organizacion-de-la-tienda.md`. El inicio (`04` y `05`) ya sigue esa organización.
 
@@ -58,7 +63,10 @@ Las decisiones del carrito y del último paso están en el pendiente 52 y en el 
 - `opcional-plegado`: un campo opcional que solo muestra "+ …"; al tocarlo se abre debajo y queda abierto.
 - `dia-resumido`: el día que llega elegido, en una línea; "Cambiar día" abre la fila de días.
 - `lista-horas`: las horas del día, una fila por franja. Pueden ser 2, 4 o más.
+- `confirmando`: el aro que gira en "Tu pedido" mientras se confirma el pago.
 - `aviso-temporal`: los avisos "Agregado" y "Deshacer", que se van solos a los pocos segundos. En la maqueta están quietos; en la tienda van fijos a la pantalla.
+
+Los textos del resultado del pago salen del ADR 0016 (A.23); la página nunca se fía de lo que trae la vuelta desde Mercado Pago y pregunta el estado a nuestro backend. Las variantes de texto (el enlace venció, el tope de intentos, los casos raros) están en el comentario `COMPORTAMIENTO` de cada maqueta.
 
 Las maquetas 32, 34 y 35 muestran la página **ya bajada** hasta "Cuándo" (se recorta lo de arriba), como la vería la persona en ese momento. Los datos son de ejemplo. Al reexportar se cambió el marco del celular de `overflow: hidden` a `overflow: clip` en las maquetas anteriores, para que lo fijo funcione igual en todas; el diseño no cambió.
 

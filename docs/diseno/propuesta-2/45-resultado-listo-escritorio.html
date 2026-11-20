@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu pedido · listo · escritorio</title>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2E2433}a:hover{color:#62566A}
+.zoom img{transition:transform .5s ease}
+.zoom:hover img{transform:scale(1.03)}
+@media (prefers-reduced-motion: reduce){.zoom img{transition:none}.zoom:hover img{transform:none}}
+.nav a{text-decoration:none;font-size:15px;font-weight:500;min-height:44px;display:flex;align-items:center}
+.nav a:hover{color:#7A5C9E}
+
+</style>
+<style>
+body{margin:0}
+</style>
+</head>
+<body>
+<div style="width: 100%; min-height: 0; box-sizing: border-box; background: #FFFFFF; font-family: 'Manrope', system-ui, sans-serif; color: #2E2433; display: flex; flex-direction: column; position: relative">
+<header style="height: 84px; padding: 0 max(24px, calc(50% - 600px)); display: flex; align-items: center; justify-content: space-between">
+<a href="05-inicio-escritorio.html" style="font-family: 'Gloock', Georgia, serif; font-size: 32px; text-decoration: none; width: 220px">Valentía</a>
+<nav class="nav" aria-label="Principal" style="display: flex; gap: 36px">
+<a href="08-catalogo-escritorio.html" style="gap: 6px">Catálogo</a>
+<a href="14-menu-escritorio.html" style="gap: 6px">Ocasiones <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></a>
+<a href="#zonas" style="gap: 6px">Zonas de entrega</a>
+<a href="#como" style="gap: 6px">Cómo funciona</a>
+</nav>
+<div style="width: 220px; display: flex; justify-content: flex-end">
+<a href="#carrito" aria-label="Ver carrito, vacío" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; position: relative; color: #2E2433"><svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></a>
+</div>
+</header>
+<section style="padding: 32px 24px 72px; display: flex; justify-content: center"><div style="width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 22px"><!-- COMPORTAMIENTO: es UNA SOLA página, "Tu pedido" (/pedido/<código público>), que cambia según el estado que dice nuestro backend. Se llega al volver de Mercado Pago, desde "Ya pagué: ver mi pedido" y desde el enlace del correo. El código público ya es un UUID aleatorio (CreateOrderService), imposible de adivinar; aquí se muestran sus primeros 8 caracteres como número del pedido. --><span aria-hidden="true" style="align-self: center; width: 72px; height: 72px; border-radius: 36px; background: #F6EEF7; color: #7A5C9E; display: flex; align-items: center; justify-content: center"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div style="display: flex; flex-direction: column; gap: 10px; text-align: center; align-items: center"><h1 style="margin: 0; font-family: 'Gloock', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1">¡Listo! Tu pedido está confirmado</h1><p style="margin: 0; font-size: 16px; line-height: 1.5; color: #62566A">Te enviamos la confirmación a <strong style="color: #2E2433; font-weight: 600">ana@ejemplo.com</strong>.</p></div><!-- COMPORTAMIENTO: al llegar a este estado se VACÍA el carrito del navegador (solo aquí; en los demás estados el carrito se conserva). --><div style="display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 22px; border: 1px solid #E4D8E8"><div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px"><span style="font-size: 15px; font-weight: 600">Pedido n.º 7F3A9C21</span><span style="font-size: 13px; color: #62566A">Tarjeta de crédito</span></div><div style="display: flex; gap: 14px; font-size: 14px; line-height: 1.5"><span style="flex: none; width: 58px; color: #62566A">Llega</span><span style="flex: 1; min-width: 0; color: #2E2433"><strong style="font-weight: 600">Jueves 19 de noviembre, de 2 a 4 p. m.</strong></span></div><div style="display: flex; gap: 14px; font-size: 14px; line-height: 1.5"><span style="flex: none; width: 58px; color: #62566A">Para</span><span style="flex: 1; min-width: 0; color: #2E2433">Carmen Martínez<br><span style="color: #62566A">Calle 85 # 12-34, apto 501 · Chapinero</span></span></div><div style="display: flex; gap: 14px; font-size: 14px; line-height: 1.5"><span style="flex: none; width: 58px; color: #62566A">Tarjeta</span><span style="flex: 1; min-width: 0; color: #2E2433"><span style="display: block; padding: 10px 12px; border-radius: 14px; background: #F6EEF7">“Feliz cumpleaños, mamá. Gracias por todo. Te quiero mucho.”<br><span style="color: #62566A">— Ana</span></span></span></div><div style="display: flex; gap: 10px; align-items: center; padding-top: 14px; border-top: 1px solid #E2D4E5"><span style="width: 44px; height: 58px; border-radius: 12px; overflow: hidden; flex: none"><img src="https://images.unsplash.com/photo-1615050461998-b2e2c93d98f3?w=1200&amp;q=80&amp;fm=jpg&amp;fit=max" alt="" style="width: 100%; height: 100%; object-fit: cover"></span><span style="width: 44px; height: 58px; border-radius: 12px; overflow: hidden; flex: none"><img src="https://images.unsplash.com/photo-1575178114667-c8a832c61f45?w=1200&amp;q=80&amp;fm=jpg&amp;fit=max" alt="" style="width: 100%; height: 100%; object-fit: cover"></span><span style="width: 44px; height: 58px; border-radius: 12px; overflow: hidden; flex: none"><img src="https://images.unsplash.com/photo-1617176756216-62e387dfe686?w=2000&amp;q=80&amp;fm=jpg&amp;fit=max" alt="" style="width: 100%; height: 100%; object-fit: cover"></span><span style="font-size: 14px; color: #62566A; margin-left: 4px">3 productos</span></div><div style="display: flex; justify-content: space-between; font-size: 17px; font-weight: 600"><span>Pagaste</span><span>$422.000</span></div></div><p style="margin: 0; font-size: 14px; line-height: 1.5; color: #62566A; text-align: center">¿Algo que cambiar? Escríbenos antes de que empecemos a armarlo.</p><a href="#whatsapp" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 52px; border-radius: 26px; border: 1px solid #E4D8E8; background: #FFFFFF; color: #2E2433; text-decoration: none; font-size: 16px; font-weight: 500"><span style="color: #1E7A4C; display: flex"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.4-4A8 8 0 1 1 8 18.6z"/><path d="M9 10c0 3 2 5 5 5"/></svg></span>Escríbenos por WhatsApp</a><a href="#catalogo" style="align-self: center; font-size: 15px; font-weight: 600; color: #7A5C9E; min-height: 44px; display: flex; align-items: center">Seguir mirando flores →</a></div></section>
+<footer style="margin-top: auto; padding: 56px max(24px, calc(50% - 600px)) 48px; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 30px">Valentía</span>
+<span style="font-size: 15px; line-height: 1.5; color: #62566A">Flores frescas, armadas por encargo.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 15px; color: #62566A">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2E2433">Contacto</span>
+<span>[TELÉFONO DE LA TIENDA]</span>
+<span>[CORREO DE LA TIENDA]</span>
+</div>
+<div class="nav" style="display: flex; flex-direction: column; gap: 0">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 2px">Tienda</span>
+<a href="#catalogo" style="min-height: 36px">Catálogo</a>
+<a href="#zonas" style="min-height: 36px">Zonas de entrega</a>
+<a href="#pagos" style="min-height: 36px">Pagos</a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 15px; color: #62566A">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2E2433">Pagos</span>
+<span>Tarjeta, PSE y Nequi</span>
+</div>
+</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu pedido · no se aprobó</title>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2E2433}a:hover{color:#62566A}
+.zoom img{transition:transform .5s ease}
+.zoom:hover img{transform:scale(1.03)}
+@media (prefers-reduced-motion: reduce){.zoom img{transition:none}.zoom:hover img{transform:none}}
+.nav a{text-decoration:none;font-size:15px;font-weight:500;min-height:44px;display:flex;align-items:center}
+.nav a:hover{color:#7A5C9E}
+
+</style>
+<style>
+html{background:#EDEAEF}body{margin:0}.marco{width:390px;margin:32px auto;background:#FFF;box-shadow:0 8px 40px rgba(46,36,51,.16);border-radius:28px;overflow:clip}@media (max-width:430px){.marco{width:auto;margin:0;border-radius:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="marco"><div style="width: 100%; min-height: 0; box-sizing: border-box; background: #FFFFFF; font-family: 'Manrope', system-ui, sans-serif; color: #2E2433; display: flex; flex-direction: column; position: relative">
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 10px 8px 6px">
+<a href="13-menu-celular.html" aria-label="Abrir menú" style="width: 48px; height: 48px; background: none; border: none; padding: 0; display: flex; align-items: center; justify-content: center; color: #2E2433"><svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 8h16M4 16h11"/></svg></a>
+<a href="04-inicio-celular.html" style="font-family: 'Gloock', Georgia, serif; font-size: 26px; text-decoration: none">Valentía</a>
+<a href="#carrito" aria-label="Ver carrito, 3 productos" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; position: relative; color: #2E2433"><svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span style="position: absolute; top: 7px; right: 5px; min-width: 18px; height: 18px; border-radius: 9px; background: #7A5C9E; color: #FFFFFF; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center">3</span></a>
+</header>
+<section style="padding: 20px 16px 48px; display: flex; flex-direction: column; gap: 20px">
+<!-- COMPORTAMIENTO: es UNA SOLA página, "Tu pedido" (/pedido/<código público>), que cambia según el estado que dice nuestro backend. Se llega al volver de Mercado Pago, desde "Ya pagué: ver mi pedido" y desde el enlace del correo. El código público ya es un UUID aleatorio (CreateOrderService), imposible de adivinar; aquí se muestran sus primeros 8 caracteres como número del pedido. --><span aria-hidden="true" style="align-self: center; width: 72px; height: 72px; border-radius: 36px; background: #F6EEF7; color: #7A5C9E; display: flex; align-items: center; justify-content: center"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12.0" cy="7.4" r="3.4"/><circle cx="16.4" cy="10.6" r="3.4"/><circle cx="14.7" cy="15.7" r="3.4"/><circle cx="9.3" cy="15.7" r="3.4"/><circle cx="7.6" cy="10.6" r="3.4"/><circle cx="12" cy="12" r="1.6"/></svg></span>
+<div style="display: flex; flex-direction: column; gap: 10px; text-align: center; align-items: center"><h1 style="margin: 0; font-family: 'Gloock', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1">No se aprobó ningún pago</h1><p style="margin: 0; font-size: 16px; line-height: 1.5; color: #62566A">Liberamos el día y la hora que tenías apartados. Tu carrito sigue guardado.</p></div>
+<!-- COMPORTAMIENTO: "Hacer el pedido de nuevo" lleva al carrito, que sigue en el navegador; el día y la hora se consultan otra vez (ADR 0020, punto 7). Variante "tope de intentos" (A.9): el título cambia a "Llegaste al máximo de intentos de pago para este pedido". Solo se invita a otro pedido cuando se comprobó que el cobro terminó (ADR 0016, A.23). -->
+<a href="24-carrito-celular.html" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 52px; border-radius: 26px; background: #7A5C9E; color: #FFFFFF; text-decoration: none; font-size: 16px; font-weight: 500">Hacer el pedido de nuevo</a>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #62566A; text-align: center">Si ves un cobro aprobado en tu banco, escríbenos y lo revisamos.</p>
+<a href="#whatsapp" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 52px; border-radius: 26px; border: 1px solid #E4D8E8; background: #FFFFFF; color: #2E2433; text-decoration: none; font-size: 16px; font-weight: 500"><span style="color: #1E7A4C; display: flex"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.4-4A8 8 0 1 1 8 18.6z"/><path d="M9 10c0 3 2 5 5 5"/></svg></span>Escríbenos por WhatsApp</a>
+</section>
+<footer style="margin-top: auto; padding: 36px 24px 32px; display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center">
+<span style="font-family: 'Gloock', Georgia, serif; font-size: 26px">Valentía</span>
+<div style="display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: #62566A">
+<span>[TELÉFONO DE LA TIENDA]</span>
+<span>[CORREO DE LA TIENDA]</span>
+</div>
+<div style="display: flex; gap: 20px; font-size: 14px">
+<a href="#catalogo" style="min-height: 44px; display: flex; align-items: center">Catálogo</a>
+<a href="#zonas" style="min-height: 44px; display: flex; align-items: center">Zonas</a>
+<a href="#pagos" style="min-height: 44px; display: flex; align-items: center">Pagos</a>
+</div>
+<span style="font-size: 13px; color: #62566A">Tarjeta, PSE y Nequi</span>
+</footer>
+</div></div>
+</body>
+</html>
