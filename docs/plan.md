@@ -368,6 +368,8 @@ B. Con Testcontainers (módulo `testcontainers-floci`): la opción recomendada, 
 
 > **Cambio del 2026-11-12 (ADR 0015):** la fase 5 se hace con Next.js en vez de Angular. Las pruebas unitarias del frontend usan Vitest y Testing Library; Playwright y Lighthouse no cambian.
 
+> **Diseño del cliente (al 2026-11-19):** el camino de compra está diseñado y aprobado de punta a punta, del inicio al resultado del pago (maquetas `04` a `46` en `docs/diseno/propuesta-2`, guía de estilo en `docs/diseno/guia-de-estilo.md`, ADR 0017 a 0021). Lo que falta diseñar está en el pendiente 52, y el trabajo de backend que sale del diseño, en el 59. Antes de seguir con el diseño se termina el pago en el backend (PR 2).
+
 **Fase 6: Extras.** Correos asíncronos (SQS a SES) y reseñas moderadas (backend y su interfaz en Angular, incluida la moderación en el panel admin).
 
 *Pruebas:* reglas de reseña con JUnit 5 y Mockito (solo con pedido entregado, una por pedido, moderación), `FakeEmailSender` en las unitarias y el envío por SQS contra Floci con Testcontainers.

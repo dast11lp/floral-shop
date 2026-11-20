@@ -46,8 +46,8 @@ Hay que resolverlo antes de diseñar el carrito y el último paso, porque cambia
   4. **Cuándo:** día y hora, consultados de nuevo al llegar a esta parte. El día llega resumido en una línea con "Cambiar día" y las horas van en lista; si no llega día o ya no sirve, se ve la fila de días abierta (pendiente 52, punto 6).
   5. **"Continuar al pago":** lleva a la revisión. **No crea nada todavía.**
 - **Lo opcional que la mayoría no usa va plegado** con un botón "+ …" que abre el campo y lo deja abierto (decidido el 2026-11-19, pendiente 52, punto 8): la nota de entrega siempre, y el mensaje con la firma solo con "Lo recibo yo". Con "Es un regalo" el mensaje se ve de entrada, porque la mayoría de quienes regalan escriben uno.
-- **Pago:** revisión de lo elegido (productos, día y hora, quien recibe, total con envío), opciones de pago y "Pagar … en Mercado Pago". Cada bloque tiene "Cambiar", que vuelve a Entrega con todo lo escrito intacto (vive en el navegador). Al entrar se vuelve a consultar el día y la hora.
-- **El pedido se crea al pulsar "Pagar … en Mercado Pago".** En un solo toque se crea el pedido y se aparta el cupo, se inicia el pago y se va a Mercado Pago. Todo eso ya existe en el backend.
+- **Pago:** revisión de lo elegido (productos, día y hora, quien recibe, total con envío), opciones de pago y el botón "Pagar $…" con el total; encima, "Te llevamos a Mercado Pago para pagar de forma segura. Apartamos tu día y tu hora al pagar." (así el botón dice qué pasa después). Cada bloque tiene "Cambiar", que vuelve a Entrega con todo lo escrito intacto (vive en el navegador). Al entrar se vuelve a consultar el día y la hora.
+- **El pedido se crea al pulsar "Pagar $…".** En un solo toque se crea el pedido y se aparta el cupo, se inicia el pago y se va a Mercado Pago. Todo eso ya existe en el backend.
 
 Por qué así:
 - **Volver atrás para corregir no afecta al backend.** Si el pedido se creara en "Continuar al pago", corregir exigiría modificar o cancelar un pedido sin pagar (dos operaciones que no existen), o dejaría pedidos de más apartando cupo.

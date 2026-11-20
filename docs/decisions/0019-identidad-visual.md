@@ -59,7 +59,7 @@ El ADR 0018 dejó pendiente "la paleta exacta del tema claro". Este ADR la fija,
 - Es la paleta del tema claro. Los temas de temporada (ADR 0018) cambian estos colores; las letras y las formas no.
 
 **4. Formas: redondo, pero no infantil.**
-- **Esquinas:** una sola medida, 22 px, para tarjetas, fotos y franjas.
+- **Esquinas:** una sola medida, 22 px, para tarjetas, fotos y franjas. *Precisión del 2026-11-19 (ajuste fino, punto de "Ajustes finos"):* lo que va de borde a borde de la ventana (las franjas de color, el panel derecho del último paso) va con esquinas rectas; los 22 px son para lo que vive dentro del contenido (detalle en la guía de estilo).
 - **Píldoras:** botones, ocasiones y etiquetas, con bordes totalmente redondos.
 - **Espacios:** siempre múltiplos de 4.
 - **Ancho del contenido:** máximo 1200 px, centrado. La foto de portada y las franjas de color van de borde a borde.

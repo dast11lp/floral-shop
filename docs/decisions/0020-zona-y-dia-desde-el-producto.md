@@ -28,7 +28,7 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 2. Si elige su zona, ve los días y puede marcar uno. Si ya lleva productos, ve cómo queda el día de todo el carrito con este ramo.
 3. Arma el carrito. La zona y el día se recuerdan.
 4. En el último paso, la zona y el día **llegan puestos** y **se pueden cambiar**. Ahí escribe su dirección, elige la hora y paga.
-5. Desde ahí, todo sigue igual que en el 0012 (puntos 1.4 a 1.6) y el 0013: el día y la hora se apartan **al crear el pedido**, cuando el cliente pulsa "Pagar … en Mercado Pago" en la pantalla de revisión, no antes (ADR 0021, punto 4).
+5. Desde ahí, todo sigue igual que en el 0012 (puntos 1.4 a 1.6) y el 0013: el día y la hora se apartan **al crear el pedido**, cuando el cliente pulsa "Pagar $…" en la pantalla de revisión, no antes (ADR 0021, punto 4).
 
 **2. Elegir la zona y el día en el producto no aparta nada.** Es una consulta. El cupo se aparta al crear el pedido, como hasta ahora (0013). Lo que se ve antes puede quedar viejo; el punto 7 dice cómo se maneja.
 
@@ -62,7 +62,7 @@ Además, el tiempo de un carrito se suma (ADR 0012, punto 3). Agregar un ramo pu
 - La zona y el día vienen de lo elegido antes, y se pueden cambiar. Cada cambio vuelve a consultar al backend.
 - Si cambiar la zona mueve el día, se dice con la misma forma: "Con Chía, todo puede llegar el **viernes 20**. Con Chapinero, sería el jueves 19."
 - Si el día elegido ya no sirve (se llenó o el carrito cambió), se marca el primer día que sí sirve y se avisa con la misma frase.
-- Debajo del botón de pagar: "Apartamos tu día y tu hora al pagar." (ADR 0021, punto 4).
+- Encima del botón de pagar: "Te llevamos a Mercado Pago para pagar de forma segura. Apartamos tu día y tu hora al pagar." (ADR 0021, punto 4).
 
 **7. Lo que se ve puede quedar viejo: se vuelve a consultar y se avisa.** Entre ver el producto y pagar pueden pasar minutos o días (el carrito se queda guardado). En ese tiempo el día que se mostró puede dejar de servir. No se vende un cupo de más, porque al crear el pedido se revisa todo otra vez con la franja bloqueada; el cuidado está en la pantalla.
 - **Por qué cambia,** de lo más común a lo más raro:
