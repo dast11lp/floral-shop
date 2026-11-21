@@ -577,6 +577,23 @@ Salvo las marcadas como resueltas, ninguna de estas cuestiones está decidida. L
   - Motivos de `FAILED`:
     - **"rechazada por la pasarela":** la pasarela respondió que la petición no era válida (por ejemplo, un monto con centavos);
     - **"creación sin confirmar":** la pasarela no respondió, o el intento quedó a medio crear (D.3, P6).
+  - **Precisión del 2026-11-20: qué errores 4xx cuentan como "rechazada por la pasarela".** Solo vale para crear una order de Checkout Pro (`POST /v1/orders`, `processing_mode: manual`). No es una regla para otros endpoints de Mercado Pago ni para otras pasarelas. Se basa en la referencia oficial de ese endpoint, consultada el 2026-11-20.
+    - **Regla conservadora, una sola para los cuatro HTTP reconocidos (400, 401, 403 y 422):** "rechazada" solo si el HTTP está reconocido, la respuesta trae al menos un código de error y **todos** sus códigos están en la lista de ese HTTP. Cualquier otra cosa es "creación sin confirmar". Así nunca se afirma que una order no existe sin que Mercado Pago lo diga.
+    - **No hay rechazo financiero en este punto:** crear la order no cobra nada. El rechazo del banco llega después, con el aviso, y no lleva a `FAILED` (A.19 y A.20).
+
+      | Respuesta | Motivo |
+      |---|---|
+      | 400 con **todos** sus códigos entre los de petición mal hecha (`json_syntax_error`, `required_properties`, `unsupported_properties`, `minimum_properties`, `property_type`, `property_value`, `order_items_total_amount_mismatch`, `invalid_total_amount`, `empty_required_header`, `invalid_idempotency_key_length`) | Rechazada |
+      | 401 con **todos** sus códigos entre `401` (token incorrecto; la referencia usa ese texto como código) e `invalid_credentials` | Rechazada |
+      | 403 con **todos** sus códigos entre `forbidden` y `pa_unauthorized_result_from_policies` | Rechazada |
+      | 422 con **todos** sus códigos iguales a `unprocessable_entity` | Rechazada |
+      | 400, 401, 403 o 422 con algún código que no está en la lista de ese HTTP (por ejemplo `idempotency_validation_failed` en un 400), con un error sin `code`, sin el campo `errors`, con `errors` vacío, o con el cuerpo vacío o ilegible | Sin confirmar |
+      | 409 `idempotency_key_already_used` y 423 `resource_locked`: la order pudo crearse con esa llave | Sin confirmar |
+      | 429 y cualquier otro 4xx: Mercado Pago no garantiza que no se creó | Sin confirmar |
+      | 5xx, tiempo agotado, conexión cortada o respuesta sin `checkout_url` | Sin confirmar |
+
+    - Los códigos se leen del campo `code` de cada elemento de `errors` en la respuesta, no buscando texto en el cuerpo.
+    - No cambia ningún estado de `Payment`. Equivocarse de motivo no mueve dinero, porque la URL solo llega al cliente después de guardarla (D.3). El motivo correcto importa para la operación y para la mejora futura de P6, que repite la petición con la misma llave y puede recibir un 409 o un 423 con la order ya creada.
   - Para el cliente no cambia nada: en los dos casos ve "No pudimos iniciar el pago. Intenta de nuevo" (A.23). El motivo sirve para la operación.
   - Se descartan dos estados (`FAILED_BY_BANK` y `FAILED_BY_SYSTEM`): el del banco nunca se usaría, y el otro ya es `FAILED`. No hace falta migrar el estado del pago por esto.
 - **P6. Resuelta el 2026-11-14:** no hay estado `UNKNOWN`. Una creación de cobro sin respuesta, o un intento a medio crear pasado el plazo de gracia, se cierra como `FAILED` con el motivo "creación sin confirmar", porque nadie puede pagarlo. Una consulta o cancelación sin respuesta no cambia nada (D.3).

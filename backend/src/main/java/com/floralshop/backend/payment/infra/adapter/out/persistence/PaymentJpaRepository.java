@@ -23,11 +23,13 @@ interface PaymentJpaRepository extends JpaRepository<PaymentJpaEntity, Long> {
     // Devuelven cuántas filas cambiaron: 1, o 0 si el pago ya no estaba como se esperaba.
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""
-            update PaymentJpaEntity p set p.providerReference = :reference, p.checkoutUrl = :url
+            update PaymentJpaEntity p
+            set p.providerReference = :reference, p.checkoutUrl = :url, p.checkoutExpiresAt = :expiresAt
             where p.id = :id and p.status = :expected
             """)
     int attachCheckoutIf(@Param("id") long id, @Param("expected") PaymentStatusColumn expected,
-                         @Param("reference") String reference, @Param("url") String url);
+                         @Param("reference") String reference, @Param("url") String url,
+                         @Param("expiresAt") Instant expiresAt);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""

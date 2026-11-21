@@ -6,6 +6,7 @@ import com.floralshop.backend.ordering.domain.model.Order;
 import com.floralshop.backend.payment.application.port.out.CheckoutRequest;
 import com.floralshop.backend.payment.application.port.out.CheckoutSession;
 import com.floralshop.backend.payment.application.port.out.PaymentMethodPolicyRepositoryPort;
+import com.floralshop.backend.payment.domain.exception.PaymentGatewayException;
 import com.floralshop.backend.payment.domain.exception.PaymentOptionNotAvailableException;
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethod;
@@ -56,12 +57,19 @@ public class StartPaymentService {
         } catch (RuntimeException ex) {
             // Cualquier falla (la pasarela no respondió, rechazó la petición, o un monto con centavos) deja
             // el intento fallido. Si quedara pendiente sin cobro, el pedido no podría volver a intentar.
-            // Por ahora todo fallo es "creación sin confirmar"; separar el rechazo de la pasarela llega en el paso 5.
-            attempts.markFailed(attempt, PaymentStatusReason.CREATION_UNCONFIRMED);
+            attempts.markFailed(attempt, reasonOf(ex));
             throw ex;
         }
 
         // Paso 3. Si otro proceso ya cerró el intento, sale PaymentAttemptClosedException, sin el enlace.
         return attempts.attachCheckout(attempt, session);
+    }
+
+    // El motivo del fallo (ADR 0016, P5): "rechazado" solo si la pasarela respondió que no lo crea (4xx).
+    // Todo lo demás es "creación sin confirmar": no sabemos qué pasó allá.
+    private static PaymentStatusReason reasonOf(RuntimeException ex) {
+        return ex instanceof PaymentGatewayException gateway && gateway.rejected()
+                ? PaymentStatusReason.GATEWAY_REJECTED
+                : PaymentStatusReason.CREATION_UNCONFIRMED;
     }
 }

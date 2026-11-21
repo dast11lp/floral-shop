@@ -3,13 +3,17 @@ package com.floralshop.backend.payment.infra.adapter.out.mercadopago;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.http.HttpClient;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -38,10 +42,12 @@ class MercadoPagoGateway implements PaymentGateway {
             PaymentMethod.PSE, List.of("credit_card", "debit_card", "prepaid_card", "ticket", "account_money"));
 
     private final MercadoPagoProperties properties;
+    private final Clock clock;
     private final RestClient http;
 
-    MercadoPagoGateway(MercadoPagoProperties properties) {
+    MercadoPagoGateway(MercadoPagoProperties properties, Clock clock) {
         this.properties = properties;
+        this.clock = clock;
         // HTTP/1.1 y tiempos máximos: si Mercado Pago no responde, el cliente recibe un error en segundos,
         // sin dejar la petición colgada. (Con HTTP/2 sin TLS, el cliente de Java falla contra WireMock.)
         HttpClient client = HttpClient.newBuilder()
@@ -84,6 +90,10 @@ class MercadoPagoGateway implements PaymentGateway {
                         "online", Map.of("success_url", returnUrl, "failure_url", returnUrl,
                                 "pending_url", returnUrl)));
 
+        // El vencimiento se cuenta con NUESTRO reloj, tomado justo antes de pedir el cobro (decidido el
+        // 2026-11-20). Queda unos segundos antes que el de Mercado Pago: al cliente nunca se le dice una hora
+        // que ya pasó, y el job espera un margen después del vencimiento (ADR 0016, A.19).
+        Instant expiresAt = clock.instant().plus(properties.checkoutExpiration());
         try {
             OrderResponse response = http.post()
                     .uri("/v1/orders")
@@ -98,9 +108,53 @@ class MercadoPagoGateway implements PaymentGateway {
             if (response == null || response.id() == null || response.checkoutUrl() == null) {
                 throw new PaymentGatewayException("Mercado Pago respondió sin id o sin checkout_url", null);
             }
-            return new CheckoutSession(response.id(), response.checkoutUrl());
+            return new CheckoutSession(response.id(), response.checkoutUrl(), expiresAt);
+        } catch (HttpClientErrorException ex) {
+            // Un 4xx no basta para saber que la order no existe: ver surelyNotCreated (ADR 0016, P5).
+            List<String> codes = errorCodes(ex);
+            boolean rejected = surelyNotCreated(ex.getStatusCode().value(), codes);
+            throw new PaymentGatewayException((rejected ? "Mercado Pago rechazó el cobro: "
+                    : "Mercado Pago no confirmó si creó el cobro: ") + ex.getStatusCode() + " " + codes, ex, rejected);
         } catch (RestClientException ex) {
+            // No respondió, se agotó el tiempo o un 5xx: no sabemos si lo creó (D.3).
             throw new PaymentGatewayException("Mercado Pago no pudo crear el cobro: " + ex.getMessage(), ex);
+        }
+    }
+
+    // Por cada HTTP reconocido, los códigos de error que, según la referencia de POST /v1/orders en Checkout Pro
+    // (consultada el 2026-11-20), dicen que la petición está mal hecha o no está autorizada: Mercado Pago no
+    // creó la order. El 400 no incluye idempotency_validation_failed, que pide repetir la petición y no dice
+    // si la order se creó.
+    private static final Map<Integer, Set<String>> REJECTION_CODES = Map.of(
+            400, Set.of("json_syntax_error", "required_properties", "unsupported_properties", "minimum_properties",
+                    "property_type", "property_value", "order_items_total_amount_mismatch", "invalid_total_amount",
+                    "empty_required_header", "invalid_idempotency_key_length"),
+            401, Set.of("401", "invalid_credentials"),
+            403, Set.of("forbidden", "pa_unauthorized_result_from_policies"),
+            422, Set.of("unprocessable_entity"));
+
+    // Clasificación conservadora, SOLO para crear una order de Checkout Pro (ADR 0016, P5, precisión del
+    // 2026-11-20). Una sola regla: "rechazada" (true) solo si el HTTP está reconocido, hay al menos un código
+    // de error y TODOS los códigos están en la lista de ese HTTP. Cualquier otra cosa es "sin confirmar"
+    // (false): un código desconocido o sin valor, un cuerpo vacío o ilegible, 409 y 423 (la order pudo
+    // crearse con esa llave), 429 y cualquier otro 4xx.
+    static boolean surelyNotCreated(int status, List<String> codes) {
+        Set<String> known = REJECTION_CODES.get(status);
+        return known != null && !codes.isEmpty()
+                && codes.stream().allMatch(code -> code != null && known.contains(code));
+    }
+
+    // Los códigos de la respuesta de error: {"errors": [{"code": "...", "message": "..."}]}.
+    // Si el cuerpo está vacío o no se puede leer, no hay códigos, y eso nunca lleva a "rechazada".
+    private static List<String> errorCodes(HttpClientErrorException ex) {
+        try {
+            ErrorResponse body = ex.getResponseBodyAs(ErrorResponse.class);
+            if (body == null || body.errors() == null) {
+                return List.of();
+            }
+            return body.errors().stream().map(error -> error == null ? null : error.code()).toList();
+        } catch (RuntimeException unreadable) {
+            return List.of();
         }
     }
 
@@ -112,5 +166,12 @@ class MercadoPagoGateway implements PaymentGateway {
 
     // Solo los campos que se usan de la respuesta de POST /v1/orders.
     record OrderResponse(String id, @JsonProperty("checkout_url") String checkoutUrl) {
+    }
+
+    // Solo el código de cada error de la respuesta de error.
+    record ErrorResponse(List<ErrorItem> errors) {
+    }
+
+    record ErrorItem(String code) {
     }
 }

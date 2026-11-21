@@ -56,6 +56,7 @@ class PaymentAttemptServiceTest {
     private static final Instant NOW = Instant.parse("2026-11-12T15:05:00Z");
     private static final UUID CODE = UUID.fromString("7f2c0000-0000-4000-8000-000000000001");
     private static final Duration GRACE = Duration.ofMinutes(1);
+    private static final Instant EXPIRES = NOW.plusSeconds(15 * 60);
     private static final PaymentMethodPolicy CARD =
             new PaymentMethodPolicy("mercadopago", PaymentMethod.CARD, true, 36, 1);
 
@@ -222,9 +223,9 @@ class PaymentAttemptServiceTest {
 
     @Test
     void attachCheckoutAnnotatesTheReferenceAndTheUrlWhenTheAttemptIsStillPending() {
-        when(payments.attachCheckoutIfPending(7L, "ORDTST01ABC", "https://mp/pay")).thenReturn(true);
+        when(payments.attachCheckoutIfPending(7L, "ORDTST01ABC", "https://mp/pay", EXPIRES)).thenReturn(true);
 
-        Payment attached = service.attachCheckout(attempt(), new CheckoutSession("ORDTST01ABC", "https://mp/pay"));
+        Payment attached = service.attachCheckout(attempt(), new CheckoutSession("ORDTST01ABC", "https://mp/pay", EXPIRES));
 
         assertThat(attached.status()).isEqualTo(PaymentStatus.PENDING);
         assertThat(attached.providerReference()).isEqualTo("ORDTST01ABC");
@@ -237,9 +238,9 @@ class PaymentAttemptServiceTest {
     // Otro proceso ya cerró el intento: no se entrega el enlace, y el error no lo menciona (D.3).
     @Test
     void attachCheckoutFailsWithoutTheUrlWhenAnotherProcessAlreadyClosedTheAttempt() {
-        when(payments.attachCheckoutIfPending(7L, "ORDTST01ABC", "https://mp/pay")).thenReturn(false);
+        when(payments.attachCheckoutIfPending(7L, "ORDTST01ABC", "https://mp/pay", EXPIRES)).thenReturn(false);
 
-        assertThatThrownBy(() -> service.attachCheckout(attempt(), new CheckoutSession("ORDTST01ABC", "https://mp/pay")))
+        assertThatThrownBy(() -> service.attachCheckout(attempt(), new CheckoutSession("ORDTST01ABC", "https://mp/pay", EXPIRES)))
                 .isInstanceOf(PaymentAttemptClosedException.class)
                 .message().doesNotContain("https://mp/pay");
     }

@@ -20,8 +20,10 @@ public interface PaymentRepositoryPort {
     int countAttemptsWithCheckout(long orderId);
 
     // Anota el cobro creado en la pasarela, solo si el pago sigue PENDING (ADR 0016, D.8).
-    // Cambia únicamente la referencia y el enlace. Devuelve false si otro proceso ya lo cerró: entonces no toca nada.
-    boolean attachCheckoutIfPending(long paymentId, String providerReference, String checkoutUrl);
+    // Cambia únicamente la referencia, el enlace y su vencimiento (null en los medios manuales).
+    // Devuelve false si otro proceso ya lo cerró: entonces no toca nada.
+    boolean attachCheckoutIfPending(long paymentId, String providerReference, String checkoutUrl,
+                                    Instant checkoutExpiresAt);
 
     // Cierra el pago como FAILED con su motivo y la hora del cierre, solo si sigue PENDING (ADR 0016, D.8).
     // Devuelve false si otro proceso ya lo cerró: entonces no toca nada.

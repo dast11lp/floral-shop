@@ -58,8 +58,10 @@ class PaymentPersistenceAdapter implements PaymentRepositoryPort {
     }
 
     @Override
-    public boolean attachCheckoutIfPending(long paymentId, String providerReference, String checkoutUrl) {
-        return jpa.attachCheckoutIf(paymentId, PaymentStatusColumn.PENDING, providerReference, checkoutUrl) == 1;
+    public boolean attachCheckoutIfPending(long paymentId, String providerReference, String checkoutUrl,
+                                           Instant checkoutExpiresAt) {
+        return jpa.attachCheckoutIf(paymentId, PaymentStatusColumn.PENDING, providerReference, checkoutUrl,
+                checkoutExpiresAt) == 1;
     }
 
     @Override

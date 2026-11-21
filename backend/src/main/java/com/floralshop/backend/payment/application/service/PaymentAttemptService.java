@@ -91,12 +91,13 @@ public class PaymentAttemptService {
         return new PaymentReservation(order, attempt, false);
     }
 
-    // Paso 3, si la pasarela creó el cobro: se anotan su id allá y la URL de pago, solo si el intento sigue
-    // pendiente (ADR 0016, D.8). Si otro proceso ya lo cerró mientras se esperaba a la pasarela, no se toca nada
+    // Paso 3, si la pasarela creó el cobro: se anotan su id allá, la URL de pago y hasta cuándo se puede pagar,
+    // solo si el intento sigue pendiente (ADR 0016, D.8). Si otro proceso ya lo cerró mientras se esperaba a la pasarela, no se toca nada
     // y el cliente no recibe el enlace: nadie puede pagar ese cobro, que vence solo (D.3).
     public Payment attachCheckout(Payment attempt, CheckoutSession session) {
         Payment attached = attempt.withCheckout(session.providerReference(), session.checkoutUrl());
-        if (!payments.attachCheckoutIfPending(attempt.id(), session.providerReference(), session.checkoutUrl())) {
+        if (!payments.attachCheckoutIfPending(attempt.id(), session.providerReference(), session.checkoutUrl(),
+                session.expiresAt())) {
             throw new PaymentAttemptClosedException();
         }
         return attached;

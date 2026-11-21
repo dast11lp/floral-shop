@@ -50,6 +50,7 @@ import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 class StartPaymentServiceTest {
 
     private static final Instant CREATED = Instant.parse("2026-11-12T15:00:00Z");
+    private static final Instant EXPIRES = CREATED.plusSeconds(15 * 60);
     private static final UUID CODE = UUID.fromString("7f2c0000-0000-4000-8000-000000000001");
     private static final PaymentMethodPolicy CARD =
             new PaymentMethodPolicy("mercadopago", PaymentMethod.CARD, true, 36, 1);
@@ -96,7 +97,7 @@ class StartPaymentServiceTest {
     @Test
     void savesTheAttemptThenCreatesTheCheckoutThenAttachesIt() {
         Payment saved = newAttemptReserved();
-        CheckoutSession session = new CheckoutSession("ORDTST01ABC", "https://mp/pay");
+        CheckoutSession session = new CheckoutSession("ORDTST01ABC", "https://mp/pay", EXPIRES);
         when(mercadoPago.createCheckout(any())).thenReturn(session);
         Payment attached = saved.withCheckout("ORDTST01ABC", "https://mp/pay");
         when(attempts.attachCheckout(saved, session)).thenReturn(attached);
@@ -114,7 +115,7 @@ class StartPaymentServiceTest {
     @Test
     void sendsTheOrderTotalAndAnIdempotencyKeyMadeOfOrderCodeAndAttemptId() {
         newAttemptReserved();
-        when(mercadoPago.createCheckout(any())).thenReturn(new CheckoutSession("ORDTST01ABC", "https://mp/pay"));
+        when(mercadoPago.createCheckout(any())).thenReturn(new CheckoutSession("ORDTST01ABC", "https://mp/pay", EXPIRES));
 
         service.start(CODE, "mercadopago", PaymentMethod.CARD);
 
@@ -150,6 +151,18 @@ class StartPaymentServiceTest {
         verify(attempts, never()).attachCheckout(any(), any());
     }
 
+    // La pasarela respondió que no crea el cobro (4xx): sabemos que no existe, motivo "rechazado" (ADR 0016, P5).
+    @Test
+    void aRejectionFromTheGatewayIsSavedAsRejected() {
+        Payment saved = newAttemptReserved();
+        when(mercadoPago.createCheckout(any()))
+                .thenThrow(new PaymentGatewayException("Mercado Pago rechazó el cobro: 400", null, true));
+
+        assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
+                .isInstanceOf(PaymentGatewayException.class);
+        verify(attempts).markFailed(saved, PaymentStatusReason.GATEWAY_REJECTED);
+    }
+
     // No solo los errores de la pasarela: cualquier falla al crear el cobro deja el intento fallido.
     @Test
     void anyOtherFailureWhileCreatingTheCheckoutAlsoMarksTheAttemptFailed() {
@@ -166,7 +179,7 @@ class StartPaymentServiceTest {
     @Test
     void whenTheAttemptWasClosedMeanwhileTheClientGetsNoCheckout() {
         Payment saved = newAttemptReserved();
-        CheckoutSession session = new CheckoutSession("ORDTST01ABC", "https://mp/pay");
+        CheckoutSession session = new CheckoutSession("ORDTST01ABC", "https://mp/pay", EXPIRES);
         when(mercadoPago.createCheckout(any())).thenReturn(session);
         when(attempts.attachCheckout(saved, session)).thenThrow(new PaymentAttemptClosedException());
 

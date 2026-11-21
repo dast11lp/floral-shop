@@ -173,6 +173,9 @@ class StartPaymentApiIntegrationTest {
         assertThat(row.get("status")).isEqualTo("PENDING");
         assertThat(row.get("provider_reference")).isEqualTo("ORDTST01ABC");
         assertThat(row.get("checkout_url")).isEqualTo(CHECKOUT_URL);
+        // El cobro vence 15 minutos después de pedirlo, contados con nuestro reloj (payment.mercadopago).
+        assertThat(jdbc.queryForObject("select extract(epoch from checkout_expires_at - now()) / 60 from payment",
+                Double.class)).isBetween(14.5, 15.0);
         // La franja ahora vence 36 minutos después (la tarjeta en payment_method_policy), dentro del tope de 51.
         assertThat(holdMinutesAfterCreation()).isBetween(35.9, 36.2);
         // La llave de idempotencia: código del pedido + id del intento.
@@ -375,6 +378,20 @@ class StartPaymentApiIntegrationTest {
         assertThat(row.get("recent")).isEqualTo(true);
     }
 
+    // Mercado Pago responde 400: rechazó el cobro, sabemos que no existe. Motivo "rechazado" (ADR 0016, P5).
+    @Test
+    void aRejectionFromMercadoPagoIsSavedAsRejected() throws Exception {
+        mercadoPago.stubFor(WireMock.post("/v1/orders").willReturn(aResponse().withStatus(400)
+                .withHeader("Content-Type", "application/json").withBody("{\"errors\":[{\"code\":\"property_value\"}]}")));
+
+        pay(orderCode, "CARD").andExpect(status().isBadGateway());
+
+        Map<String, Object> row = jdbc.queryForMap("select status, status_reason, checkout_expires_at from payment");
+        assertThat(row.get("status")).isEqualTo("FAILED");
+        assertThat(row.get("status_reason")).isEqualTo("GATEWAY_REJECTED");
+        assertThat(row.get("checkout_expires_at")).isNull();
+    }
+
     // Las actualizaciones condicionales, directo contra la base: sobre un pago cerrado no cambian nada.
     @Test
     void conditionalUpdatesDoNothingOnAClosedPayment() {
@@ -384,7 +401,7 @@ class StartPaymentApiIntegrationTest {
 
         // Cada una en su transacción, como la abre el caso de uso en la aplicación (ADR 0011).
         Boolean attached = transactions.execute(tx ->
-                payments.attachCheckoutIfPending(saved.id(), "ORDOTRO", "https://otro"));
+                payments.attachCheckoutIfPending(saved.id(), "ORDOTRO", "https://otro", java.time.Instant.now()));
         Boolean failed = transactions.execute(tx -> payments.markFailedIfPending(saved.id(),
                 PaymentStatusReason.CREATION_UNCONFIRMED, java.time.Instant.now()));
         assertThat(attached).isFalse();
@@ -412,7 +429,7 @@ class StartPaymentApiIntegrationTest {
         String evilReference = "ORD' OR '1'='1";
 
         Boolean attached = transactions.execute(tx ->
-                payments.attachCheckoutIfPending(saved.id(), evilReference, evilUrl));
+                payments.attachCheckoutIfPending(saved.id(), evilReference, evilUrl, java.time.Instant.now()));
 
         assertThat(attached).isTrue();
         assertThat(paymentCount()).isEqualTo(2);
