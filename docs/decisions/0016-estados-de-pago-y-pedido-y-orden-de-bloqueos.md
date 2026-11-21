@@ -317,7 +317,7 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
     | Aprobado (`CONFIRMED`) | "¡Listo! Tu pago se aprobó y tu pedido está confirmado para [franja]." |
     | Rechazo con la retención vigente (`waiting_retry`) | "Tu pago fue rechazado. Puedes intentarlo de nuevo, por ejemplo con otra tarjeta, antes de las HH:MM." Botón **Volver a pagar** al mismo checkout. HH:MM es el vencimiento del **cobro** (F), no el de la retención: después, el enlace ya no sirve |
     | El cobro venció con la retención vigente (intento `EXPIRED`) | "El enlace de pago venció. Puedes intentarlo de nuevo antes de las HH:MM." |
-    | Pedido cancelado sin pago (`canceled`, `canceled / expired` o `failed / expired`) | "No se aprobó ningún pago y liberamos el horario que tenías reservado. Si quieres, haz un pedido nuevo. Si ves un cobro aprobado en tu banco, escríbenos y lo revisamos." |
+    | Pedido cancelado sin pago (`canceled`, `canceled / expired` o `failed / expired`) | "No se aprobó ningún pago y liberamos el horario que tenías reservado. Elige otro y te guardamos todo lo demás. Si ves un cobro aprobado en tu banco, escríbenos y lo revisamos." Botón **Elegir otro horario** (precisión del 2026-11-20, abajo) |
     | C2 (`processing`), y A.19 con una transacción en proceso | "Tu pago está en revisión. Liberamos tu horario; si se aprueba, la florista te contactará para coordinar la entrega." |
     | A.20 (`failed` sin cierre confirmado) y A.19 con todas las transacciones rechazadas | "Los intentos de pago registrados fueron rechazados y el tiempo de reserva terminó, por lo que liberamos tu horario. La plataforma de pago aún no ha confirmado el cierre de tu intento de pago anterior. Antes de realizar otro pago, comunícate con nosotros. Si ves una aprobación, avísanos para revisarla." |
     | Error al iniciar el pago (`FAILED`, sin referencia) | "No pudimos iniciar el pago. Intenta de nuevo." |
@@ -327,6 +327,7 @@ El vencimiento del cobro no cancela el pedido; lo cancela el vencimiento de la r
     | Aprobación sobre un pedido `CANCELLED`, o pago duplicado | "Recibimos un pago adicional. La florista te contactará para resolverlo." |
 
     - En A.19 y A.20 **no se invita a crear otro pedido**, porque el intento anterior todavía podría admitir un pago. Sí se invita en A.18, porque se comprobó que el cobro venció.
+    - **"Elegir otro horario" (precisión del 2026-11-20).** Cuando el pedido se cancela sin pago, el cliente lo vive como elegir otra hora, no como empezar de cero. El botón lo lleva al último paso con el carrito intacto y con lo que ya escribió (quién recibe, mensaje de la tarjeta, nota) precargado; solo elige día y hora y paga. **Por dentro es un pedido nuevo**: el cancelado no se reabre, porque `CANCELLED` es final (sección C) y reabrirlo obligaría a cambiar las reglas de estados, el job y el tope de intentos, con el riesgo de que un pago viejo se apruebe tarde y se confunda con el nuevo. Los datos para precargar los devuelve la consulta del pedido (pendiente 34).
     - Los mensajes a la florista corresponden a las alertas de A.14, A.15, A.17, A.19, A.21 y A.22. El mecanismo de envío está pendiente (P11).
 
 ### B. Máquina de estados del pago
@@ -511,18 +512,27 @@ Las reglas D.6 a D.9 se aplican a todos. Lo que falta definir de cada proceso es
 - Validar `payment.mercadopago.checkout-expiration` al arrancar, con un máximo (por ejemplo, no más que los minutos de la opción). A.19 supone un vencimiento corto; el valor de 24 horas usado en V1 era solo para la prueba.
 - Registrar cada par de estado y detalle recibido de la pasarela y alertar ante uno no visto antes, para detectar si producción difiere del sandbox.
 
-**Hechos del código actual que habrá que cambiar** (revisados el 2026-11-12 en `main`, 6f46a3c):
+**Hechos del código actual que habrá que cambiar** (revisados el 2026-11-12 en `main`, 6f46a3c; estado al 2026-11-20 en `feat/payment-foundations`, `75adb8d`, parte 1 del PR 2, todavía sin PR):
 - `StartPaymentService.start` revisa el estado del pedido fuera de la transacción, y `PaymentAttemptService.reserve` ignora que `OrderHoldService.extendHold` no pudo extender la retención. Es la carrera del contexto.
+  - **Resuelto (`3cc37f2`):** `reserve` bloquea el pedido y revisa su estado y su retención dentro de la transacción. `extendHold` corre con el bloqueo puesto, así que nadie cambia el pedido en medio.
 - `PaymentAttemptService.attachCheckout` y `markFailed` guardan la fila entera con `save()`. No cumplen D.8.
+  - **Resuelto (`cd67b6f`):** usan actualizaciones condicionales en JPQL (D.8).
 - No hay bloqueo de fila sobre pedidos ni sobre pagos (D.7).
+  - **En parte (`3cc37f2`):** el pedido se bloquea al iniciar un pago, con la operación pública de pedidos. **Falta** el bloqueo del pago, que usa el aviso (parte 2).
 - No existe la operación de liberar una franja. `ReserveSlotService` solo reserva.
+  - **Sigue pendiente.**
 - El pedido no tiene reglas de transición (sección C).
+  - **Resuelto en el dominio (`f8ae2ae`):** `OrderStatus.canTransitionTo`. Las operaciones que las usan (confirmar, pasar a sin franja y cancelar) llegan en la parte 2.
 - `StartPaymentService.start` marca `FAILED` ante cualquier excepción de la pasarela, incluidos los tiempos agotados. Con P6 eso es correcto (D.3); falta guardar el motivo (P5).
   - No pone dinero en riesgo: la URL de pago solo llega al cliente después de `attachCheckout`, así que nadie puede pagar un intento que no tiene referencia.
+  - **Resuelto:** el motivo se guarda desde `cd67b6f`, y su clasificación (precisión de P5) está en `75adb8d`.
 - La espera por una conexión a la base es la de HikariCP por defecto (30 s), y no hay un tiempo máximo de espera de bloqueos (`lock_timeout`). Los dos pasan de los límites del aviso (D.4, P16).
+  - **Sigue pendiente (parte 2).**
 - `MercadoPagoGateway` usa un solo cliente HTTP con 5 s de conexión y 15 s de respuesta. La consulta del aviso necesita 3 s y 8 s (D.4).
+  - **Sigue pendiente (parte 2).**
 - Si ya hay un pago `PENDING` sin cobro, `StartPaymentService.start` responde que el cobro se está creando, sin plazo. Falta cerrar el intento a medio crear pasado el plazo de gracia (D.3).
-- **Ningún componente cambia hoy el estado de un pedido de forma indirecta.**
+  - **Resuelto al iniciar otro pago (`3cc37f2`):** plazo de gracia de 1 minuto. El cierre desde el job sigue en el PR 3 (D.3).
+- **Ningún componente cambia hoy el estado de un pedido de forma indirecta.** Sigue siendo cierto al 2026-11-20: la parte 1 solo cambia la retención, no el estado.
   - El único que escribe el estado es `CreateOrderService`, al crear el pedido.
   - `OrderPersistenceAdapter.save` solo inserta.
   - No hay escuchadores de eventos ni tareas programadas.
@@ -576,6 +586,23 @@ Salvo las marcadas como resueltas, ninguna de estas cuestiones está decidida. L
   - Motivos de `FAILED`:
     - **"rechazada por la pasarela":** la pasarela respondió que la petición no era válida (por ejemplo, un monto con centavos);
     - **"creación sin confirmar":** la pasarela no respondió, o el intento quedó a medio crear (D.3, P6).
+  - **Precisión del 2026-11-20: qué errores 4xx cuentan como "rechazada por la pasarela".** Solo vale para crear una order de Checkout Pro (`POST /v1/orders`, `processing_mode: manual`). No es una regla para otros endpoints de Mercado Pago ni para otras pasarelas. Se basa en la referencia oficial de ese endpoint, consultada el 2026-11-20.
+    - **Regla conservadora, una sola para los cuatro HTTP reconocidos (400, 401, 403 y 422):** "rechazada" solo si el HTTP está reconocido, la respuesta trae al menos un código de error y **todos** sus códigos están en la lista de ese HTTP. Cualquier otra cosa es "creación sin confirmar". Así nunca se afirma que una order no existe sin que Mercado Pago lo diga.
+    - **No hay rechazo financiero en este punto:** crear la order no cobra nada. El rechazo del banco llega después, con el aviso, y no lleva a `FAILED` (A.19 y A.20).
+
+      | Respuesta | Motivo |
+      |---|---|
+      | 400 con **todos** sus códigos entre los de petición mal hecha (`json_syntax_error`, `required_properties`, `unsupported_properties`, `minimum_properties`, `property_type`, `property_value`, `order_items_total_amount_mismatch`, `invalid_total_amount`, `empty_required_header`, `invalid_idempotency_key_length`) | Rechazada |
+      | 401 con **todos** sus códigos entre `401` (token incorrecto; la referencia usa ese texto como código) e `invalid_credentials` | Rechazada |
+      | 403 con **todos** sus códigos entre `forbidden` y `pa_unauthorized_result_from_policies` | Rechazada |
+      | 422 con **todos** sus códigos iguales a `unprocessable_entity` | Rechazada |
+      | 400, 401, 403 o 422 con algún código que no está en la lista de ese HTTP (por ejemplo `idempotency_validation_failed` en un 400), con un error sin `code`, sin el campo `errors`, con `errors` vacío, o con el cuerpo vacío o ilegible | Sin confirmar |
+      | 409 `idempotency_key_already_used` y 423 `resource_locked`: la order pudo crearse con esa llave | Sin confirmar |
+      | 429 y cualquier otro 4xx: Mercado Pago no garantiza que no se creó | Sin confirmar |
+      | 5xx, tiempo agotado, conexión cortada o respuesta sin `checkout_url` | Sin confirmar |
+
+    - Los códigos se leen del campo `code` de cada elemento de `errors` en la respuesta, no buscando texto en el cuerpo.
+    - No cambia ningún estado de `Payment`. Equivocarse de motivo no mueve dinero, porque la URL solo llega al cliente después de guardarla (D.3). El motivo correcto importa para la operación y para la mejora futura de P6, que repite la petición con la misma llave y puede recibir un 409 o un 423 con la order ya creada.
   - Para el cliente no cambia nada: en los dos casos ve "No pudimos iniciar el pago. Intenta de nuevo" (A.23). El motivo sirve para la operación.
   - Se descartan dos estados (`FAILED_BY_BANK` y `FAILED_BY_SYSTEM`): el del banco nunca se usaría, y el otro ya es `FAILED`. No hace falta migrar el estado del pago por esto.
 - **P6. Resuelta el 2026-11-14:** no hay estado `UNKNOWN`. Una creación de cobro sin respuesta, o un intento a medio crear pasado el plazo de gracia, se cierra como `FAILED` con el motivo "creación sin confirmar", porque nadie puede pagarlo. Una consulta o cancelación sin respuesta no cambia nada (D.3).

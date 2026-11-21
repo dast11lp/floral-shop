@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.floralshop.backend.ordering.application.port.out.OrderRepositoryPort;
@@ -31,6 +32,13 @@ class OrderPersistenceAdapter implements OrderRepositoryPort {
     @Transactional(readOnly = true)
     public Optional<Order> findByPublicCode(UUID publicCode) {
         return jpa.findByPublicCode(publicCode).map(mapper::toDomain);
+    }
+
+    // MANDATORY: sin una transacción abierta, falla. Un candado que se suelta al instante no protege nada.
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Optional<Order> findByPublicCodeForUpdate(UUID publicCode) {
+        return jpa.findByPublicCodeForUpdate(publicCode).map(mapper::toDomain);
     }
 
     // Se une a la transacción de quien lo llama (iniciar un pago); si no hay ninguna, abre una propia.

@@ -25,7 +25,6 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.floralshop.backend.ordering.application.service.OrderQueryService;
 import com.floralshop.backend.ordering.domain.model.CustomerContact;
 import com.floralshop.backend.ordering.domain.model.Order;
 import com.floralshop.backend.ordering.domain.model.OrderLine;
@@ -34,29 +33,29 @@ import com.floralshop.backend.payment.application.port.out.CheckoutRequest;
 import com.floralshop.backend.payment.application.port.out.CheckoutSession;
 import com.floralshop.backend.payment.application.port.out.PaymentGateway;
 import com.floralshop.backend.payment.application.port.out.PaymentMethodPolicyRepositoryPort;
-import com.floralshop.backend.payment.application.port.out.PaymentRepositoryPort;
 import com.floralshop.backend.payment.domain.exception.OrderNotPayableException;
-import com.floralshop.backend.payment.domain.exception.PaymentAlreadyInProgressException;
+import com.floralshop.backend.payment.domain.exception.PaymentAttemptClosedException;
 import com.floralshop.backend.payment.domain.exception.PaymentGatewayException;
 import com.floralshop.backend.payment.domain.exception.PaymentOptionNotAvailableException;
 import com.floralshop.backend.payment.domain.model.Payment;
 import com.floralshop.backend.payment.domain.model.PaymentMethod;
 import com.floralshop.backend.payment.domain.model.PaymentMethodPolicy;
 import com.floralshop.backend.payment.domain.model.PaymentStatus;
+import com.floralshop.backend.payment.domain.model.PaymentStatusReason;
 
-// Iniciar un pago: solo de pedidos pendientes, con una opción disponible, sin dos pagos a la vez,
-// y en tres pasos (guardar el intento, llamar a la pasarela, anotar el cobro o marcar el intento fallido).
+// Iniciar un pago coordina tres pasos: guardar el intento (con sus revisiones, en PaymentAttemptService),
+// llamar a la pasarela, y anotar el cobro o marcar el intento fallido. Las revisiones con el candado del pedido
+// se prueban en PaymentAttemptServiceTest y, con PostgreSQL real, en StartPaymentApiIntegrationTest.
 @ExtendWith(MockitoExtension.class)
 class StartPaymentServiceTest {
 
     private static final Instant CREATED = Instant.parse("2026-11-12T15:00:00Z");
+    private static final Instant EXPIRES = CREATED.plusSeconds(15 * 60);
     private static final UUID CODE = UUID.fromString("7f2c0000-0000-4000-8000-000000000001");
     private static final PaymentMethodPolicy CARD =
             new PaymentMethodPolicy("mercadopago", PaymentMethod.CARD, true, 36, 1);
 
-    @Mock OrderQueryService orders;
     @Mock PaymentMethodPolicyRepositoryPort policies;
-    @Mock PaymentRepositoryPort payments;
     @Mock PaymentAttemptService attempts;
     @Mock PaymentGateway mercadoPago;
 
@@ -65,42 +64,40 @@ class StartPaymentServiceTest {
     @BeforeEach
     void setUp() {
         when(mercadoPago.provider()).thenReturn("mercadopago");
-        service = new StartPaymentService(orders, policies, new PaymentGatewayRegistry(List.of(mercadoPago)),
-                payments, attempts);
+        service = new StartPaymentService(policies, new PaymentGatewayRegistry(List.of(mercadoPago)), attempts);
     }
 
     // Un pedido de 130.000 más 15.000 de envío: 145.000.
-    private static Order order(OrderStatus status) {
-        return new Order(42L, CODE, status, new CustomerContact("Ana", "ana@example.com", "3000000000"),
-                "Calle 1 # 2-3", 1L, "Chapinero", new BigDecimal("15000"), 9L, LocalDate.of(2026, 11, 20),
-                LocalTime.of(9, 0), LocalTime.of(11, 0), 24, 2,
-                List.of(new OrderLine(5L, "Ramo de rosas", "Grande", new BigDecimal("130000"), 1, 24, 2)),
+    private static Order order() {
+        return new Order(42L, CODE, OrderStatus.PENDING_PAYMENT,
+                new CustomerContact("Ana", "ana@example.com", "3000000000"), "Calle 1 # 2-3", 1L, "Chapinero",
+                new BigDecimal("15000"), 9L, LocalDate.of(2026, 11, 20), LocalTime.of(9, 0), LocalTime.of(11, 0),
+                24, 2, List.of(new OrderLine(5L, "Ramo de rosas", "Grande", new BigDecimal("130000"), 1, 24, 2)),
                 CREATED.plusSeconds(15 * 60), CREATED.plusSeconds(51 * 60));
     }
 
     // Un intento recién guardado: pendiente, todavía sin cobro en la pasarela.
-    private static Payment attempt(PaymentMethod method) {
-        return new Payment(7L, 42L, "mercadopago", method, PaymentStatus.PENDING, new BigDecimal("145000"),
-                null, null);
+    private static Payment attempt() {
+        return new Payment(7L, 42L, "mercadopago", PaymentMethod.CARD, PaymentStatus.PENDING,
+                new BigDecimal("145000"), null, null);
     }
 
-    private static Payment withCheckout(PaymentMethod method) {
-        return attempt(method).withCheckout("ORDTST01OLD", "https://mp/old");
-    }
-
-    private void payableOrderWithCardAvailable() {
-        when(orders.getByPublicCode(CODE)).thenReturn(order(OrderStatus.PENDING_PAYMENT));
+    private void cardAvailable() {
         when(policies.findEnabled("mercadopago", PaymentMethod.CARD)).thenReturn(Optional.of(CARD));
         when(mercadoPago.isConfigured()).thenReturn(true);
     }
 
+    private Payment newAttemptReserved() {
+        cardAvailable();
+        Payment saved = attempt();
+        when(attempts.reserve(CODE, CARD)).thenReturn(new PaymentReservation(order(), saved, false));
+        return saved;
+    }
+
     @Test
     void savesTheAttemptThenCreatesTheCheckoutThenAttachesIt() {
-        payableOrderWithCardAvailable();
-        when(payments.findPendingByOrderId(42L)).thenReturn(Optional.empty());
-        Payment saved = attempt(PaymentMethod.CARD);
-        when(attempts.reserve(order(OrderStatus.PENDING_PAYMENT), CARD)).thenReturn(saved);
-        CheckoutSession session = new CheckoutSession("ORDTST01ABC", "https://mp/pay");
+        Payment saved = newAttemptReserved();
+        CheckoutSession session = new CheckoutSession("ORDTST01ABC", "https://mp/pay", EXPIRES);
         when(mercadoPago.createCheckout(any())).thenReturn(session);
         Payment attached = saved.withCheckout("ORDTST01ABC", "https://mp/pay");
         when(attempts.attachCheckout(saved, session)).thenReturn(attached);
@@ -109,18 +106,16 @@ class StartPaymentServiceTest {
 
         // El orden importa: el intento se guarda antes de llamar a la pasarela.
         InOrder steps = inOrder(attempts, mercadoPago);
-        steps.verify(attempts).reserve(any(), any());
+        steps.verify(attempts).reserve(CODE, CARD);
         steps.verify(mercadoPago).createCheckout(any());
         steps.verify(attempts).attachCheckout(saved, session);
-        verify(attempts, never()).markFailed(any());
+        verify(attempts, never()).markFailed(any(), any());
     }
 
     @Test
     void sendsTheOrderTotalAndAnIdempotencyKeyMadeOfOrderCodeAndAttemptId() {
-        payableOrderWithCardAvailable();
-        when(payments.findPendingByOrderId(42L)).thenReturn(Optional.empty());
-        when(attempts.reserve(any(), any())).thenReturn(attempt(PaymentMethod.CARD));
-        when(mercadoPago.createCheckout(any())).thenReturn(new CheckoutSession("ORDTST01ABC", "https://mp/pay"));
+        newAttemptReserved();
+        when(mercadoPago.createCheckout(any())).thenReturn(new CheckoutSession("ORDTST01ABC", "https://mp/pay", EXPIRES));
 
         service.start(CODE, "mercadopago", PaymentMethod.CARD);
 
@@ -132,48 +127,81 @@ class StartPaymentServiceTest {
         assertThat(sent.getValue().idempotencyKey()).isEqualTo(CODE + "-7");
     }
 
+    // El cliente recargó la página o pulsó dos veces: recibe el mismo cobro, sin llamar a la pasarela.
+    @Test
+    void aReusedPaymentIsReturnedWithoutCallingTheGateway() {
+        cardAvailable();
+        Payment existing = attempt().withCheckout("ORDTST01OLD", "https://mp/old");
+        when(attempts.reserve(CODE, CARD)).thenReturn(new PaymentReservation(order(), existing, true));
+
+        assertThat(service.start(CODE, "mercadopago", PaymentMethod.CARD)).isSameAs(existing);
+        verify(mercadoPago, never()).createCheckout(any());
+        verify(attempts, never()).attachCheckout(any(), any());
+    }
+
     // Si la pasarela falla, el intento queda fallido (no pendiente a medias) y el error sigue su camino.
     @Test
     void aGatewayFailureMarksTheAttemptFailed() {
-        payableOrderWithCardAvailable();
-        when(payments.findPendingByOrderId(42L)).thenReturn(Optional.empty());
-        Payment saved = attempt(PaymentMethod.CARD);
-        when(attempts.reserve(any(), any())).thenReturn(saved);
+        Payment saved = newAttemptReserved();
         PaymentGatewayException failure = new PaymentGatewayException("Mercado Pago no respondió", null);
         when(mercadoPago.createCheckout(any())).thenThrow(failure);
 
         assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD)).isSameAs(failure);
-        verify(attempts).markFailed(saved);
+        verify(attempts).markFailed(saved, PaymentStatusReason.CREATION_UNCONFIRMED);
         verify(attempts, never()).attachCheckout(any(), any());
+    }
+
+    // La pasarela respondió que no crea el cobro (4xx): sabemos que no existe, motivo "rechazado" (ADR 0016, P5).
+    @Test
+    void aRejectionFromTheGatewayIsSavedAsRejected() {
+        Payment saved = newAttemptReserved();
+        when(mercadoPago.createCheckout(any()))
+                .thenThrow(new PaymentGatewayException("Mercado Pago rechazó el cobro: 400", null, true));
+
+        assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
+                .isInstanceOf(PaymentGatewayException.class);
+        verify(attempts).markFailed(saved, PaymentStatusReason.GATEWAY_REJECTED);
     }
 
     // No solo los errores de la pasarela: cualquier falla al crear el cobro deja el intento fallido.
     @Test
     void anyOtherFailureWhileCreatingTheCheckoutAlsoMarksTheAttemptFailed() {
-        payableOrderWithCardAvailable();
-        when(payments.findPendingByOrderId(42L)).thenReturn(Optional.empty());
-        Payment saved = attempt(PaymentMethod.CARD);
-        when(attempts.reserve(any(), any())).thenReturn(saved);
+        Payment saved = newAttemptReserved();
         when(mercadoPago.createCheckout(any())).thenThrow(new ArithmeticException("Monto con centavos"));
 
         assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
                 .isInstanceOf(ArithmeticException.class);
-        verify(attempts).markFailed(saved);
+        verify(attempts).markFailed(saved, PaymentStatusReason.CREATION_UNCONFIRMED);
     }
 
+    // Si otro proceso cerró el intento mientras se esperaba a la pasarela, el cliente no recibe el enlace
+    // y el intento no se marca fallido: su cierre se respeta (ADR 0016, D.8).
     @Test
-    void anOrderThatIsNotPendingCannotBePaid() {
-        when(orders.getByPublicCode(CODE)).thenReturn(order(OrderStatus.CONFIRMED));
+    void whenTheAttemptWasClosedMeanwhileTheClientGetsNoCheckout() {
+        Payment saved = newAttemptReserved();
+        CheckoutSession session = new CheckoutSession("ORDTST01ABC", "https://mp/pay", EXPIRES);
+        when(mercadoPago.createCheckout(any())).thenReturn(session);
+        when(attempts.attachCheckout(saved, session)).thenThrow(new PaymentAttemptClosedException());
+
+        assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
+                .isInstanceOf(PaymentAttemptClosedException.class)
+                .message().doesNotContain("https://mp/pay");
+        verify(attempts, never()).markFailed(any(), any());
+    }
+
+    // Si la revisión con el candado rechaza el pago, no se llama a la pasarela.
+    @Test
+    void whenTheReservationIsRejectedTheGatewayIsNotCalled() {
+        cardAvailable();
+        when(attempts.reserve(CODE, CARD)).thenThrow(new OrderNotPayableException(CODE));
 
         assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
                 .isInstanceOf(OrderNotPayableException.class);
-        verifyNoInteractions(attempts);
         verify(mercadoPago, never()).createCheckout(any());
     }
 
     @Test
     void aDisabledOptionIsNotAvailable() {
-        when(orders.getByPublicCode(CODE)).thenReturn(order(OrderStatus.PENDING_PAYMENT));
         when(policies.findEnabled("mercadopago", PaymentMethod.PSE)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.PSE))
@@ -183,49 +211,11 @@ class StartPaymentServiceTest {
 
     @Test
     void anOptionWhoseGatewayHasNoCredentialsIsNotAvailable() {
-        when(orders.getByPublicCode(CODE)).thenReturn(order(OrderStatus.PENDING_PAYMENT));
         when(policies.findEnabled("mercadopago", PaymentMethod.CARD)).thenReturn(Optional.of(CARD));
         when(mercadoPago.isConfigured()).thenReturn(false);
 
         assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
                 .isInstanceOf(PaymentOptionNotAvailableException.class);
         verifyNoInteractions(attempts);
-    }
-
-    // El cliente recargó la página o pulsó dos veces: recibe el mismo cobro, sin crear otro.
-    @Test
-    void aPendingPaymentWithTheSameOptionAndItsCheckoutIsReturnedAgain() {
-        payableOrderWithCardAvailable();
-        Payment existing = withCheckout(PaymentMethod.CARD);
-        when(payments.findPendingByOrderId(42L)).thenReturn(Optional.of(existing));
-
-        assertThat(service.start(CODE, "mercadopago", PaymentMethod.CARD)).isSameAs(existing);
-        verifyNoInteractions(attempts);
-        verify(mercadoPago, never()).createCheckout(any());
-    }
-
-    // Cambiar de opción con un pago en curso espera al PR 2; mientras, un conflicto con un mensaje claro.
-    @Test
-    void aPendingPaymentWithAnotherOptionIsAConflictWithAClearMessage() {
-        payableOrderWithCardAvailable();
-        when(payments.findPendingByOrderId(42L)).thenReturn(Optional.of(withCheckout(PaymentMethod.PSE)));
-
-        assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
-                .isInstanceOf(PaymentAlreadyInProgressException.class)
-                .hasMessageContaining("ya tiene un pago en curso");
-        verifyNoInteractions(attempts);
-        verify(mercadoPago, never()).createCheckout(any());
-    }
-
-    // Otra petición guardó el intento y todavía está creando el cobro: no se crea un segundo.
-    @Test
-    void aPendingPaymentWhoseCheckoutIsStillBeingCreatedIsAConflict() {
-        payableOrderWithCardAvailable();
-        when(payments.findPendingByOrderId(42L)).thenReturn(Optional.of(attempt(PaymentMethod.CARD)));
-
-        assertThatThrownBy(() -> service.start(CODE, "mercadopago", PaymentMethod.CARD))
-                .isInstanceOf(PaymentAlreadyInProgressException.class);
-        verifyNoInteractions(attempts);
-        verify(mercadoPago, never()).createCheckout(any());
     }
 }

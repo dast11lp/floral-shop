@@ -10,6 +10,7 @@ import com.floralshop.backend.ordering.application.port.out.OrderRepositoryPort;
 import com.floralshop.backend.ordering.application.port.out.OrderSettingsRepositoryPort;
 import com.floralshop.backend.ordering.application.service.CreateOrderService;
 import com.floralshop.backend.ordering.application.service.OrderHoldService;
+import com.floralshop.backend.ordering.application.service.OrderLockService;
 import com.floralshop.backend.ordering.application.service.OrderQueryService;
 import com.floralshop.backend.scheduling.application.service.DeliveryOptionsService;
 import com.floralshop.backend.scheduling.application.service.ReserveSlotService;
@@ -35,5 +36,11 @@ class OrderingBeanConfig {
     @Bean
     OrderHoldService orderHoldService(OrderRepositoryPort orders) {
         return new OrderHoldService(orders);
+    }
+
+    // Sin transacción propia: el candado vive en la transacción de quien lo pide (por ejemplo, iniciar un pago).
+    @Bean
+    OrderLockService orderLockService(OrderRepositoryPort orders) {
+        return new OrderLockService(orders);
     }
 }
