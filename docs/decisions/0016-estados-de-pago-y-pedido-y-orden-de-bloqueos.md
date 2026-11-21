@@ -512,18 +512,27 @@ Las reglas D.6 a D.9 se aplican a todos. Lo que falta definir de cada proceso es
 - Validar `payment.mercadopago.checkout-expiration` al arrancar, con un máximo (por ejemplo, no más que los minutos de la opción). A.19 supone un vencimiento corto; el valor de 24 horas usado en V1 era solo para la prueba.
 - Registrar cada par de estado y detalle recibido de la pasarela y alertar ante uno no visto antes, para detectar si producción difiere del sandbox.
 
-**Hechos del código actual que habrá que cambiar** (revisados el 2026-11-12 en `main`, 6f46a3c):
+**Hechos del código actual que habrá que cambiar** (revisados el 2026-11-12 en `main`, 6f46a3c; estado al 2026-11-20 en `feat/payment-foundations`, `75adb8d`, parte 1 del PR 2, todavía sin PR):
 - `StartPaymentService.start` revisa el estado del pedido fuera de la transacción, y `PaymentAttemptService.reserve` ignora que `OrderHoldService.extendHold` no pudo extender la retención. Es la carrera del contexto.
+  - **Resuelto (`3cc37f2`):** `reserve` bloquea el pedido y revisa su estado y su retención dentro de la transacción. `extendHold` corre con el bloqueo puesto, así que nadie cambia el pedido en medio.
 - `PaymentAttemptService.attachCheckout` y `markFailed` guardan la fila entera con `save()`. No cumplen D.8.
+  - **Resuelto (`cd67b6f`):** usan actualizaciones condicionales en JPQL (D.8).
 - No hay bloqueo de fila sobre pedidos ni sobre pagos (D.7).
+  - **En parte (`3cc37f2`):** el pedido se bloquea al iniciar un pago, con la operación pública de pedidos. **Falta** el bloqueo del pago, que usa el aviso (parte 2).
 - No existe la operación de liberar una franja. `ReserveSlotService` solo reserva.
+  - **Sigue pendiente.**
 - El pedido no tiene reglas de transición (sección C).
+  - **Resuelto en el dominio (`f8ae2ae`):** `OrderStatus.canTransitionTo`. Las operaciones que las usan (confirmar, pasar a sin franja y cancelar) llegan en la parte 2.
 - `StartPaymentService.start` marca `FAILED` ante cualquier excepción de la pasarela, incluidos los tiempos agotados. Con P6 eso es correcto (D.3); falta guardar el motivo (P5).
   - No pone dinero en riesgo: la URL de pago solo llega al cliente después de `attachCheckout`, así que nadie puede pagar un intento que no tiene referencia.
+  - **Resuelto:** el motivo se guarda desde `cd67b6f`, y su clasificación (precisión de P5) está en `75adb8d`.
 - La espera por una conexión a la base es la de HikariCP por defecto (30 s), y no hay un tiempo máximo de espera de bloqueos (`lock_timeout`). Los dos pasan de los límites del aviso (D.4, P16).
+  - **Sigue pendiente (parte 2).**
 - `MercadoPagoGateway` usa un solo cliente HTTP con 5 s de conexión y 15 s de respuesta. La consulta del aviso necesita 3 s y 8 s (D.4).
+  - **Sigue pendiente (parte 2).**
 - Si ya hay un pago `PENDING` sin cobro, `StartPaymentService.start` responde que el cobro se está creando, sin plazo. Falta cerrar el intento a medio crear pasado el plazo de gracia (D.3).
-- **Ningún componente cambia hoy el estado de un pedido de forma indirecta.**
+  - **Resuelto al iniciar otro pago (`3cc37f2`):** plazo de gracia de 1 minuto. El cierre desde el job sigue en el PR 3 (D.3).
+- **Ningún componente cambia hoy el estado de un pedido de forma indirecta.** Sigue siendo cierto al 2026-11-20: la parte 1 solo cambia la retención, no el estado.
   - El único que escribe el estado es `CreateOrderService`, al crear el pedido.
   - `OrderPersistenceAdapter.save` solo inserta.
   - No hay escuchadores de eventos ni tareas programadas.
